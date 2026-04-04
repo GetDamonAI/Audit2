@@ -77,7 +77,9 @@ body {
   width: auto;
   display: block;
 }
-
+.logo-item img[src*="gemini"] {
+  height: 30px;
+}
 .form-intro h2,
 .results h2,
 .cta-block h2 {
