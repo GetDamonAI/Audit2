@@ -55,7 +55,18 @@ form.addEventListener("submit", async (event) => {
       li.textContent = item;
       priorities.appendChild(li);
     });
-
+await fetch("/.netlify/functions/send-audit-email", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    email: payload.email,
+    score: data.score,
+    summary: data.summary,
+    priorities: data.priorities
+  })
+});
     results.hidden = false;
     results.scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (error) {
