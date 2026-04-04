@@ -50,7 +50,7 @@ body {
 
 .hero-subhead {
   margin: 0;
-  max-width: 22rem;
+  max-width: 32rem;
   font-size: 18px;
   line-height: 1.55;
   letter-spacing: -0.03em;
@@ -73,7 +73,7 @@ body {
 }
 
 .logo-item img {
-  height: 28px;
+  height: 36px;
   width: auto;
   display: block;
 }
