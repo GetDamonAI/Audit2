@@ -310,3 +310,37 @@ input:focus {
 #results[hidden] + .cta-block {
   display: none !important;
 }
+/* === Site Health Snapshot === */
+
+.audit-tech {
+  margin: 24px 0 32px;
+}
+
+.audit-tech-title {
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(23,23,23,0.5);
+  margin-bottom: 12px;
+}
+
+.audit-tech-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.audit-tech-item {
+  padding: 12px 14px;
+  background: #f6f6f4;
+  border-radius: 10px;
+  border: 1px solid rgba(23,23,23,0.06);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+}
+
+.audit-tech-item strong {
+  font-weight: 600;
+}
