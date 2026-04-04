@@ -251,3 +251,10 @@ input:focus {
 #results[hidden] + .cta-block {
   display: none;
 }
+.results[hidden] {
+  display: none !important;
+}
+
+#results[hidden] + .cta-block {
+  display: none !important;
+}
