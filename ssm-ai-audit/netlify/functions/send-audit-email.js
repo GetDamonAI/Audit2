@@ -5,13 +5,12 @@ exports.handler = async (event) => {
 
     if (!resendKey) {
       return {
-  statusCode: 200,
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    success: true,
-    resendResult: result
-  })
-};
+        statusCode: 500,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ error: "Missing RESEND_API_KEY" })
+      };
+    }
+
     const breakdownHtml = (data.breakdown || [])
       .map((item) => `<li>${item.label}: ${item.value}/100</li>`)
       .join("");
@@ -46,37 +45,53 @@ exports.handler = async (event) => {
       </div>
     `;
 
-    const recipients = ["hello@semanticsearchmarketing.com"];
-    if (data.email) recipients.push(data.email);
+    async function sendOne(toAddress) {
+      const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${resendKey}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          from: "audit@semanticsearchmarketing.com",
+          to: [toAddress],
+          subject: `AI Visibility Audit${data.businessName ? ` - ${data.businessName}` : ""}`,
+          html
+        })
+      });
 
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${resendKey}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        from: "audit@semanticsearchmarketing.com",
-        to: recipients,
-        subject: `AI Visibility Audit${data.businessName ? ` - ${data.businessName}` : ""}`,
-        html: html
-      })
-    });
+      const result = await response.json();
 
-    const result = await response.json();
+      return {
+        ok: response.ok,
+        to: toAddress,
+        result
+      };
+    }
 
-    if (!response.ok) {
+    const adminSend = await sendOne("hello@semanticsearchmarketing.com");
+    const userSend = data.email ? await sendOne(data.email) : { ok: true, to: null, result: null };
+
+    if (!adminSend.ok || !userSend.ok) {
       return {
         statusCode: 500,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ error: result.message || result.error || "Email send failed" })
+        body: JSON.stringify({
+          error: "Email send failed",
+          adminSend,
+          userSend
+        })
       };
     }
 
     return {
       statusCode: 200,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ success: true, result })
+      body: JSON.stringify({
+        success: true,
+        adminSend,
+        userSend
+      })
     };
   } catch (error) {
     return {
