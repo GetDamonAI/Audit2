@@ -12,11 +12,11 @@ exports.handler = async (event) => {
     }
 
     const breakdownHtml = (data.breakdown || [])
-      .map(item => `<li>${item.label}: ${item.value}/100</li>`)
+      .map((item) => `<li>${item.label}: ${item.value}/100</li>`)
       .join("");
 
     const prioritiesHtml = (data.priorities || [])
-      .map(item => `<li>${item}</li>`)
+      .map((item) => `<li>${item}</li>`)
       .join("");
 
     const html = `
@@ -51,14 +51,14 @@ exports.handler = async (event) => {
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${resendKey}`,
+        Authorization: `Bearer ${resendKey}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        from: "from: "audit@semanticsearchmarketing.com",
+        from: "audit@semanticsearchmarketing.com",
         to: recipients,
         subject: `AI Visibility Audit${data.businessName ? ` - ${data.businessName}` : ""}`,
-        html
+        html: html
       })
     });
 
@@ -68,7 +68,7 @@ exports.handler = async (event) => {
       return {
         statusCode: 500,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ error: result.message || "Email send failed" })
+        body: JSON.stringify({ error: result.message || result.error || "Email send failed" })
       };
     }
 
