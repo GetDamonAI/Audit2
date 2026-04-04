@@ -5,12 +5,13 @@ exports.handler = async (event) => {
 
     if (!resendKey) {
       return {
-        statusCode: 500,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ error: "Missing RESEND_API_KEY" })
-      };
-    }
-
+  statusCode: 200,
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    success: true,
+    resendResult: result
+  })
+};
     const breakdownHtml = (data.breakdown || [])
       .map((item) => `<li>${item.label}: ${item.value}/100</li>`)
       .join("");
