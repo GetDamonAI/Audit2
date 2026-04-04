@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Visibility Audit | Semantic Search Marketing</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="audit-shell">
+    <section class="audit-wrap">
+  
+
+      <h1 class="hero-title">Fix Your AI Visibility<br>in Minutes</h1>
+
+      <p class="hero-subhead">
+        Make your brand easy for AI to understand, recommend, and rank.
+      </p>
+
+      <div class="logo-row">
+  <div class="logo-item"><img src="logos/chatgpt.png" alt="ChatGPT"></div>
+  <div class="logo-item"><img src="logos/google.png" alt="Google"></div>
+  <div class="logo-item"><img src="logos/claude.png" alt="Claude"></div>
+  <div class="logo-item"><img src="logos/perplexity.png" alt="Perplexity"></div>
+</div>
+
+      <section class="form-intro">
+        <h2>Start with the basics.</h2>
+      </section>
+
+      <form id="audit-form" class="audit-form">
+        <div class="field">
+          <label for="url">Website URL</label>
+          <input id="url" name="url" type="text" placeholder="yourwebsite.com" required />
+          <p class="help">Paste your website so we can generate your quick AI visibility score.</p>
+        </div>
+
+        <div class="field">
+          <label for="businessName">Business Name</label>
+          <input id="businessName" name="businessName" type="text" placeholder="Your business name" required />
+        </div>
+
+        <div class="field">
+          <label for="industry">Industry</label>
+          <input id="industry" name="industry" type="text" placeholder="Industry" required />
+        </div>
+
+        <div class="field">
+          <label for="service">Main Product or Service</label>
+          <input id="service" name="service" type="text" placeholder="What do you sell?" required />
+        </div>
+
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" placeholder="you@company.com" required />
+          <p class="help">Add your email so we can send your audit and follow up right away.</p>
+        </div>
+
+        <button type="submit" id="submit-button" class="primary-button">Generate My Audit</button>
+        <p class="note">Instant strategic snapshot.</p>
+      </form>
+
+      <section id="results" class="results" hidden>
+        <h2>Your AI visibility assessment</h2>
+
+        <div class="score-block">
+          <p class="score"><span id="score-value">0</span><span class="score-suffix"> / 100</span></p>
+          <p id="summary" class="summary"></p>
+        </div>
+
+        <div class="panel">
+          <div id="breakdown"></div>
+        </div>
+
+        <div class="panel">
+          <ol id="priorities" class="priorities"></ol>
+        </div>
+      </section>
+
+      <section class="cta-block">
+        <p class="kicker">Next Step</p>
+        <h2>Get the full readout</h2>
+        <p class="cta-copy">
+          We’ll send your audit, highlight the biggest opportunities, and reach out with a quick chance to connect.
+        </p>
+        <div class="cta-actions">
+          <a class="primary-button cta-link" href="YOUR_GOOGLE_BOOKING_LINK">Book a 10 Minute Review</a>
+          <a class="secondary-button cta-link" href="/services">Get the Full Audit</a>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
