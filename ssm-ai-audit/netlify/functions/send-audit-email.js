@@ -55,7 +55,7 @@ exports.handler = async (event) => {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        from: "Semantic Search Marketing <Semantic Search Marketing <audit@semanticsearchmarketing.com>>",
+        from: "from: "audit@semanticsearchmarketing.com",
         to: recipients,
         subject: `AI Visibility Audit${data.businessName ? ` - ${data.businessName}` : ""}`,
         html
