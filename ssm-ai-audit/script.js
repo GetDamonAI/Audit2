@@ -35,7 +35,7 @@ form.addEventListener("submit", async (event) => {
     const data = await auditResponse.json();
 
     if (!auditResponse.ok) {
-      throw new Error(data.error || "Audit generation failed.");
+      throw new Error(JSON.stringify(emailData));
     }
 
     scoreValue.textContent = data.score;
