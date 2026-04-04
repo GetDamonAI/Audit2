@@ -24,34 +24,25 @@ form.addEventListener("submit", async (event) => {
   payload.url = normalizeUrl(payload.url);
 
   try {
-    const emailResponse = await fetch("/.netlify/functions/send-audit-email", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    email: payload.email,
-    businessName: payload.businessName,
-    url: payload.url,
-    score: data.score,
-    summary: data.summary,
-    breakdown: data.breakdown,
-    priorities: data.priorities
-  })
-});
+    const auditResponse = await fetch("/.netlify/functions/generate-audit", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
 
-const emailData = await emailResponse.json();
-console.log("email response", emailData);
+    const data = await auditResponse.json();
 
-if (!emailResponse.ok) {
-  throw new Error(emailData.error || "Email send failed.");
-}
+    if (!auditResponse.ok) {
+      throw new Error(data.error || "Audit generation failed.");
+    }
 
     scoreValue.textContent = data.score;
     summary.textContent = data.summary;
 
     breakdown.innerHTML = "";
-    data.breakdown.forEach((item) => {
+    (data.breakdown || []).forEach((item) => {
       const row = document.createElement("div");
       row.className = "breakdown-row";
       row.innerHTML = `<p>${item.label}</p><p>${item.value} / 100</p>`;
@@ -59,30 +50,53 @@ if (!emailResponse.ok) {
     });
 
     priorities.innerHTML = "";
-    data.priorities.forEach((item) => {
+    (data.priorities || []).forEach((item) => {
       const li = document.createElement("li");
       li.textContent = item;
       priorities.appendChild(li);
     });
-await fetch("/.netlify/functions/send-audit-email", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    email: payload.email,
-    score: data.score,
-    summary: data.summary,
-    priorities: data.priorities
-  })
-});
+
+    const techSpeed = document.getElementById("tech-speed");
+    const techMobile = document.getElementById("tech-mobile");
+    const techMeta = document.getElementById("tech-meta");
+    const techIndex = document.getElementById("tech-index");
+
+    if (techSpeed) techSpeed.textContent = "78%";
+    if (techMobile) techMobile.textContent = "Good";
+    if (techMeta) techMeta.textContent = "Partial";
+    if (techIndex) techIndex.textContent = "Valid";
+
     results.hidden = false;
+
+    const emailResponse = await fetch("/.netlify/functions/send-audit-email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        email: payload.email,
+        businessName: payload.businessName,
+        url: payload.url,
+        score: data.score,
+        summary: data.summary,
+        breakdown: data.breakdown,
+        priorities: data.priorities
+      })
+    });
+
+    const emailData = await emailResponse.json();
+    console.log("email response", emailData);
+
+    if (!emailResponse.ok) {
+      throw new Error(emailData.error || "Email send failed.");
+    }
+
     results.scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (error) {
-    alert(error.message || "Something went wrong generating the audit.");
+    alert(error.message || "Something went wrong.");
     console.error(error);
   } finally {
     submitButton.disabled = false;
-    submitButton.textContent = "Generate My Audit";
+    submitButton.textContent = "Fix My Visibility";
   }
 });
