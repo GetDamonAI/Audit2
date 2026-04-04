@@ -24,19 +24,28 @@ form.addEventListener("submit", async (event) => {
   payload.url = normalizeUrl(payload.url);
 
   try {
-    const response = await fetch("/.netlify/functions/generate-audit", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(payload)
-    });
+    const emailResponse = await fetch("/.netlify/functions/send-audit-email", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    email: payload.email,
+    businessName: payload.businessName,
+    url: payload.url,
+    score: data.score,
+    summary: data.summary,
+    breakdown: data.breakdown,
+    priorities: data.priorities
+  })
+});
 
-    const data = await response.json();
+const emailData = await emailResponse.json();
+console.log("email response", emailData);
 
-    if (!response.ok) {
-      throw new Error(data.error || "Audit generation failed.");
-    }
+if (!emailResponse.ok) {
+  throw new Error(emailData.error || "Email send failed.");
+}
 
     scoreValue.textContent = data.score;
     summary.textContent = data.summary;
