@@ -235,11 +235,63 @@ input:focus {
 }
 
 @media (max-width: 640px) {
-  .hero-title {
-    font-size: 36px;
-    line-height: 1;
-    letter-spacing: -0.045em;
+  .audit-shell {
+    padding: 20px 14px 36px;
   }
+
+  .audit-wrap {
+    gap: 32px;
+  }
+
+  .hero-title {
+    font-size: 34px;
+    line-height: 0.98;
+    letter-spacing: -0.045em;
+    max-width: 10ch;
+  }
+
+  .hero-subhead {
+    max-width: 18rem;
+    font-size: 17px;
+    line-height: 1.55;
+  }
+
+  .logo-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 20px;
+    margin: 18px 0 8px;
+  }
+
+  .logo-item {
+    min-height: 34px;
+  }
+
+  .logo-item img {
+    height: 26px;
+  }
+
+  .audit-form,
+  .results,
+  .cta-block {
+    padding: 24px 18px 20px;
+    border-radius: 24px;
+  }
+
+  .form-intro h2,
+  .results h2,
+  .cta-block h2 {
+    font-size: 28px;
+    line-height: 1;
+  }
+
+  .score-value {
+    font-size: 64px;
+  }
+
+  .score-total {
+    margin-bottom: 8px;
+  }
+}
 }
 /* Hide CTA until results show */
 #results[hidden] + .cta-block {
