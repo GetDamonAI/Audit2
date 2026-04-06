@@ -3,29 +3,30 @@ exports.handler = async (event) => {
     const input = JSON.parse(event.body || "{}");
     const openAiKey = process.env.OPENAI_API_KEY;
     const pageSpeedKey = process.env.PAGESPEED_API_KEY;
+    const serperKey = process.env.SERPER_API_KEY;
 
     if (!openAiKey) {
-      return {
-        statusCode: 500,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ error: "Missing OPENAI_API_KEY" })
-      };
+      return json(500, { error: "Missing OPENAI_API_KEY" });
     }
 
     const url = normalizeUrl(input.url);
+    const hostname = getHostname(url);
 
     const homepageHtml = await fetchHtml(url);
     const htmlChecks = getHtmlChecks(homepageHtml);
-
-    const pageSpeed = pageSpeedKey
-      ? await getPageSpeed(url, pageSpeedKey)
-      : null;
+    const pageSpeed = pageSpeedKey ? await getPageSpeed(url, pageSpeedKey) : null;
+    const serper = serperKey ? await getSerperSignals(input, hostname, serperKey) : null;
 
     const tech = {
       speed: pageSpeed?.speedText || "Unavailable",
       mobile: pageSpeed?.mobileText || "Unknown",
       meta: htmlChecks.metaText,
       indexability: htmlChecks.indexabilityText
+    };
+
+    const serp = {
+      presence: serper?.presence || "Unknown",
+      query: serper?.query || ""
     };
 
     const prompt = `
@@ -46,6 +47,16 @@ Technical findings:
 - Robots noindex found: ${htmlChecks.hasNoindex}
 - PageSpeed mobile score: ${pageSpeed?.score ?? "Unavailable"}
 
+Search findings:
+- Search query used: ${serper?.query || "Unavailable"}
+- Brand found in organic results: ${serper?.brandFound ?? "Unknown"}
+- Organic results checked: ${serper?.organicCount ?? 0}
+- People Also Ask count: ${serper?.paaCount ?? 0}
+
+AI recommendation simulation:
+Would this business likely be recommended for its core offer based on these signals?
+Return likelihood as one of: Likely, Possible, Unlikely.
+
 Return valid JSON only with this exact shape:
 {
   "score": number,
@@ -56,12 +67,15 @@ Return valid JSON only with this exact shape:
     { "label": "Authority Signals", "value": number },
     { "label": "Citation Readiness", "value": number }
   ],
-  "priorities": ["string", "string", "string"]
+  "priorities": ["string", "string", "string"],
+  "recommendation": {
+    "likelihood": "Likely|Possible|Unlikely",
+    "reason": "string"
+  }
 }
 
 Keep the tone concise, strategic, and credible.
 Do not use markdown fences.
-Base the answer partly on the technical findings above.
 `;
 
     const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -89,40 +103,55 @@ Base the answer partly on the technical findings above.
     const aiJson = await aiResponse.json();
 
     if (!aiResponse.ok) {
-      return {
-        statusCode: 500,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          error: aiJson.error?.message || "OpenAI request failed."
-        })
-      };
+      return json(500, {
+        error: aiJson.error?.message || "OpenAI request failed."
+      });
     }
 
     const raw = aiJson.choices?.[0]?.message?.content || "{}";
-    const cleaned = raw.trim().replace(/^```json/i, "").replace(/^```/, "").replace(/```$/, "").trim();
+    const cleaned = raw
+      .trim()
+      .replace(/^```json/i, "")
+      .replace(/^```/, "")
+      .replace(/```$/, "")
+      .trim();
+
     const parsed = JSON.parse(cleaned);
 
     parsed.tech = tech;
+    parsed.serp = serp;
+    parsed.recommendation = parsed.recommendation || {
+      likelihood: serper?.brandFound ? "Possible" : "Unlikely",
+      reason: "Based on available search and site signals."
+    };
 
-    return {
-      statusCode: 200,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(parsed)
-    };
+    return json(200, parsed);
   } catch (error) {
-    return {
-      statusCode: 500,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ error: error.message || "Audit generation failed." })
-    };
+    return json(500, { error: error.message || "Audit generation failed." });
   }
 };
+
+function json(statusCode, body) {
+  return {
+    statusCode,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  };
+}
 
 function normalizeUrl(value) {
   const trimmed = (value || "").trim();
   if (!trimmed) return "";
   if (/^https?:\/\//i.test(trimmed)) return trimmed;
   return `https://${trimmed}`;
+}
+
+function getHostname(url) {
+  try {
+    return new URL(url).hostname.replace(/^www\./i, "");
+  } catch {
+    return "";
+  }
 }
 
 async function fetchHtml(url) {
@@ -136,9 +165,8 @@ async function fetchHtml(url) {
       },
       signal: controller.signal
     });
-
     return await response.text();
-  } catch (error) {
+  } catch {
     return "";
   } finally {
     clearTimeout(timeout);
@@ -185,7 +213,51 @@ async function getPageSpeed(url, apiKey) {
       speedText: numeric !== null ? `${numeric}/100` : "Unavailable",
       mobileText: numeric !== null ? (numeric >= 90 ? "Strong" : numeric >= 50 ? "Moderate" : "Needs work") : "Unknown"
     };
-  } catch (error) {
+  } catch {
     return null;
+  }
+}
+
+async function getSerperSignals(input, hostname, apiKey) {
+  const query = `${input.service || input.businessName || hostname} ${input.industry || ""}`.trim();
+
+  try {
+    const response = await fetch("https://google.serper.dev/search", {
+      method: "POST",
+      headers: {
+        "X-API-KEY": apiKey,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        q: query,
+        num: 10
+      })
+    });
+
+    const json = await response.json();
+    const organic = json.organic || [];
+    const peopleAlsoAsk = json.peopleAlsoAsk || [];
+
+    const brandFound = organic.some((item) => {
+      const link = (item.link || "").toLowerCase();
+      const title = (item.title || "").toLowerCase();
+      return link.includes(hostname) || title.includes((input.businessName || "").toLowerCase());
+    });
+
+    return {
+      query,
+      organicCount: organic.length,
+      paaCount: peopleAlsoAsk.length,
+      brandFound,
+      presence: brandFound ? "Found in search results" : "Not found in top results"
+    };
+  } catch {
+    return {
+      query,
+      organicCount: 0,
+      paaCount: 0,
+      brandFound: false,
+      presence: "Unavailable"
+    };
   }
 }
