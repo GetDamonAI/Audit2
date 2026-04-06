@@ -10,10 +10,10 @@
 <body>
   <main class="audit-shell">
     <section class="audit-wrap">
-      <h1 class="hero-title">Fix Your AI Visibility<br>in Minutes</h1>
+      <h1 class="hero-title">Find Out How You Show Up in AI</h1>
 
       <p class="hero-subhead">
-        Make your brand easy for AI to understand, recommend, and rank.
+        AI visibility now shapes how brands are discovered, trusted, and recommended. This quick audit shows how your site is being interpreted, what signals are helping or hurting, and where to focus first.
       </p>
 
       <div class="logo-row">
@@ -31,7 +31,6 @@
         <div class="field">
           <label for="url">Website URL</label>
           <input id="url" name="url" type="text" placeholder="yourwebsite.com" required />
-          <p class="help">Paste your website so we can generate your quick AI visibility score.</p>
         </div>
 
         <div class="field">
@@ -52,11 +51,15 @@
         <div class="field">
           <label for="email">Email</label>
           <input id="email" name="email" type="email" placeholder="you@company.com" required />
-          <p class="help">Add your email and we’ll send you your audit.</p>
         </div>
 
-        <button type="submit" id="submit-button" class="primary-button">Fix My Visibility</button>
-        <p class="note">Instant strategic snapshot.</p>
+        <button type="submit" id="submit-button" class="primary-button">Find Out How You Show Up in AI</button>
+        <div id="thinking-status" class="thinking-status" hidden>
+          <div class="thinking-dots" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </div>
+          <p id="thinking-text">Checking site structure...</p>
+        </div>
       </form>
 
       <section id="results" class="results" hidden>
@@ -89,6 +92,7 @@
         </div>
 
         <div class="panel">
+          <p class="audit-section-title">What we checked</p>
           <div id="breakdown"></div>
         </div>
 
@@ -115,32 +119,38 @@
         </div>
 
         <div class="panel">
+          <p class="audit-section-title">What needs fixing</p>
           <ol id="priorities" class="priorities"></ol>
         </div>
-      </section>
 
-      <section class="cta-block">
-        <h2>Next Step</h2>
-        <p class="cta-copy">
-          We’ll send your audit, highlight the biggest opportunities, and give you a quick chance to connect.
-        </p>
-        <div class="cta-actions">
-          <a
-            class="primary-button cta-link"
-            href="PASTE_YOUR_GOOGLE_BOOKING_LINK_HERE"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Book a 10 Minute Review
-          </a>
-
-          <a
-            class="secondary-button cta-link"
-            href="mailto:hello@semanticsearchmarketing.com?subject=Full%20Audit%20Request&body=Hi%20Damon%2C%20I%E2%80%99d%20like%20to%20learn%20more%20about%20a%20full%20AI%20visibility%20audit."
-          >
-            Request a Full Audit
-          </a>
+        <div class="panel">
+          <p class="audit-section-title">Biggest opportunity</p>
+          <p id="opportunity" class="summary"></p>
         </div>
+
+        <section class="cta-block results-cta">
+          <h2>Next Step</h2>
+          <p class="cta-copy">
+            Want a more tailored review? Book a quick walkthrough or send an inquiry about a full audit.
+          </p>
+          <div class="cta-actions">
+            <a
+              class="primary-button cta-link"
+              href="PASTE_YOUR_GOOGLE_BOOKING_LINK_HERE"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Book a 15 Minute Review
+            </a>
+
+            <a
+              class="secondary-button cta-link"
+              href="mailto:hello@semanticsearchmarketing.com?subject=Full%20AI%20Audit%20Inquiry&body=Hi%20Damon%2C%20I%E2%80%99d%20like%20to%20inquire%20about%20a%20full%20AI%20visibility%20review."
+            >
+              Inquire About a Full Review
+            </a>
+          </div>
+        </section>
       </section>
     </section>
   </main>
