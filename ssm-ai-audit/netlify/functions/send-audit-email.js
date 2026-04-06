@@ -77,7 +77,7 @@ exports.handler = async (event) => {
           This is a quick snapshot. I’ll review your site and follow up with a more tailored perspective on where AI visibility is being won or lost.
         </p>
 
-        <a href="PASTE_YOUR_GOOGLE_BOOKING_LINK_HERE"
+        <a href="https://calendar.app.google/XtiHBsQCKT1hSoJe6"
            style="display:inline-block; padding:14px 22px; background:#232323; color:#fff; text-decoration:none; border-radius:999px;">
           Book a 10 Minute Review
         </a>
