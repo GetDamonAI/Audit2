@@ -3,35 +3,25 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-  <link rel="stylesheet" href="styles.css">
-</head>
   <title>AI Visibility Audit | Semantic Search Marketing</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <main class="audit-shell">
     <section class="audit-wrap">
-  
-
-      <h1 class="hero-title">Find Out How You Show up In AI</h1>
+      <h1 class="hero-title">Fix Your AI Visibility<br>in Minutes</h1>
 
       <p class="hero-subhead">
         Make your brand easy for AI to understand, recommend, and rank.
       </p>
 
       <div class="logo-row">
-  <div class="logo-item"><img src="logos/chatgpt.png" alt="ChatGPT"></div>
- <div class="logo-item">
-  <img src="logos/gemini.png" alt="Gemini">
-</div>
-  <div class="logo-item"><img src="logos/claude.png" alt="Claude"></div>
-  <div class="logo-item"><img src="logos/perplexity.png" alt="Perplexity"></div>
-</div>
+        <div class="logo-item"><img src="logos/chatgpt.png" alt="ChatGPT"></div>
+        <div class="logo-item"><img src="logos/gemini.png" alt="Gemini"></div>
+        <div class="logo-item"><img src="logos/claude.png" alt="Claude"></div>
+        <div class="logo-item"><img src="logos/perplexity.png" alt="Perplexity"></div>
+      </div>
 
       <section class="form-intro">
         <h2>Start with the basics.</h2>
@@ -41,7 +31,7 @@
         <div class="field">
           <label for="url">Website URL</label>
           <input id="url" name="url" type="text" placeholder="yourwebsite.com" required />
-         
+          <p class="help">Paste your website so we can generate your quick AI visibility score.</p>
         </div>
 
         <div class="field">
@@ -62,10 +52,10 @@
         <div class="field">
           <label for="email">Email</label>
           <input id="email" name="email" type="email" placeholder="you@company.com" required />
-          <p class="help">Add your email and we'll send you your audit</p>
+          <p class="help">Add your email so we can send your audit and follow up right away.</p>
         </div>
 
-        <button type="submit" id="submit-button" class="primary-button">Show Me How I Show Up</button>
+        <button type="submit" id="submit-button" class="primary-button">Fix My Visibility</button>
         <p class="note">Instant strategic snapshot.</p>
       </form>
 
@@ -74,40 +64,45 @@
 
         <div class="score-block">
           <div class="score">
-  <span id="score-value" class="score-value">0</span>
-  <span class="score-total">/ 100</span>
-</div>
+            <span id="score-value" class="score-value">0</span>
+            <span class="score-total">/ 100</span>
+          </div>
           <p id="summary" class="summary"></p>
+        </div>
+
+        <div class="audit-meta">
+          <p class="audit-meta-title">How this was evaluated</p>
+          <p class="audit-meta-text">
+            This assessment analyzes both AI interpretation signals and foundational site structure.
+            We evaluate how AI systems understand your brand, alongside technical signals like page structure, speed, and indexability.
+          </p>
         </div>
 
         <div class="panel">
           <div id="breakdown"></div>
         </div>
+
         <div class="audit-tech">
-  <p class="audit-tech-title">Site Health Snapshot</p>
-
-  <div class="audit-tech-grid">
-    <div class="audit-tech-item">
-      <span>Page Speed</span>
-      <strong id="tech-speed">—</strong>
-    </div>
-
-    <div class="audit-tech-item">
-      <span>Mobile Readiness</span>
-      <strong id="tech-mobile">—</strong>
-    </div>
-
-    <div class="audit-tech-item">
-      <span>Meta Structure</span>
-      <strong id="tech-meta">—</strong>
-    </div>
-
-    <div class="audit-tech-item">
-      <span>Indexability</span>
-      <strong id="tech-index">—</strong>
-    </div>
-  </div>
-</div>
+          <p class="audit-tech-title">Site Health Snapshot</p>
+          <div class="audit-tech-grid">
+            <div class="audit-tech-item">
+              <span>Page Speed</span>
+              <strong id="tech-speed">—</strong>
+            </div>
+            <div class="audit-tech-item">
+              <span>Mobile Readiness</span>
+              <strong id="tech-mobile">—</strong>
+            </div>
+            <div class="audit-tech-item">
+              <span>Meta Structure</span>
+              <strong id="tech-meta">—</strong>
+            </div>
+            <div class="audit-tech-item">
+              <span>Indexability</span>
+              <strong id="tech-index">—</strong>
+            </div>
+          </div>
+        </div>
 
         <div class="panel">
           <ol id="priorities" class="priorities"></ol>
@@ -115,30 +110,27 @@
       </section>
 
       <section class="cta-block">
-        <p class="kicker">Next Step</p>
-        <h2>Get the full readout</h2>
+        <h2>Next Step</h2>
         <p class="cta-copy">
-          We’ll send your audit, highlight the biggest opportunities, and reach out with a quick chance to connect.
+          We’ll send your audit, highlight the biggest opportunities, and give you a quick chance to connect.
         </p>
         <div class="cta-actions">
-  <a 
-    class="primary-button cta-link" 
-    href="https://calendar.app.google/KnUvqDGcCp2hCUtm8" 
-    target="_blank" 
-    rel="noopener noreferrer"
-  >
-    Walk Through My Audit
-  </a>
+          <a
+            class="primary-button cta-link"
+            href="PASTE_YOUR_GOOGLE_BOOKING_LINK_HERE"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Book a 10 Minute Review
+          </a>
 
-  <a 
-    class="secondary-button cta-link" 
-    href="https://www.semanticsearchmarketing.com/services" 
-    target="_blank" 
-    rel="noopener noreferrer"
-  >
-    Get the Full Audit
-  </a>
-</div>
+          <a
+            class="secondary-button cta-link"
+            href="mailto:hello@semanticsearchmarketing.com?subject=Full%20Audit%20Request&body=Hi%20Damon%2C%20I%E2%80%99d%20like%20to%20learn%20more%20about%20a%20full%20AI%20visibility%20audit."
+          >
+            Request a Full Audit
+          </a>
+        </div>
       </section>
     </section>
   </main>
