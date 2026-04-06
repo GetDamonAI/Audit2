@@ -6,6 +6,11 @@ const summary = document.getElementById("summary");
 const breakdown = document.getElementById("breakdown");
 const priorities = document.getElementById("priorities");
 
+const techSpeed = document.getElementById("tech-speed");
+const techMobile = document.getElementById("tech-mobile");
+const techMeta = document.getElementById("tech-meta");
+const techIndex = document.getElementById("tech-index");
+
 function normalizeUrl(value) {
   const trimmed = (value || "").trim();
   if (!trimmed) return "";
@@ -13,17 +18,42 @@ function normalizeUrl(value) {
   return `https://${trimmed}`;
 }
 
+function setThinkingStep(message) {
+  let node = document.getElementById("thinking-status");
+  if (!node) {
+    node = document.createElement("p");
+    node.id = "thinking-status";
+    node.className = "note";
+    form.appendChild(node);
+  }
+  node.textContent = message;
+}
+
+function clearThinkingStep() {
+  const node = document.getElementById("thinking-status");
+  if (node) node.remove();
+}
+
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   submitButton.disabled = true;
-  submitButton.textContent = "Generating...";
+  submitButton.textContent = "Checking...";
 
   const formData = new FormData(form);
   const payload = Object.fromEntries(formData.entries());
   payload.url = normalizeUrl(payload.url);
 
   try {
+    const startedAt = Date.now();
+
+    setThinkingStep("Checking site structure...");
+    await new Promise((resolve) => setTimeout(resolve, 700));
+
+    setThinkingStep("Reviewing technical signals...");
+    await new Promise((resolve) => setTimeout(resolve, 700));
+
+    setThinkingStep("Scoring AI visibility...");
     const auditResponse = await fetch("/.netlify/functions/generate-audit", {
       method: "POST",
       headers: {
@@ -35,7 +65,13 @@ form.addEventListener("submit", async (event) => {
     const data = await auditResponse.json();
 
     if (!auditResponse.ok) {
-      throw new Error(JSON.stringify(emailData));
+      throw new Error(data.error || "Audit generation failed.");
+    }
+
+    const minDuration = 2200;
+    const elapsed = Date.now() - startedAt;
+    if (elapsed < minDuration) {
+      await new Promise((resolve) => setTimeout(resolve, minDuration - elapsed));
     }
 
     scoreValue.textContent = data.score;
@@ -56,17 +92,14 @@ form.addEventListener("submit", async (event) => {
       priorities.appendChild(li);
     });
 
-    const techSpeed = document.getElementById("tech-speed");
-    const techMobile = document.getElementById("tech-mobile");
-    const techMeta = document.getElementById("tech-meta");
-    const techIndex = document.getElementById("tech-index");
+    if (techSpeed) techSpeed.textContent = data.tech?.speed || "—";
+    if (techMobile) techMobile.textContent = data.tech?.mobile || "—";
+    if (techMeta) techMeta.textContent = data.tech?.meta || "—";
+    if (techIndex) techIndex.textContent = data.tech?.indexability || "—";
 
-    if (techSpeed) techSpeed.textContent = "78%";
-    if (techMobile) techMobile.textContent = "Good";
-    if (techMeta) techMeta.textContent = "Partial";
-    if (techIndex) techIndex.textContent = "Valid";
-
+    clearThinkingStep();
     results.hidden = false;
+    results.scrollIntoView({ behavior: "smooth", block: "start" });
 
     const emailResponse = await fetch("/.netlify/functions/send-audit-email", {
       method: "POST",
@@ -77,6 +110,8 @@ form.addEventListener("submit", async (event) => {
         email: payload.email,
         businessName: payload.businessName,
         url: payload.url,
+        industry: payload.industry,
+        service: payload.service,
         score: data.score,
         summary: data.summary,
         breakdown: data.breakdown,
@@ -85,14 +120,12 @@ form.addEventListener("submit", async (event) => {
     });
 
     const emailData = await emailResponse.json();
-    console.log("email response", emailData);
 
     if (!emailResponse.ok) {
       throw new Error(emailData.error || "Email send failed.");
     }
-
-    results.scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (error) {
+    clearThinkingStep();
     alert(error.message || "Something went wrong.");
     console.error(error);
   } finally {
