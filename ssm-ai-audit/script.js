@@ -5,6 +5,7 @@ const scoreValue = document.getElementById("score-value");
 const summary = document.getElementById("summary");
 const breakdown = document.getElementById("breakdown");
 const priorities = document.getElementById("priorities");
+const opportunity = document.getElementById("opportunity");
 
 const techSpeed = document.getElementById("tech-speed");
 const techMobile = document.getElementById("tech-mobile");
@@ -12,6 +13,8 @@ const techMeta = document.getElementById("tech-meta");
 const techIndex = document.getElementById("tech-index");
 const aiRecommendation = document.getElementById("ai-recommendation");
 const serpPresence = document.getElementById("serp-presence");
+const thinkingStatus = document.getElementById("thinking-status");
+const thinkingText = document.getElementById("thinking-text");
 
 function normalizeUrl(value) {
   const trimmed = (value || "").trim();
@@ -21,19 +24,13 @@ function normalizeUrl(value) {
 }
 
 function setThinkingStep(message) {
-  let node = document.getElementById("thinking-status");
-  if (!node) {
-    node = document.createElement("p");
-    node.id = "thinking-status";
-    node.className = "note";
-    form.appendChild(node);
-  }
-  node.textContent = message;
+  thinkingStatus.hidden = false;
+  thinkingText.textContent = message;
 }
 
 function clearThinkingStep() {
-  const node = document.getElementById("thinking-status");
-  if (node) node.remove();
+  thinkingStatus.hidden = true;
+  thinkingText.textContent = "";
 }
 
 form.addEventListener("submit", async (event) => {
@@ -77,7 +74,7 @@ form.addEventListener("submit", async (event) => {
     }
 
     scoreValue.textContent = data.score;
-    summary.textContent = data.summary;
+    summary.textContent = data.summary || "";
 
     breakdown.innerHTML = "";
     (data.breakdown || []).forEach((item) => {
@@ -93,6 +90,10 @@ form.addEventListener("submit", async (event) => {
       li.textContent = item;
       priorities.appendChild(li);
     });
+
+    opportunity.textContent =
+      data.opportunity ||
+      "The clearest upside is improving how your site communicates its offer, trust signals, and structure so AI systems can understand and recommend it more confidently.";
 
     if (techSpeed) techSpeed.textContent = data.tech?.speed || "—";
     if (techMobile) techMobile.textContent = data.tech?.mobile || "—";
@@ -119,7 +120,8 @@ form.addEventListener("submit", async (event) => {
         score: data.score,
         summary: data.summary,
         breakdown: data.breakdown,
-        priorities: data.priorities
+        priorities: data.priorities,
+        opportunity: data.opportunity
       })
     });
 
@@ -134,6 +136,6 @@ form.addEventListener("submit", async (event) => {
     console.error(error);
   } finally {
     submitButton.disabled = false;
-    submitButton.textContent = "Fix My Visibility";
+    submitButton.textContent = "Find Out How You Show Up in AI";
   }
 });
