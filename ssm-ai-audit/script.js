@@ -10,6 +10,8 @@ const techSpeed = document.getElementById("tech-speed");
 const techMobile = document.getElementById("tech-mobile");
 const techMeta = document.getElementById("tech-meta");
 const techIndex = document.getElementById("tech-index");
+const aiRecommendation = document.getElementById("ai-recommendation");
+const serpPresence = document.getElementById("serp-presence");
 
 function normalizeUrl(value) {
   const trimmed = (value || "").trim();
@@ -50,10 +52,10 @@ form.addEventListener("submit", async (event) => {
     setThinkingStep("Checking site structure...");
     await new Promise((resolve) => setTimeout(resolve, 700));
 
-    setThinkingStep("Reviewing technical signals...");
+    setThinkingStep("Reviewing search visibility...");
     await new Promise((resolve) => setTimeout(resolve, 700));
 
-    setThinkingStep("Scoring AI visibility...");
+    setThinkingStep("Scoring AI recommendation likelihood...");
     const auditResponse = await fetch("/.netlify/functions/generate-audit", {
       method: "POST",
       headers: {
@@ -68,7 +70,7 @@ form.addEventListener("submit", async (event) => {
       throw new Error(data.error || "Audit generation failed.");
     }
 
-    const minDuration = 2200;
+    const minDuration = 2600;
     const elapsed = Date.now() - startedAt;
     if (elapsed < minDuration) {
       await new Promise((resolve) => setTimeout(resolve, minDuration - elapsed));
@@ -96,6 +98,8 @@ form.addEventListener("submit", async (event) => {
     if (techMobile) techMobile.textContent = data.tech?.mobile || "—";
     if (techMeta) techMeta.textContent = data.tech?.meta || "—";
     if (techIndex) techIndex.textContent = data.tech?.indexability || "—";
+    if (aiRecommendation) aiRecommendation.textContent = data.recommendation?.likelihood || "—";
+    if (serpPresence) serpPresence.textContent = data.serp?.presence || "—";
 
     clearThinkingStep();
     results.hidden = false;
