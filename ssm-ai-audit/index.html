@@ -3,161 +3,642 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Visibility Audit | Semantic Search Marketing</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css" />
+  <title>AI Visibility Audit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #f7f5f2;
+      --surface: rgba(255, 255, 255, 0.78);
+      --surface-strong: rgba(255, 255, 255, 0.94);
+      --text: #111111;
+      --muted: rgba(17, 17, 17, 0.68);
+      --border: rgba(17, 17, 17, 0.10);
+      --border-strong: rgba(17, 17, 17, 0.16);
+      --primary: #232323;
+      --primary-hover: #111111;
+      --primary-text: #ffffff;
+      --secondary-bg: #efebe5;
+      --secondary-text: #111111;
+      --good: #18794e;
+      --warn: #a26500;
+      --bad: #a12d2d;
+      --radius: 24px;
+      --radius-sm: 16px;
+      --radius-pill: 999px;
+      --shadow: 0 12px 32px rgba(17, 17, 17, 0.08);
+      --max-width: 760px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Roboto", sans-serif;
+    }
+
+    body { min-height: 100vh; }
+
+    .audit-shell {
+      width: 100%;
+      padding: 24px 16px 40px;
+    }
+
+    .audit-wrap {
+      max-width: var(--max-width);
+      margin: 0 auto;
+    }
+
+    .card {
+      background: var(--surface);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(30px, 5vw, 46px);
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+    }
+
+    .intro {
+      margin: 14px 0 0;
+      font-size: 16px;
+      line-height: 1.6;
+      color: var(--muted);
+      max-width: 56ch;
+    }
+
+    .audit-form {
+      margin-top: 28px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .field input {
+      width: 100%;
+      min-height: 54px;
+      padding: 14px 16px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      background: var(--surface-strong);
+      color: var(--text);
+      font: inherit;
+      outline: none;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .field input::placeholder {
+      color: rgba(17, 17, 17, 0.42);
+    }
+
+    .field input:focus {
+      border-color: rgba(17, 17, 17, 0.32);
+      box-shadow: 0 0 0 4px rgba(17, 17, 17, 0.06);
+    }
+
+    .form-note {
+      margin: 4px 0 0;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--muted);
+    }
+
+    .button-row {
+      margin-top: 8px;
+    }
+
+    .primary-button,
+    .secondary-button {
+      appearance: none;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      font: inherit;
+      font-weight: 500;
+      border-radius: var(--radius-pill);
+      transition: transform 0.18s ease, background 0.18s ease, opacity 0.18s ease;
+      text-align: center;
+    }
+
+    .primary-button:hover,
+    .secondary-button:hover {
+      transform: translateY(-1px);
+    }
+
+    .primary-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.7;
+      transform: none;
+    }
+
+    .primary-button {
+      width: 100%;
+      min-height: 56px;
+      padding: 16px 24px;
+      background: var(--primary);
+      color: var(--primary-text);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .primary-button:hover {
+      background: var(--primary-hover);
+    }
+
+    .secondary-button {
+      min-height: 52px;
+      padding: 14px 20px;
+      background: var(--secondary-bg);
+      color: var(--secondary-text);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border);
+    }
+
+    .status {
+      min-height: 20px;
+      margin-top: 10px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .status.error { color: var(--bad); }
+    .status.success { color: var(--good); }
+
+    .results {
+      margin-top: 18px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .score-card {
+      display: grid;
+      gap: 18px;
+    }
+
+    .score-top {
+      display: grid;
+      gap: 10px;
+    }
+
+    .score-line {
+      margin: 0;
+      font-size: clamp(30px, 4vw, 40px);
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+    }
+
+    .summary {
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.65;
+      color: var(--muted);
+    }
+
+    .score-grid {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .metric {
+      background: rgba(255,255,255,0.6);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .metric-label {
+      font-size: 13px;
+      line-height: 1.4;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .metric-value {
+      font-size: 28px;
+      line-height: 1;
+      letter-spacing: -0.03em;
+      font-weight: 700;
+    }
+
+    .metric-sub {
+      margin-top: 8px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--muted);
+    }
+
+    .section-title {
+      margin: 0 0 12px;
+      font-size: 20px;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+    }
+
+    .list {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .list li {
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: rgba(255,255,255,0.55);
+      line-height: 1.55;
+      color: var(--text);
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.6);
+      font-size: 13px;
+      color: var(--text);
+    }
+
+    .cta-box {
+      display: grid;
+      gap: 10px;
+    }
+
+    .cta-copy {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    .cta-actions {
+      display: grid;
+      gap: 12px;
+      margin-top: 6px;
+    }
+
+    [hidden] { display: none !important; }
+
+    @media (min-width: 700px) {
+      .audit-shell { padding: 32px 20px 44px; }
+      .card { padding: 32px; }
+      .score-grid { grid-template-columns: repeat(4, 1fr); }
+      .cta-actions { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
 </head>
 <body>
   <main class="audit-shell">
-    <section class="audit-wrap">
-      <h1 class="hero-title">Find Out How You Show Up in AI</h1>
+    <div class="audit-wrap">
+      <section class="card">
+        <p class="eyebrow">AI Visibility Audit</p>
+        <h1>Find Out How You Show Up in AI</h1>
+        <p class="intro">
+          Run a live audit using PageSpeed, search visibility, and AI interpretation signals to see where your site stands and what to fix next.
+        </p>
 
-      <p class="hero-subhead">
-        AI visibility shapes how brands are discovered, trusted, and recommended. This quick audit shows how your site is being interpreted, what signals are helping or hurting, and where to focus first.
-      </p>
+        <form id="audit-form" class="audit-form" novalidate>
+          <div class="field">
+            <label for="url">Website</label>
+            <input id="url" name="url" type="url" placeholder="https://yourwebsite.com" required />
+          </div>
 
-      <div class="logo-row">
-        <div class="logo-item"><img src="logos/chatgpt.png" alt="ChatGPT"></div>
-        <div class="logo-item"><img src="logos/gemini.png" alt="Gemini"></div>
-        <div class="logo-item"><img src="logos/claude.png" alt="Claude"></div>
-        <div class="logo-item"><img src="logos/perplexity.png" alt="Perplexity"></div>
-      </div>
+          <div class="field">
+            <label for="businessName">Business name</label>
+            <input id="businessName" name="businessName" type="text" placeholder="Your business name" required />
+          </div>
 
-      <section class="form-intro">
-        <h2>Start with the basics.</h2>
+          <div class="field">
+            <label for="industry">Industry</label>
+            <input id="industry" name="industry" type="text" placeholder="Hospitality, legal, ecommerce, SaaS..." required />
+          </div>
+
+          <div class="field">
+            <label for="service">Main product or service</label>
+            <input id="service" name="service" type="text" placeholder="What you sell or offer" required />
+          </div>
+
+          <div class="field">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" placeholder="you@example.com" required />
+          </div>
+
+          <p class="form-note">
+            Results display below and a summary is emailed after the audit runs.
+          </p>
+
+          <div class="button-row">
+            <button id="submit-button" type="submit" class="primary-button">Run Audit</button>
+          </div>
+
+          <div id="form-status" class="status" aria-live="polite"></div>
+        </form>
       </section>
 
-      <form id="audit-form" class="audit-form">
-        <div class="field">
-          <label for="url">Website URL</label>
-          <input id="url" name="url" type="text" placeholder="yourwebsite.com" required />
-        </div>
-
-        <div class="field">
-          <label for="businessName">Business Name</label>
-          <input id="businessName" name="businessName" type="text" placeholder="Your business name" required />
-        </div>
-
-        <div class="field">
-          <label for="industry">Industry</label>
-          <input id="industry" name="industry" type="text" placeholder="Industry" required />
-        </div>
-
-        <div class="field">
-          <label for="service">Main Product or Service</label>
-          <input id="service" name="service" type="text" placeholder="What do you sell?" required />
-        </div>
-
-        <div class="field">
-          <label for="email">Email</label>
-          <input id="email" name="email" type="email" placeholder="you@company.com" required />
-        </div>
-
-        <button type="submit" id="submit-button" class="primary-button">Find Out How You Show Up in AI</button>
-
-        <div id="thinking-status" class="thinking-status" hidden>
-          <div class="thinking-dots" aria-hidden="true">
-            <span></span><span></span><span></span>
-          </div>
-          <p id="thinking-text">Checking site structure...</p>
-        </div>
-      </form>
-
       <section id="results" class="results" hidden>
-        <h2>Your AI visibility assessment</h2>
-
-        <div class="score-block">
-          <div class="score">
-            <span id="score-value" class="score-value">0</span>
-            <span class="score-total">/ 100</span>
+        <section class="card score-card">
+          <div class="score-top">
+            <p class="eyebrow" style="margin-bottom:0;">Your result</p>
+            <h2 class="score-line">AI Visibility Score: <span id="overall-score">--</span>/100</h2>
+            <p id="executive-summary" class="summary"></p>
           </div>
-          <p id="summary" class="summary"></p>
-        </div>
 
-        <div class="audit-meta">
-          <p class="audit-meta-title">How this was evaluated</p>
-          <p class="audit-meta-text">
-            This assessment combines public site checks, live search-result signals, and AI interpretation. We reviewed site structure, technical readiness, search presence, and simulated whether AI systems would be likely to recommend your business for its core offer.
-          </p>
-        </div>
-
-        <div class="audit-ai">
-          <div class="audit-ai-item">
-            <span class="audit-ai-label">AI Recommendation Likelihood</span>
-            <strong id="ai-recommendation">—</strong>
-          </div>
-          <div class="audit-ai-item">
-            <span class="audit-ai-label">Search Presence Check</span>
-            <strong id="serp-presence">—</strong>
-          </div>
-        </div>
-
-        <div class="panel">
-          <p class="audit-section-title">What we checked</p>
-          <div id="breakdown"></div>
-        </div>
-
-        <div class="audit-tech">
-          <p class="audit-tech-title">Site Health Snapshot</p>
-          <div class="audit-tech-grid">
-            <div class="audit-tech-item">
-              <span>Page Speed</span>
-              <strong id="tech-speed">—</strong>
+          <div class="score-grid">
+            <div class="metric">
+              <div class="metric-label">Overall</div>
+              <div id="metric-overall" class="metric-value">--</div>
+              <div class="metric-sub">Weighted visibility score</div>
             </div>
-            <div class="audit-tech-item">
-              <span>Mobile Readiness</span>
-              <strong id="tech-mobile">—</strong>
+            <div class="metric">
+              <div class="metric-label">Performance</div>
+              <div id="metric-performance" class="metric-value">--</div>
+              <div class="metric-sub">Mobile + desktop PageSpeed</div>
             </div>
-            <div class="audit-tech-item">
-              <span>Meta Structure</span>
-              <strong id="tech-meta">—</strong>
+            <div class="metric">
+              <div class="metric-label">Technical SEO</div>
+              <div id="metric-seo" class="metric-value">--</div>
+              <div class="metric-sub">Structure and crawlability signals</div>
             </div>
-            <div class="audit-tech-item">
-              <span>Indexability</span>
-              <strong id="tech-index">—</strong>
+            <div class="metric">
+              <div class="metric-label">SERP Presence</div>
+              <div id="metric-serp" class="metric-value">--</div>
+              <div class="metric-sub">Brand and domain presence</div>
             </div>
           </div>
-        </div>
 
-        <div class="panel">
-          <p class="audit-section-title">What needs fixing</p>
-          <ol id="priorities" class="priorities"></ol>
-        </div>
+          <div class="pill-row" id="signal-pills"></div>
+        </section>
 
-        <div class="panel">
-          <p class="audit-section-title">Biggest opportunity</p>
-          <p id="opportunity" class="summary"></p>
-        </div>
+        <section class="card">
+          <h3 class="section-title">What’s working</h3>
+          <ul id="strengths-list" class="list"></ul>
+        </section>
 
-        <section class="cta-block results-cta">
-          <h2>Next Step</h2>
+        <section class="card">
+          <h3 class="section-title">Priority fixes</h3>
+          <ul id="priorities-list" class="list"></ul>
+        </section>
+
+        <section class="card">
+          <h3 class="section-title">AI search interpretation</h3>
+          <ul id="visibility-list" class="list"></ul>
+        </section>
+
+        <section class="card">
+          <h3 class="section-title">Live source notes</h3>
+          <ul id="evidence-list" class="list"></ul>
+        </section>
+
+        <section class="card cta-box">
+          <h3 class="section-title" style="margin-bottom:0;">Want the deeper read?</h3>
           <p class="cta-copy">
-            Want a more tailored review? Book a quick walkthrough or explore a deeper full review.
+            Book a short review and we’ll walk through what these signals mean, where your brand is weak, and what to prioritize first.
           </p>
           <div class="cta-actions">
-            <a
-              class="primary-button cta-link"
-              href="https://calendar.app.google/XtiHBsQCKT1hSoJe6"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Book a 15 Minute Review
-            </a>
-
-            <a
-              class="secondary-button cta-link"
-              href="https://www.semanticsearchmarketing.com/contact"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Inquire About a Full Review
-            </a>
+            <a id="booking-link" class="primary-button" href="#" target="_blank" rel="noopener noreferrer">Book a 15 Min Review</a>
+            <a id="contact-link" class="secondary-button" href="#" target="_blank" rel="noopener noreferrer">Get Full Review</a>
           </div>
         </section>
       </section>
-    </section>
+    </div>
   </main>
 
-  <script src="script.js"></script>
+  <script>
+    const form = document.getElementById("audit-form");
+    const submitButton = document.getElementById("submit-button");
+    const formStatus = document.getElementById("form-status");
+    const results = document.getElementById("results");
+
+    const overallScoreEl = document.getElementById("overall-score");
+    const executiveSummaryEl = document.getElementById("executive-summary");
+    const metricOverallEl = document.getElementById("metric-overall");
+    const metricPerformanceEl = document.getElementById("metric-performance");
+    const metricSeoEl = document.getElementById("metric-seo");
+    const metricSerpEl = document.getElementById("metric-serp");
+
+    const signalPillsEl = document.getElementById("signal-pills");
+    const strengthsListEl = document.getElementById("strengths-list");
+    const prioritiesListEl = document.getElementById("priorities-list");
+    const visibilityListEl = document.getElementById("visibility-list");
+    const evidenceListEl = document.getElementById("evidence-list");
+    const bookingLinkEl = document.getElementById("booking-link");
+    const contactLinkEl = document.getElementById("contact-link");
+
+    const FALLBACK_BOOKING_URL = "https://calendar.app.google/XtiHBsQCKT1hSoJe6";
+    const FALLBACK_CONTACT_URL = "https://www.semanticsearchmarketing.com/contact";
+
+    function normalizeUrl(value) {
+      const trimmed = String(value || "").trim();
+      if (!trimmed) return "";
+      if (/^https?:\/\//i.test(trimmed)) return trimmed;
+      return `https://${trimmed}`;
+    }
+
+    function sendHeight() {
+      const height = Math.max(
+        document.body.scrollHeight,
+        document.documentElement.scrollHeight
+      );
+      window.parent.postMessage({ type: "audit-embed-resize", height }, "*");
+    }
+
+    function updateLayout() {
+      requestAnimationFrame(() => {
+        sendHeight();
+        setTimeout(sendHeight, 120);
+        setTimeout(sendHeight, 400);
+      });
+    }
+
+    function clearList(el) {
+      el.innerHTML = "";
+    }
+
+    function appendList(el, items) {
+      clearList(el);
+      (items || []).forEach((item) => {
+        const li = document.createElement("li");
+        li.textContent = item;
+        el.appendChild(li);
+      });
+    }
+
+    function renderPills(audit) {
+      signalPillsEl.innerHTML = "";
+
+      const pills = [
+        `Mobile PSI: ${audit.pagespeed.mobile.performance}`,
+        `Desktop PSI: ${audit.pagespeed.desktop.performance}`,
+        `SEO: ${audit.pagespeed.mobile.seo}`,
+        `Brand results: ${audit.serp.brandDomainHits}/${audit.serp.brandTopResultsChecked}`,
+        `Homepage in brand search: ${audit.serp.homepageFound ? "Yes" : "No"}`
+      ];
+
+      pills.forEach((text) => {
+        const pill = document.createElement("div");
+        pill.className = "pill";
+        pill.textContent = text;
+        signalPillsEl.appendChild(pill);
+      });
+    }
+
+    function renderEvidence(audit) {
+      const notes = [
+        `Mobile PageSpeed performance score: ${audit.pagespeed.mobile.performance}/100`,
+        `Desktop PageSpeed performance score: ${audit.pagespeed.desktop.performance}/100`,
+        `Technical SEO score from PageSpeed: ${audit.pagespeed.mobile.seo}/100`,
+        `Brand/domain matches found in the top ${audit.serp.brandTopResultsChecked} organic results: ${audit.serp.brandDomainHits}`,
+        audit.serp.homepageFound
+          ? "Your homepage appeared in the brand search results."
+          : "Your homepage did not clearly appear in the brand search results."
+      ];
+
+      appendList(evidenceListEl, notes);
+    }
+
+    async function submitAudit(payload) {
+      const response = await fetch("/.netlify/functions/run-audit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const json = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(json.error || "Audit failed");
+      }
+
+      return json;
+    }
+
+    async function sendAuditEmail(payload) {
+      const response = await fetch("/.netlify/functions/send-audit-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        throw new Error("Email send failed");
+      }
+    }
+
+    function renderAudit(audit) {
+      overallScoreEl.textContent = audit.overallScore;
+      executiveSummaryEl.textContent = audit.executiveSummary;
+
+      metricOverallEl.textContent = audit.overallScore;
+      metricPerformanceEl.textContent = audit.categoryScores.performance;
+      metricSeoEl.textContent = audit.categoryScores.seo;
+      metricSerpEl.textContent = audit.categoryScores.serp;
+
+      renderPills(audit);
+      appendList(strengthsListEl, audit.strengths);
+      appendList(prioritiesListEl, audit.priorityFixes);
+      appendList(visibilityListEl, audit.aiVisibilityReadout);
+      renderEvidence(audit);
+
+      bookingLinkEl.href = audit.bookingUrl || FALLBACK_BOOKING_URL;
+      contactLinkEl.href = audit.contactUrl || FALLBACK_CONTACT_URL;
+
+      results.hidden = false;
+      updateLayout();
+    }
+
+    window.addEventListener("load", updateLayout);
+    window.addEventListener("resize", updateLayout);
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      formStatus.textContent = "";
+      formStatus.className = "status";
+
+      const data = Object.fromEntries(new FormData(form).entries());
+      data.url = normalizeUrl(data.url);
+
+      form.querySelector("#url").value = data.url;
+
+      if (!form.reportValidity()) {
+        updateLayout();
+        return;
+      }
+
+      submitButton.disabled = true;
+      submitButton.textContent = "Running Audit...";
+      formStatus.textContent = "Running live checks across performance, search presence, and AI interpretation...";
+
+      try {
+        const response = await submitAudit(data);
+        renderAudit(response.audit);
+
+        try {
+          await sendAuditEmail({
+            lead: data,
+            audit: response.audit
+          });
+          formStatus.textContent = "Audit complete. Your summary has been sent.";
+          formStatus.className = "status success";
+        } catch (emailError) {
+          console.error(emailError);
+          formStatus.textContent = "Audit complete. We could not send the email summary, but your results are shown here.";
+          formStatus.className = "status error";
+        }
+      } catch (error) {
+        console.error(error);
+        formStatus.textContent = error.message || "Something went wrong running the audit.";
+        formStatus.className = "status error";
+      } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = "Run Audit";
+        updateLayout();
+      }
+    });
+  </script>
 </body>
 </html>
