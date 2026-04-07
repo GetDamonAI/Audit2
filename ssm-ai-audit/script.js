@@ -34,27 +34,57 @@ function clearThinkingStep() {
   if (thinkingText) thinkingText.textContent = "";
 }
 
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function fadeOutForm() {
+  form.classList.add("form-fade-out");
+
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      form.style.display = "none";
+      resolve();
+    }, 350);
+  });
+}
+
+function showResults() {
+  results.hidden = false;
+  results.classList.add("results-visible");
+  results.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   submitButton.disabled = true;
-  submitButton.textContent = "Checking...";
+  submitButton.textContent = "Running Audit...";
 
   const formData = new FormData(form);
   const payload = Object.fromEntries(formData.entries());
   payload.url = normalizeUrl(payload.url);
 
+  let thinkingInterval;
+
   try {
-    // Thinking states
-    setThinkingStep("Checking site structure...");
-    await new Promise((resolve) => setTimeout(resolve, 700));
+    const startedAt = Date.now();
 
-    setThinkingStep("Reviewing search visibility...");
-    await new Promise((resolve) => setTimeout(resolve, 700));
+    const steps = [
+      "Checking site structure...",
+      "Reviewing search visibility...",
+      "Scoring AI recommendation likelihood...",
+      "Building your audit report..."
+    ];
 
-    setThinkingStep("Scoring AI recommendation likelihood...");
+    let stepIndex = 0;
+    setThinkingStep(steps[stepIndex]);
 
-    // Run audit
+    thinkingInterval = setInterval(() => {
+      stepIndex = (stepIndex + 1) % steps.length;
+      setThinkingStep(steps[stepIndex]);
+    }, 1200);
+
     const auditResponse = await fetch("/.netlify/functions/generate-audit", {
       method: "POST",
       headers: {
@@ -69,7 +99,12 @@ form.addEventListener("submit", async (event) => {
       throw new Error(data.error || "Audit generation failed.");
     }
 
-    // Populate UI
+    const minDuration = 3200;
+    const elapsed = Date.now() - startedAt;
+    if (elapsed < minDuration) {
+      await delay(minDuration - elapsed);
+    }
+
     scoreValue.textContent = data.score ?? "0";
     summary.textContent = data.summary || "";
 
@@ -99,17 +134,12 @@ form.addEventListener("submit", async (event) => {
     if (aiRecommendation) aiRecommendation.textContent = data.recommendation?.likelihood || "—";
     if (serpPresence) serpPresence.textContent = data.serp?.presence || "—";
 
-    // Finish thinking
+    clearInterval(thinkingInterval);
     clearThinkingStep();
 
-    // 🔥 THIS IS THE KEY FIX — hide form after audit
-    form.style.display = "none";
+    await fadeOutForm();
+    showResults();
 
-    // Show results
-    results.hidden = false;
-    results.scrollIntoView({ behavior: "smooth", block: "start" });
-
-    // Send email
     await fetch("/.netlify/functions/send-audit-email", {
       method: "POST",
       headers: {
@@ -133,6 +163,7 @@ form.addEventListener("submit", async (event) => {
     });
 
   } catch (error) {
+    clearInterval(thinkingInterval);
     clearThinkingStep();
     alert(error.message || "Something went wrong.");
     console.error(error);
