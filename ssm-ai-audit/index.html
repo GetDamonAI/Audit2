@@ -10,26 +10,28 @@
 
   <style>
     :root {
-      --bg: #f7f5f2;
-      --surface: rgba(255, 255, 255, 0.78);
-      --surface-strong: rgba(255, 255, 255, 0.94);
+      --bg: #f3f1ed;
+      --surface: rgba(255, 255, 255, 0.72);
+      --surface-strong: rgba(255, 255, 255, 0.9);
+      --card: #f8f6f2;
+      --input: #dfdbd4;
       --text: #111111;
-      --muted: rgba(17, 17, 17, 0.68);
-      --border: rgba(17, 17, 17, 0.10);
-      --border-strong: rgba(17, 17, 17, 0.16);
+      --muted: rgba(17, 17, 17, 0.62);
+      --border: rgba(17, 17, 17, 0.08);
+      --border-strong: rgba(17, 17, 17, 0.12);
       --primary: #232323;
       --primary-hover: #111111;
       --primary-text: #ffffff;
-      --secondary-bg: #efebe5;
+      --secondary-bg: #ece7df;
       --secondary-text: #111111;
       --good: #18794e;
-      --warn: #a26500;
       --bad: #a12d2d;
-      --radius: 24px;
-      --radius-sm: 16px;
+      --shadow: 0 24px 60px rgba(17, 17, 17, 0.06);
+      --radius-xl: 36px;
+      --radius-lg: 28px;
+      --radius-md: 18px;
       --radius-pill: 999px;
-      --shadow: 0 12px 32px rgba(17, 17, 17, 0.08);
-      --max-width: 760px;
+      --max: 980px;
     }
 
     * { box-sizing: border-box; }
@@ -42,99 +44,143 @@
       font-family: "Roboto", sans-serif;
     }
 
-    body { min-height: 100vh; }
-
-    .audit-shell {
-      width: 100%;
-      padding: 24px 16px 40px;
+    body {
+      min-height: 100vh;
     }
 
-    .audit-wrap {
-      max-width: var(--max-width);
+    .page {
+      width: 100%;
+      padding: 36px 20px 60px;
+    }
+
+    .wrap {
+      max-width: var(--max);
       margin: 0 auto;
     }
 
-    .card {
-      background: var(--surface);
-      backdrop-filter: blur(12px);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 24px;
+    .hero {
+      max-width: 880px;
     }
 
-    .eyebrow {
-      margin: 0 0 10px;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-
-    h1 {
+    .hero-title {
       margin: 0;
-      font-size: clamp(30px, 5vw, 46px);
-      line-height: 1.05;
-      letter-spacing: -0.03em;
+      font-size: clamp(52px, 8.2vw, 106px);
+      line-height: 0.95;
+      letter-spacing: -0.055em;
+      font-weight: 700;
+      max-width: 780px;
     }
 
-    .intro {
-      margin: 14px 0 0;
-      font-size: 16px;
-      line-height: 1.6;
+    .hero-copy {
+      margin: 42px 0 0;
+      max-width: 880px;
+      font-size: clamp(22px, 2.2vw, 26px);
+      line-height: 1.55;
       color: var(--muted);
-      max-width: 56ch;
+      letter-spacing: -0.02em;
+    }
+
+    .logo-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 18px;
+      align-items: center;
+      margin: 52px 0 0;
+      max-width: 900px;
+    }
+
+    .logo-chip {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 72px;
+      padding: 12px 8px;
+      color: #111;
+      font-size: clamp(22px, 2vw, 30px);
+      font-weight: 500;
+      letter-spacing: -0.03em;
+      text-align: center;
+    }
+
+    .section-title {
+      margin: 56px 0 26px;
+      font-size: clamp(34px, 4vw, 54px);
+      line-height: 1.02;
+      letter-spacing: -0.045em;
+      font-weight: 700;
+    }
+
+    .form-card {
+      background: rgba(255, 255, 255, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      padding: 34px;
+      backdrop-filter: blur(10px);
+      max-width: 900px;
     }
 
     .audit-form {
-      margin-top: 28px;
       display: grid;
-      gap: 14px;
+      gap: 18px;
     }
 
     .field {
       display: grid;
-      gap: 8px;
+      gap: 10px;
     }
 
     .field label {
       font-size: 14px;
-      font-weight: 500;
-      color: var(--text);
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(17, 17, 17, 0.58);
     }
 
     .field input {
       width: 100%;
-      min-height: 54px;
-      padding: 14px 16px;
-      border: 1px solid var(--border-strong);
-      border-radius: var(--radius-sm);
-      background: var(--surface-strong);
+      min-height: 92px;
+      padding: 0 34px;
+      border: 1px solid rgba(17, 17, 17, 0.08);
+      border-radius: 30px;
+      background: var(--input);
       color: var(--text);
       font: inherit;
+      font-size: clamp(24px, 2.3vw, 28px);
+      letter-spacing: -0.02em;
       outline: none;
-      transition: border-color 0.18s ease, box-shadow 0.18s ease;
+      transition: box-shadow 0.18s ease, border-color 0.18s ease;
     }
 
     .field input::placeholder {
-      color: rgba(17, 17, 17, 0.42);
+      color: rgba(17, 17, 17, 0.34);
     }
 
     .field input:focus {
-      border-color: rgba(17, 17, 17, 0.32);
-      box-shadow: 0 0 0 4px rgba(17, 17, 17, 0.06);
+      border-color: rgba(17, 17, 17, 0.16);
+      box-shadow: 0 0 0 4px rgba(17, 17, 17, 0.04);
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: 1fr 1fr;
     }
 
     .form-note {
       margin: 4px 0 0;
-      font-size: 13px;
-      line-height: 1.5;
+      font-size: 14px;
+      line-height: 1.55;
       color: var(--muted);
     }
 
     .button-row {
-      margin-top: 8px;
+      margin-top: 6px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
     }
 
     .primary-button,
@@ -148,6 +194,9 @@
       border-radius: var(--radius-pill);
       transition: transform 0.18s ease, background 0.18s ease, opacity 0.18s ease;
       text-align: center;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .primary-button:hover,
@@ -162,14 +211,11 @@
     }
 
     .primary-button {
-      width: 100%;
-      min-height: 56px;
-      padding: 16px 24px;
+      min-height: 62px;
+      padding: 16px 28px;
       background: var(--primary);
       color: var(--primary-text);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+      font-size: 17px;
     }
 
     .primary-button:hover {
@@ -177,14 +223,12 @@
     }
 
     .secondary-button {
-      min-height: 52px;
-      padding: 14px 20px;
+      min-height: 58px;
+      padding: 14px 24px;
       background: var(--secondary-bg);
       color: var(--secondary-text);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
       border: 1px solid var(--border);
+      font-size: 16px;
     }
 
     .status {
@@ -198,30 +242,39 @@
     .status.success { color: var(--good); }
 
     .results {
-      margin-top: 18px;
+      margin-top: 22px;
       display: grid;
       gap: 18px;
+      max-width: 900px;
     }
 
-    .score-card {
-      display: grid;
-      gap: 18px;
+    .card {
+      background: var(--surface);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 14px 40px rgba(17, 17, 17, 0.05);
+      padding: 28px;
     }
 
-    .score-top {
-      display: grid;
-      gap: 10px;
+    .eyebrow {
+      margin: 0 0 10px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
     }
 
     .score-line {
       margin: 0;
-      font-size: clamp(30px, 4vw, 40px);
+      font-size: clamp(30px, 4vw, 42px);
       line-height: 1.05;
-      letter-spacing: -0.02em;
+      letter-spacing: -0.03em;
     }
 
     .summary {
-      margin: 0;
+      margin: 12px 0 0;
       font-size: 16px;
       line-height: 1.65;
       color: var(--muted);
@@ -230,11 +283,12 @@
     .score-grid {
       display: grid;
       gap: 12px;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(4, 1fr);
+      margin-top: 22px;
     }
 
     .metric {
-      background: rgba(255,255,255,0.6);
+      background: rgba(255,255,255,0.58);
       border: 1px solid var(--border);
       border-radius: 18px;
       padding: 16px;
@@ -261,11 +315,30 @@
       color: var(--muted);
     }
 
-    .section-title {
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.65);
+      font-size: 13px;
+      color: var(--text);
+    }
+
+    .card-title {
       margin: 0 0 12px;
-      font-size: 20px;
+      font-size: 22px;
       line-height: 1.2;
-      letter-spacing: -0.02em;
+      letter-spacing: -0.025em;
     }
 
     .list {
@@ -285,29 +358,6 @@
       color: var(--text);
     }
 
-    .pill-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 14px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,0.6);
-      font-size: 13px;
-      color: var(--text);
-    }
-
-    .cta-box {
-      display: grid;
-      gap: 10px;
-    }
-
     .cta-copy {
       margin: 0;
       font-size: 15px;
@@ -318,57 +368,118 @@
     .cta-actions {
       display: grid;
       gap: 12px;
-      margin-top: 6px;
+      margin-top: 18px;
+      grid-template-columns: 1fr 1fr;
     }
 
-    [hidden] { display: none !important; }
+    [hidden] {
+      display: none !important;
+    }
 
-    @media (min-width: 700px) {
-      .audit-shell { padding: 32px 20px 44px; }
-      .card { padding: 32px; }
-      .score-grid { grid-template-columns: repeat(4, 1fr); }
-      .cta-actions { grid-template-columns: 1fr 1fr; }
+    @media (max-width: 900px) {
+      .logo-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px 18px;
+      }
+
+      .form-grid,
+      .score-grid,
+      .cta-actions {
+        grid-template-columns: 1fr;
+      }
+
+      .field input {
+        min-height: 78px;
+        font-size: 22px;
+        padding: 0 24px;
+      }
+
+      .form-card {
+        padding: 24px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page {
+        padding: 24px 16px 44px;
+      }
+
+      .hero-copy {
+        margin-top: 28px;
+        font-size: 18px;
+      }
+
+      .logo-chip {
+        min-height: 54px;
+        font-size: 20px;
+      }
+
+      .section-title {
+        margin-top: 38px;
+      }
+
+      .form-card,
+      .card {
+        border-radius: 24px;
+      }
     }
   </style>
 </head>
 <body>
-  <main class="audit-shell">
-    <div class="audit-wrap">
-      <section class="card">
-        <p class="eyebrow">AI Visibility Audit</p>
-        <h1>Find Out How You Show Up in AI</h1>
-        <p class="intro">
-          Run a live audit using PageSpeed, search visibility, and AI interpretation signals to see where your site stands and what to fix next.
+  <main class="page">
+    <div class="wrap">
+      <section class="hero">
+        <h1 class="hero-title">Find Out How You<br />Show Up in AI</h1>
+
+        <p class="hero-copy">
+          AI visibility shapes how brands are discovered, trusted, and recommended.
+          This quick audit shows how your site is being interpreted, what signals are
+          helping or hurting, and where to focus first.
         </p>
 
+        <div class="logo-row" aria-label="AI platforms">
+          <div class="logo-chip">ChatGPT</div>
+          <div class="logo-chip">Gemini</div>
+          <div class="logo-chip">Claude</div>
+          <div class="logo-chip">Perplexity</div>
+        </div>
+      </section>
+
+      <h2 class="section-title">Start with the basics.</h2>
+
+      <section class="form-card">
         <form id="audit-form" class="audit-form" novalidate>
           <div class="field">
-            <label for="url">Website</label>
-            <input id="url" name="url" type="url" placeholder="https://yourwebsite.com" required />
+            <label for="url">Website URL</label>
+            <input id="url" name="url" type="url" placeholder="yourwebsite.com" required />
           </div>
 
-          <div class="field">
-            <label for="businessName">Business name</label>
-            <input id="businessName" name="businessName" type="text" placeholder="Your business name" required />
+          <div class="form-grid">
+            <div class="field">
+              <label for="businessName">Business Name</label>
+              <input id="businessName" name="businessName" type="text" placeholder="Your business" required />
+            </div>
+
+            <div class="field">
+              <label for="email">Email</label>
+              <input id="email" name="email" type="email" placeholder="you@example.com" required />
+            </div>
           </div>
 
-          <div class="field">
-            <label for="industry">Industry</label>
-            <input id="industry" name="industry" type="text" placeholder="Hospitality, legal, ecommerce, SaaS..." required />
-          </div>
+          <div class="form-grid">
+            <div class="field">
+              <label for="industry">Industry</label>
+              <input id="industry" name="industry" type="text" placeholder="Hospitality, legal, ecommerce..." required />
+            </div>
 
-          <div class="field">
-            <label for="service">Main product or service</label>
-            <input id="service" name="service" type="text" placeholder="What you sell or offer" required />
-          </div>
-
-          <div class="field">
-            <label for="email">Email</label>
-            <input id="email" name="email" type="email" placeholder="you@example.com" required />
+            <div class="field">
+              <label for="service">Main Product or Service</label>
+              <input id="service" name="service" type="text" placeholder="What you sell or offer" required />
+            </div>
           </div>
 
           <p class="form-note">
-            Results display below and a summary is emailed after the audit runs.
+            Results appear below, and a summary is emailed once the audit completes.
           </p>
 
           <div class="button-row">
@@ -380,12 +491,10 @@
       </section>
 
       <section id="results" class="results" hidden>
-        <section class="card score-card">
-          <div class="score-top">
-            <p class="eyebrow" style="margin-bottom:0;">Your result</p>
-            <h2 class="score-line">AI Visibility Score: <span id="overall-score">--</span>/100</h2>
-            <p id="executive-summary" class="summary"></p>
-          </div>
+        <section class="card">
+          <p class="eyebrow">Your Result</p>
+          <h3 class="score-line">AI Visibility Score: <span id="overall-score">--</span>/100</h3>
+          <p id="executive-summary" class="summary"></p>
 
           <div class="score-grid">
             <div class="metric">
@@ -393,16 +502,19 @@
               <div id="metric-overall" class="metric-value">--</div>
               <div class="metric-sub">Weighted visibility score</div>
             </div>
+
             <div class="metric">
               <div class="metric-label">Performance</div>
               <div id="metric-performance" class="metric-value">--</div>
               <div class="metric-sub">Mobile + desktop PageSpeed</div>
             </div>
+
             <div class="metric">
               <div class="metric-label">Technical SEO</div>
               <div id="metric-seo" class="metric-value">--</div>
-              <div class="metric-sub">Structure and crawlability signals</div>
+              <div class="metric-sub">Structure and crawlability</div>
             </div>
+
             <div class="metric">
               <div class="metric-label">SERP Presence</div>
               <div id="metric-serp" class="metric-value">--</div>
@@ -414,30 +526,32 @@
         </section>
 
         <section class="card">
-          <h3 class="section-title">What’s working</h3>
+          <h3 class="card-title">What’s working</h3>
           <ul id="strengths-list" class="list"></ul>
         </section>
 
         <section class="card">
-          <h3 class="section-title">Priority fixes</h3>
+          <h3 class="card-title">Priority fixes</h3>
           <ul id="priorities-list" class="list"></ul>
         </section>
 
         <section class="card">
-          <h3 class="section-title">AI search interpretation</h3>
+          <h3 class="card-title">AI search interpretation</h3>
           <ul id="visibility-list" class="list"></ul>
         </section>
 
         <section class="card">
-          <h3 class="section-title">Live source notes</h3>
+          <h3 class="card-title">Live source notes</h3>
           <ul id="evidence-list" class="list"></ul>
         </section>
 
-        <section class="card cta-box">
-          <h3 class="section-title" style="margin-bottom:0;">Want the deeper read?</h3>
+        <section class="card">
+          <h3 class="card-title">Want the deeper read?</h3>
           <p class="cta-copy">
-            Book a short review and we’ll walk through what these signals mean, where your brand is weak, and what to prioritize first.
+            Book a short review and we’ll walk through what these signals mean,
+            where your brand is weak, and what to prioritize first.
           </p>
+
           <div class="cta-actions">
             <a id="booking-link" class="primary-button" href="#" target="_blank" rel="noopener noreferrer">Book a 15 Min Review</a>
             <a id="contact-link" class="secondary-button" href="#" target="_blank" rel="noopener noreferrer">Get Full Review</a>
