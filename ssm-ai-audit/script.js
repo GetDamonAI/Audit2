@@ -13,6 +13,7 @@ const techMeta = document.getElementById("tech-meta");
 const techIndex = document.getElementById("tech-index");
 const aiRecommendation = document.getElementById("ai-recommendation");
 const serpPresence = document.getElementById("serp-presence");
+
 const thinkingStatus = document.getElementById("thinking-status");
 const thinkingText = document.getElementById("thinking-text");
 
@@ -29,7 +30,6 @@ function setThinkingStep(message) {
 }
 
 function clearThinkingStep() {
-  form.style.display = "none";
   if (thinkingStatus) thinkingStatus.hidden = true;
   if (thinkingText) thinkingText.textContent = "";
 }
@@ -45,6 +45,7 @@ form.addEventListener("submit", async (event) => {
   payload.url = normalizeUrl(payload.url);
 
   try {
+    // Thinking states
     setThinkingStep("Checking site structure...");
     await new Promise((resolve) => setTimeout(resolve, 700));
 
@@ -53,6 +54,7 @@ form.addEventListener("submit", async (event) => {
 
     setThinkingStep("Scoring AI recommendation likelihood...");
 
+    // Run audit
     const auditResponse = await fetch("/.netlify/functions/generate-audit", {
       method: "POST",
       headers: {
@@ -67,6 +69,7 @@ form.addEventListener("submit", async (event) => {
       throw new Error(data.error || "Audit generation failed.");
     }
 
+    // Populate UI
     scoreValue.textContent = data.score ?? "0";
     summary.textContent = data.summary || "";
 
@@ -96,39 +99,39 @@ form.addEventListener("submit", async (event) => {
     if (aiRecommendation) aiRecommendation.textContent = data.recommendation?.likelihood || "—";
     if (serpPresence) serpPresence.textContent = data.serp?.presence || "—";
 
+    // Finish thinking
     clearThinkingStep();
+
+    // 🔥 THIS IS THE KEY FIX — hide form after audit
+    form.style.display = "none";
+
+    // Show results
     results.hidden = false;
     results.scrollIntoView({ behavior: "smooth", block: "start" });
 
-    const emailPayload = {
-      email: payload.email,
-      businessName: payload.businessName,
-      url: payload.url,
-      industry: payload.industry,
-      service: payload.service,
-      score: data.score ?? 0,
-      summary: data.summary || "",
-      breakdown: data.breakdown || [],
-      priorities: data.priorities || [],
-      opportunity: data.opportunity || "",
-      recommendation: data.recommendation || {},
-      tech: data.tech || {},
-      serp: data.serp || {}
-    };
-
-    const emailResponse = await fetch("/.netlify/functions/send-audit-email", {
+    // Send email
+    await fetch("/.netlify/functions/send-audit-email", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(emailPayload)
+      body: JSON.stringify({
+        email: payload.email,
+        businessName: payload.businessName,
+        url: payload.url,
+        industry: payload.industry,
+        service: payload.service,
+        score: data.score ?? 0,
+        summary: data.summary || "",
+        breakdown: data.breakdown || [],
+        priorities: data.priorities || [],
+        opportunity: data.opportunity || "",
+        recommendation: data.recommendation || {},
+        tech: data.tech || {},
+        serp: data.serp || {}
+      })
     });
 
-    const emailData = await emailResponse.json();
-
-    if (!emailResponse.ok) {
-      throw new Error(emailData.error || "Email send failed.");
-    }
   } catch (error) {
     clearThinkingStep();
     alert(error.message || "Something went wrong.");
