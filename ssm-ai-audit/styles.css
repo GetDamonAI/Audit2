@@ -508,3 +508,27 @@ input:focus {
     grid-template-columns: 1fr;
   }
 }
+/* LOGO ROW FIX */
+.logo-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+}
+
+.logo-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+}
+
+.logo-item img {
+  max-height: 28px;
+  object-fit: contain;
+}
+
+/* Gemini alignment fix */
+.logo-item img[alt="Gemini"] {
+  transform: translateY(-2px);
+}
