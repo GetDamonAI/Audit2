@@ -4,42 +4,40 @@ exports.handler = async (event) => {
     const resendKey = process.env.RESEND_API_KEY;
 
     if (!resendKey) {
-      return {
-        statusCode: 500,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ error: "Missing RESEND_API_KEY" })
-      };
+      return respond(500, { error: "Missing RESEND_API_KEY" });
     }
 
-    if (!data.email || !data.url) {
-      return {
-        statusCode: 400,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ error: "Missing lead email or audit payload" })
-      };
+    const email = String(data.email || "").trim();
+    const businessName = String(data.businessName || "").trim();
+    const url = String(data.url || "").trim();
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return respond(400, { error: "Please enter a valid email address." });
+    }
+
+    if (!url) {
+      return respond(400, { error: "Missing website URL." });
     }
 
     const prioritiesHtml = (data.priorities || [])
-      .map((item) => `<li>${item}</li>`)
+      .map((item) => `<li>${escapeHtml(String(item))}</li>`)
       .join("");
 
     const adminHtml = `
-      <div style="font-family: Roboto, Arial, sans-serif; padding: 24px; max-width: 640px; margin: 0 auto;">
-        <h2>${data.businessName || "New lead"}</h2>
-        <p><strong>Website:</strong> ${data.url || ""}</p>
-        <p><strong>Email:</strong> ${data.email || ""}</p>
-        <p><strong>Industry:</strong> ${data.industry || ""}</p>
-        <p><strong>Main Product or Service:</strong> ${data.service || ""}</p>
-        <p><strong>Score:</strong> ${data.score || 0}/100</p>
-        <p>${data.summary || ""}</p>
+      <div style="font-family: Arial, sans-serif; padding: 24px; max-width: 640px; margin: 0 auto;">
+        <h2>${escapeHtml(businessName || "New lead")}</h2>
+        <p><strong>Website:</strong> ${escapeHtml(url)}</p>
+        <p><strong>Email:</strong> ${escapeHtml(email)}</p>
+        <p><strong>Score:</strong> ${escapeHtml(String(data.score || 0))}/100</p>
+        <p>${escapeHtml(String(data.summary || ""))}</p>
         <ol>${prioritiesHtml}</ol>
       </div>
     `;
 
     const userHtml = `
-      <div style="font-family: Roboto, Arial, sans-serif; padding: 24px; max-width: 640px; margin: 0 auto;">
-        <h2>Your AI Visibility Score: ${data.score || 0}/100</h2>
-        <p>${data.summary || ""}</p>
+      <div style="font-family: Arial, sans-serif; padding: 24px; max-width: 640px; margin: 0 auto;">
+        <h2>Your AI Visibility Score: ${escapeHtml(String(data.score || 0))}/100</h2>
+        <p>${escapeHtml(String(data.summary || ""))}</p>
         <ol>${prioritiesHtml}</ol>
 
         <p style="margin:20px 0 12px;">
@@ -60,55 +58,55 @@ exports.handler = async (event) => {
       </div>
     `;
 
-    async function sendOne(toAddress, subject, html) {
-      const res = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${resendKey}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          from: "audit@semanticsearchmarketing.com",
-          to: [toAddress],
-          subject,
-          html
-        })
-      });
-
-      const result = await res.json();
-      return { ok: res.ok, result };
-    }
-
-    const adminSend = await sendOne(
-      "hello@semanticsearchmarketing.com",
-      `New Audit Lead${data.businessName ? ` - ${data.businessName}` : ""}`,
-      adminHtml
-    );
-
-    const userSend = await sendOne(
-      data.email,
-      `Your AI Visibility Audit${data.businessName ? ` - ${data.businessName}` : ""}`,
-      userHtml
-    );
+    const adminSend = await sendOne(resendKey, "hello@semanticsearchmarketing.com", `New Audit Lead${businessName ? ` - ${businessName}` : ""}`, adminHtml);
+    const userSend = await sendOne(resendKey, email, `Your AI Visibility Audit${businessName ? ` - ${businessName}` : ""}`, userHtml);
 
     if (!adminSend.ok || !userSend.ok) {
-      return {
-        statusCode: 500,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ error: "Email send failed", adminSend, userSend })
-      };
+      return respond(500, {
+        error: "Email send failed",
+        adminSend,
+        userSend
+      });
     }
 
-    return {
-      statusCode: 200,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ success: true })
-    };
+    return respond(200, { success: true });
   } catch (error) {
-    return {
-      statusCode: 500,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ error: error.message || "Email send failed" })
-    };
+    return respond(500, { error: error.message || "Email send failed" });
   }
 };
+
+async function sendOne(resendKey, to, subject, html) {
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${resendKey}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      from: "audit@semanticsearchmarketing.com",
+      to: [to],
+      subject,
+      html
+    })
+  });
+
+  const result = await res.json();
+  return { ok: res.ok, result };
+}
+
+function respond(statusCode, body) {
+  return {
+    statusCode,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  };
+}
+
+function escapeHtml(str) {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
