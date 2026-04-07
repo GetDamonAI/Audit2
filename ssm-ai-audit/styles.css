@@ -277,3 +277,167 @@ body,
   max-width: 100%;
   overflow-x: hidden;
 }
+/* MOBILE RESULTS CLEANUP */
+@media (max-width: 640px) {
+  .results {
+    width: 100%;
+    max-width: 100%;
+    padding: 18px 14px 18px;
+    border-radius: 20px;
+  }
+
+  .results h2 {
+    font-size: 24px;
+    line-height: 1.05;
+    margin: 0 0 14px;
+  }
+
+  .score {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin: 0 0 14px;
+  }
+
+  .score-value {
+    font-size: 56px;
+    line-height: 0.9;
+  }
+
+  .score-total {
+    font-size: 14px;
+  }
+
+  .summary,
+  .audit-meta-text,
+  .cta-copy,
+  .priorities,
+  .panel p,
+  .panel li {
+    font-size: 15px;
+    line-height: 1.45;
+  }
+
+  .panel {
+    gap: 10px;
+  }
+
+  .audit-section-title,
+  .audit-meta-title,
+  .audit-tech-title,
+  .audit-ai-label {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    margin: 0 0 6px;
+  }
+
+  .audit-meta {
+    margin: 10px 0 14px;
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .audit-ai {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .audit-ai-item {
+    padding: 12px 14px;
+    border-radius: 12px;
+  }
+
+  .audit-ai-item strong {
+    font-size: 20px;
+    line-height: 1.1;
+  }
+
+  .breakdown-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2px;
+    min-height: auto;
+    padding: 10px 0;
+  }
+
+  .breakdown-row p {
+    margin: 0;
+  }
+
+  .audit-tech {
+    margin: 14px 0 18px;
+  }
+
+  .audit-tech-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .audit-tech-item {
+    padding: 12px 14px;
+    border-radius: 12px;
+    font-size: 14px;
+  }
+
+  .priorities {
+    padding-left: 20px;
+    margin: 0;
+  }
+
+  .priorities li {
+    margin-bottom: 8px;
+  }
+
+  .results-cta,
+  .cta-block {
+    width: 100%;
+    max-width: 100%;
+    margin: 10px 0 0;
+    padding: 18px 14px 16px;
+    border-radius: 18px;
+  }
+
+  .cta-block h2 {
+    font-size: 24px;
+    line-height: 1.05;
+    margin: 0 0 10px;
+  }
+
+  .cta-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .cta-link,
+  .primary-button,
+  .secondary-button {
+    display: flex;
+    width: 100%;
+    max-width: 100%;
+    min-height: 56px;
+    padding: 14px 16px;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    white-space: normal;
+    line-height: 1.2;
+    font-size: 15px;
+    text-decoration: none;
+  }
+
+  .secondary-button {
+    border: 1px solid rgba(23,23,23,0.08);
+  }
+
+  /* remove weird inherited link styling inside buttons */
+  .cta-link:link,
+  .cta-link:visited,
+  .primary-button:link,
+  .primary-button:visited,
+  .secondary-button:link,
+  .secondary-button:visited {
+    text-decoration: none;
+  }
+}
