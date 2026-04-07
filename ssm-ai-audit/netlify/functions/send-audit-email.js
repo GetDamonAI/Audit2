@@ -1,168 +1,205 @@
+function json(statusCode, body) {
+  return {
+    statusCode,
+    headers: {
+      "Content-Type": "application/json",
+      "Cache-Control": "no-store"
+    },
+    body: JSON.stringify(body)
+  };
+}
+
+function esc(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function listHtml(items) {
+  return (items || [])
+    .map(
+      (item) =>
+        `<li style="margin:0 0 10px; line-height:1.6; color:#3f3933;">${esc(item)}</li>`
+    )
+    .join("");
+}
+
+async function resendEmail({ resendKey, from, to, subject, html }) {
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${resendKey}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      from,
+      to,
+      subject,
+      html
+    })
+  });
+
+  const data = await response.json().catch(() => ({}));
+  return { ok: response.ok, data };
+}
+
 exports.handler = async (event) => {
   try {
-    const data = JSON.parse(event.body || "{}");
+    if (event.httpMethod !== "POST") {
+      return json(405, { error: "Method not allowed" });
+    }
+
     const resendKey = process.env.RESEND_API_KEY;
+    const fromEmail = process.env.AUDIT_EMAIL_FROM || "audit@semanticsearchmarketing.com";
+    const notificationTo = process.env.AUDIT_NOTIFICATION_TO || "";
+    const bookingUrl =
+      process.env.AUDIT_BOOKING_URL || "https://calendar.app.google/XtiHBsQCKT1hSoJe6";
+    const contactUrl =
+      process.env.AUDIT_CONTACT_URL || "https://www.semanticsearchmarketing.com/contact";
 
     if (!resendKey) {
-      return {
-        statusCode: 500,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ error: "Missing RESEND_API_KEY" })
-      };
+      throw new Error("Missing RESEND_API_KEY");
     }
 
-    const breakdownHtml = (data.breakdown || [])
-      .map((item) => `<li>${item.label}: ${item.value}/100</li>`)
-      .join("");
+    const body = JSON.parse(event.body || "{}");
+    const lead = body.lead || {};
+    const audit = body.audit || {};
 
-    const prioritiesHtml = (data.priorities || [])
-      .map((item) => `<li>${item}</li>`)
-      .join("");
+    if (!lead.email || !audit.overallScore) {
+      return json(400, { error: "Missing lead email or audit payload" });
+    }
 
-    const adminHtml = `
-      <div style="font-family: Roboto, Arial, sans-serif; padding: 24px; max-width: 640px; margin: 0 auto;">
-        <p style="font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:#777; margin:0 0 8px;">
-          New AI Visibility Audit Lead
-        </p>
+    const leadHtml = `
+      <div style="margin:0; padding:0; background:#f7f5f2;">
+        <div style="max-width:680px; margin:0 auto; padding:32px 20px; font-family:Arial, sans-serif; color:#111111;">
+          <div style="background:#ffffff; border:1px solid #e9e3da; border-radius:20px; padding:32px;">
+            <p style="margin:0 0 10px; font-size:12px; line-height:1.4; letter-spacing:0.12em; text-transform:uppercase; color:#6b645b; font-weight:700;">
+              AI Visibility Audit
+            </p>
 
-        <h2 style="font-size:28px; margin:0 0 16px;">
-          ${data.businessName || "New lead"}
-        </h2>
+            <h1 style="margin:0 0 12px; font-size:30px; line-height:1.1; color:#111111;">
+              Your AI Visibility Score: ${esc(audit.overallScore)}/100
+            </h1>
 
-        <p><strong>Website:</strong> ${data.url || ""}</p>
-        <p><strong>Email:</strong> ${data.email || ""}</p>
-        <p><strong>Industry:</strong> ${data.industry || ""}</p>
-        <p><strong>Main Product or Service:</strong> ${data.service || ""}</p>
+            <p style="margin:0 0 20px; font-size:16px; line-height:1.7; color:#4d463f;">
+              ${esc(audit.executiveSummary || "")}
+            </p>
 
-        <h3 style="font-size:16px; margin:20px 0 8px;">Audit Score</h3>
-        <p><strong>${data.score}/100</strong></p>
+            <div style="margin:0 0 24px; padding:18px; background:#faf8f4; border:1px solid #eee7de; border-radius:16px;">
+              <p style="margin:0 0 8px; font-size:14px; line-height:1.5;"><strong>Website:</strong> ${esc(lead.url || "")}</p>
+              <p style="margin:0 0 8px; font-size:14px; line-height:1.5;"><strong>Business:</strong> ${esc(lead.businessName || "")}</p>
+              <p style="margin:0; font-size:14px; line-height:1.5;"><strong>Main service:</strong> ${esc(lead.service || "")}</p>
+            </div>
 
-        <h3 style="font-size:16px; margin:20px 0 8px;">Summary</h3>
-        <p style="font-size:16px; line-height:1.6; color:#444;">
-          ${data.summary || ""}
-        </p>
+            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:0 0 24px;">
+              <div style="border:1px solid #eee7de; border-radius:16px; padding:14px; background:#fffdfa;">
+                <div style="font-size:12px; color:#6b645b; margin-bottom:6px;">Overall</div>
+                <div style="font-size:24px; font-weight:700;">${esc(audit.overallScore)}</div>
+              </div>
+              <div style="border:1px solid #eee7de; border-radius:16px; padding:14px; background:#fffdfa;">
+                <div style="font-size:12px; color:#6b645b; margin-bottom:6px;">Performance</div>
+                <div style="font-size:24px; font-weight:700;">${esc(audit.categoryScores?.performance || "--")}</div>
+              </div>
+              <div style="border:1px solid #eee7de; border-radius:16px; padding:14px; background:#fffdfa;">
+                <div style="font-size:12px; color:#6b645b; margin-bottom:6px;">SEO</div>
+                <div style="font-size:24px; font-weight:700;">${esc(audit.categoryScores?.seo || "--")}</div>
+              </div>
+              <div style="border:1px solid #eee7de; border-radius:16px; padding:14px; background:#fffdfa;">
+                <div style="font-size:12px; color:#6b645b; margin-bottom:6px;">SERP</div>
+                <div style="font-size:24px; font-weight:700;">${esc(audit.categoryScores?.serp || "--")}</div>
+              </div>
+            </div>
 
-        <h3 style="font-size:16px; margin:20px 0 8px;">Signal Breakdown</h3>
-        <ul style="padding-left:18px; margin:0 0 20px;">
-          ${breakdownHtml}
-        </ul>
+            <h2 style="margin:0 0 10px; font-size:20px; line-height:1.2;">What’s working</h2>
+            <ul style="margin:0 0 22px; padding-left:18px;">
+              ${listHtml(audit.strengths)}
+            </ul>
 
-        <h3 style="font-size:16px; margin:20px 0 8px;">Top Priorities</h3>
-        <ol style="padding-left:18px; margin:0 0 20px;">
-          ${prioritiesHtml}
-        </ol>
+            <h2 style="margin:0 0 10px; font-size:20px; line-height:1.2;">Priority fixes</h2>
+            <ul style="margin:0 0 22px; padding-left:18px;">
+              ${listHtml(audit.priorityFixes)}
+            </ul>
 
-        <h3 style="font-size:16px; margin:20px 0 8px;">Biggest Opportunity</h3>
-        <p style="font-size:16px; line-height:1.6; color:#444;">
-          ${data.opportunity || ""}
-        </p>
+            <h2 style="margin:0 0 10px; font-size:20px; line-height:1.2;">AI search interpretation</h2>
+            <ul style="margin:0 0 24px; padding-left:18px;">
+              ${listHtml(audit.aiVisibilityReadout)}
+            </ul>
+
+            <div style="margin:0 0 8px;">
+              <a href="${esc(bookingUrl)}"
+                 style="display:inline-block; background:#232323; color:#ffffff; text-decoration:none; padding:14px 22px; border-radius:999px; font-size:15px; font-weight:600; margin:0 10px 10px 0;">
+                Book a 15 Minute Review
+              </a>
+
+              <a href="${esc(contactUrl)}"
+                 style="display:inline-block; background:#efebe5; color:#111111; text-decoration:none; padding:14px 22px; border-radius:999px; font-size:15px; font-weight:600; margin:0 10px 10px 0;">
+                Get Full Review
+              </a>
+            </div>
+
+            <p style="margin:22px 0 0; font-size:15px; line-height:1.6; color:#4d463f;">
+              — Damon<br />
+              Semantic Search Marketing
+            </p>
+          </div>
+        </div>
       </div>
     `;
 
-    const userHtml = `
-      <div style="font-family: Roboto, Arial, sans-serif; padding: 24px; max-width: 640px; margin: 0 auto;">
-        <p style="font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:#777; margin:0 0 8px;">
-          AI Visibility Audit
-        </p>
+    const leadSend = await resendEmail({
+      resendKey,
+      from: `Semantic Search Marketing <${fromEmail}>`,
+      to: [lead.email],
+      subject: "Your AI Visibility Audit",
+      html: leadHtml
+    });
 
-        <h2 style="font-size:28px; margin:0 0 12px;">
-          Your AI Visibility Score: ${data.score}/100
-        </h2>
-
-        <p style="font-size:16px; line-height:1.6; color:#444; margin:0 0 20px;">
-          ${data.summary || ""}
-        </p>
-
-        <h3 style="font-size:16px; margin:0 0 8px;">What needs fixing</h3>
-        <ol style="padding-left:18px; margin:0 0 24px;">
-          ${prioritiesHtml}
-        </ol>
-
-        <p style="font-size:16px; line-height:1.6; color:#444; margin:0 0 24px;">
-          This is a quick snapshot of how your site is showing up for AI systems right now. If you want, we can walk through the results together or take a deeper look with a full review.
-        </p>
-
-        <p style="margin:0 0 14px;">
-          <a href="https://calendar.app.google/XtiHBsQCKT1hSoJe6"
-             style="display:inline-block; padding:14px 22px; background:#232323; color:#fff; text-decoration:none; border-radius:999px;">
-            Book a 15 Minute Review
-          </a>
-        </p>
-
-        <p style="margin:0 0 24px;">
-          <a href="https://www.semanticsearchmarketing.com/contact"
-             style="display:inline-block; padding:14px 22px; background:#f1efeb; color:#171717; text-decoration:none; border-radius:999px; border:1px solid #ddd;">
-            Get a Full Review
-          </a>
-        </p>
-
-        <p style="font-size:16px; line-height:1.6; color:#444; margin:0;">
-          Thanks,<br>
-          Damon Holowchak<br>
-          Semantic Search Marketing
-        </p>
-      </div>
-    `;
-
-    async function sendOne(toAddress, subject, html) {
-      const response = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${resendKey}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          from: "audit@semanticsearchmarketing.com",
-          to: [toAddress],
-          subject,
-          html
-        })
+    if (!leadSend.ok) {
+      return json(500, {
+        error: "Failed to send lead email",
+        details: leadSend.data
       });
-
-      const result = await response.json();
-      return { ok: response.ok, to: toAddress, result };
     }
 
-    const adminSend = await sendOne(
-      "hello@semanticsearchmarketing.com",
-      `New Audit Lead${data.businessName ? ` - ${data.businessName}` : ""}`,
-      adminHtml
-    );
+    if (notificationTo) {
+      const internalHtml = `
+        <div style="font-family:Arial,sans-serif; padding:24px;">
+          <h2>New AI Audit Lead</h2>
+          <p><strong>Business:</strong> ${esc(lead.businessName)}</p>
+          <p><strong>Website:</strong> ${esc(lead.url)}</p>
+          <p><strong>Email:</strong> ${esc(lead.email)}</p>
+          <p><strong>Industry:</strong> ${esc(lead.industry)}</p>
+          <p><strong>Service:</strong> ${esc(lead.service)}</p>
+          <hr />
+          <p><strong>Overall Score:</strong> ${esc(audit.overallScore)}</p>
+          <p><strong>Summary:</strong> ${esc(audit.executiveSummary || "")}</p>
+          <p><strong>Strengths:</strong></p>
+          <ul>${listHtml(audit.strengths)}</ul>
+          <p><strong>Priority Fixes:</strong></p>
+          <ul>${listHtml(audit.priorityFixes)}</ul>
+          <p><strong>AI Search Interpretation:</strong></p>
+          <ul>${listHtml(audit.aiVisibilityReadout)}</ul>
+        </div>
+      `;
 
-    const userSend = data.email
-      ? await sendOne(
-          data.email,
-          `Your AI Visibility Audit${data.businessName ? ` - ${data.businessName}` : ""}`,
-          userHtml
-        )
-      : { ok: true, to: null, result: null };
-
-    if (!adminSend.ok || !userSend.ok) {
-      return {
-        statusCode: 500,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          error: "Email send failed",
-          adminSend,
-          userSend
-        })
-      };
+      await resendEmail({
+        resendKey,
+        from: `Semantic Search Marketing <${fromEmail}>`,
+        to: [notificationTo],
+        subject: `New AI Audit Lead: ${lead.businessName || lead.email}`,
+        html: internalHtml
+      });
     }
 
-    return {
-      statusCode: 200,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        success: true,
-        adminSend,
-        userSend
-      })
-    };
+    return json(200, {
+      success: true
+    });
   } catch (error) {
-    return {
-      statusCode: 500,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ error: error.message || "Email send failed" })
-    };
+    console.error("send-audit-email error:", error);
+    return json(500, {
+      error: error.message || "Internal server error"
+    });
   }
 };
