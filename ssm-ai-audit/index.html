@@ -90,79 +90,86 @@
 
       <!-- RESULTS -->
       <section id="results" class="results" hidden>
+  <h2>Your AI visibility assessment</h2>
 
-        <h2>Your AI visibility assessment</h2>
+  <div class="score-block">
+    <div class="score">
+      <span id="score-value" class="score-value">0</span>
+      <span class="score-total">/ 100</span>
+    </div>
+    <p id="summary" class="summary"></p>
+  </div>
 
-        <div class="score">
-          <span id="score-value" class="score-value">0</span>
-          <span class="score-total">/ 100</span>
-        </div>
+  <div class="audit-ai">
+    <div class="audit-ai-item">
+      <span class="audit-ai-label">AI Recommendation</span>
+      <strong id="ai-recommendation">—</strong>
+    </div>
+    <div class="audit-ai-item">
+      <span class="audit-ai-label">Entity Confidence</span>
+      <strong id="entity-confidence">—</strong>
+    </div>
+  </div>
 
-        <p id="summary" class="summary"></p>
+  <div class="panel">
+    <p class="audit-section-title">What we looked at</p>
+    <div id="breakdown"></div>
+  </div>
 
-        <div class="panel">
-          <p class="audit-section-title">AI Verdict</p>
-          <p id="ai-verdict"></p>
-        </div>
+  <div class="panel">
+    <p class="audit-section-title">What AI is missing</p>
+    <ol id="ai-issues" class="priorities"></ol>
+  </div>
 
-        <div class="audit-ai">
-          <div class="audit-ai-item">
-            <span>AI Recommendation</span>
-            <strong id="ai-recommendation">—</strong>
-          </div>
-          <div class="audit-ai-item">
-            <span>Entity Confidence</span>
-            <strong id="entity-confidence">—</strong>
-          </div>
-        </div>
+  <div class="panel">
+    <p class="audit-section-title">What you should fix</p>
+    <ol id="priorities" class="priorities"></ol>
+  </div>
 
-        <div class="panel">
-          <p class="audit-section-title">What we looked at</p>
-          <div id="breakdown"></div>
-        </div>
+  <div class="panel email-note">
+    <p class="summary">
+      We sent a more detailed breakdown and recommendations to your email.
+    </p>
+  </div>
 
-        <div class="panel">
-          <p class="audit-section-title">What AI is missing</p>
-          <ol id="ai-issues"></ol>
-        </div>
+  <!-- hidden support fields for script / desktop only -->
+  <div class="detail-desktop">
+    <div id="top-ai-queries"></div>
+    <div id="competitor-advantage"></div>
+    <div id="opportunity"></div>
+    <div id="tech-speed"></div>
+    <div id="tech-mobile"></div>
+    <div id="tech-meta"></div>
+    <div id="tech-index"></div>
+    <div id="ai-verdict"></div>
+  </div>
 
-        <div class="panel">
-          <p class="audit-section-title">What you should fix</p>
-          <ol id="priorities"></ol>
-        </div>
+  <section class="cta-block results-cta">
+    <h2>Next Step</h2>
+    <p class="cta-copy">
+      Want a more tailored review? Book a quick walkthrough or get extra help.
+    </p>
+    <div class="cta-actions">
+      <a
+        class="primary-button cta-link"
+        href="https://calendar.app.google/XtiHBsQCKT1hSoJe6"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Book a 15 Minute Review
+      </a>
 
-        <div class="panel email-note">
-          <p>
-            We sent a full breakdown and next steps to your email.
-          </p>
-        </div>
-
-        <!-- CTA -->
-        <section class="cta-block">
-          <h2>Next Step</h2>
-          <p>
-            Want a more tailored review? Book a quick walkthrough or explore a deeper full review.
-          </p>
-
-          <div class="cta-actions">
-            <a
-              class="primary-button"
-              href="https://calendar.app.google/XtiHBsQCKT1hSoJe6"
-              target="_blank"
-            >
-              Book a 15 Minute Review
-            </a>
-
-            <a
-              class="secondary-button"
-              href="https://www.semanticsearchmarketing.com/contact"
-              target="_blank"
-            >
-              Get Some Extra Help Here
-            </a>
-          </div>
-        </section>
-
+      <a
+        class="secondary-button cta-link"
+        href="https://www.semanticsearchmarketing.com/contact"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Get Some Extra Help Here
+      </a>
+    </div>
+  </section>
+</section>
       </section>
 
     </div>
