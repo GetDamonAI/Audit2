@@ -86,4 +86,108 @@
             <span class="audit-ai-label">AI Recommendation Likelihood</span>
             <strong id="ai-recommendation">—</strong>
           </div>
-          <div class="
+          <div class="audit-ai-item">
+            <span class="audit-ai-label">Search Presence Check</span>
+            <strong id="serp-presence">—</strong>
+          </div>
+        </div>
+
+        <div class="panel">
+          <p class="audit-section-title">What we checked</p>
+          <div id="breakdown"></div>
+        </div>
+
+        <div class="audit-tech">
+          <p class="audit-tech-title">Site Health Snapshot</p>
+          <div class="audit-tech-grid">
+            <div class="audit-tech-item">
+              <span>Page Speed</span>
+              <strong id="tech-speed">—</strong>
+            </div>
+            <div class="audit-tech-item">
+              <span>Mobile Readiness</span>
+              <strong id="tech-mobile">—</strong>
+            </div>
+            <div class="audit-tech-item">
+              <span>Meta Structure</span>
+              <strong id="tech-meta">—</strong>
+            </div>
+            <div class="audit-tech-item">
+              <span>Indexability</span>
+              <strong id="tech-index">—</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <p class="audit-section-title">What needs fixing</p>
+          <ol id="priorities" class="priorities"></ol>
+        </div>
+
+        <div class="panel">
+          <p class="audit-section-title">Biggest opportunity</p>
+          <p id="opportunity" class="summary"></p>
+        </div>
+
+        <section class="cta-block results-cta">
+          <h2>Next Step</h2>
+          <p class="cta-copy">
+            Want a more tailored review? Book a quick walkthrough or explore a deeper full review.
+          </p>
+          <div class="cta-actions">
+            <a
+              class="primary-button cta-link"
+              href="https://calendar.app.google/XtiHBsQCKT1hSoJe6"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Book a 15 Minute Review
+            </a>
+
+            <a
+              class="secondary-button cta-link"
+              href="https://www.semanticsearchmarketing.com/contact"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Inquire About a Full Review
+            </a>
+          </div>
+        </section>
+      </section>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+
+  <script>
+    function sendHeightToParent() {
+      const height = Math.max(
+        document.body.scrollHeight,
+        document.documentElement.scrollHeight
+      );
+      window.parent.postMessage(
+        { type: "ssm-audit-height", height: height },
+        "*"
+      );
+    }
+
+    window.addEventListener("load", sendHeightToParent);
+    window.addEventListener("resize", sendHeightToParent);
+
+    const observer = new MutationObserver(() => {
+      sendHeightToParent();
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true
+    });
+
+    setTimeout(sendHeightToParent, 500);
+    setTimeout(sendHeightToParent, 1500);
+    setTimeout(sendHeightToParent, 3000);
+  </script>
+</body>
+</html>
