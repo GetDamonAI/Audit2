@@ -41,9 +41,18 @@ form.addEventListener("submit", async (event) => {
 
   const formData = new FormData(form);
   const payload = Object.fromEntries(formData.entries());
+
   payload.url = normalizeUrl(payload.url);
+  payload.email = (payload.email || "").trim();
+  payload.businessName = (payload.businessName || "").trim();
+  payload.industry = (payload.industry || "").trim();
+  payload.service = (payload.service || "").trim();
 
   try {
+    if (!payload.email || !payload.url) {
+      throw new Error("Please enter both your website URL and email.");
+    }
+
     const startedAt = Date.now();
 
     setThinkingStep("Checking site structure...");
