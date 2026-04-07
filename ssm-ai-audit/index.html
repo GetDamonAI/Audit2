@@ -75,118 +75,127 @@ fbq('track', 'PageView');
         </div>
       </form>
 
-      <section id="results" class="results" hidden>
-        <h2>Your AI visibility assessment</h2>
+     <section id="results" class="results" hidden>
+  <h2>Your AI visibility assessment</h2>
 
-        <div class="score-block">
-          <div class="score">
-            <span id="score-value" class="score-value">0</span>
-            <span class="score-total">/ 100</span>
-          </div>
-          <p id="summary" class="summary"></p>
-        </div>
-
-        <div class="panel">
-          <p class="audit-section-title">AI Verdict</p>
-          <p id="ai-verdict" class="summary"></p>
-        </div>
-
-        <div class="audit-meta">
-          <p class="audit-meta-title">How this was evaluated</p>
-          <p class="audit-meta-text">
-            This assessment combines public site checks, live search-result signals, and AI interpretation. We reviewed site structure, technical readiness, search presence, and simulated whether AI systems would be likely to recommend your business for its core offer.
-          </p>
-        </div>
-
-        <div class="audit-ai">
-          <div class="audit-ai-item">
-            <span class="audit-ai-label">AI Recommendation Likelihood</span>
-            <strong id="ai-recommendation">—</strong>
-          </div>
-          <div class="audit-ai-item">
-            <span class="audit-ai-label">Entity Confidence</span>
-            <strong id="entity-confidence">—</strong>
-          </div>
-        </div>
-
-        <div class="panel">
-          <p class="audit-section-title">What AI is missing</p>
-          <ol id="ai-issues" class="priorities"></ol>
-        </div>
-
-        <div class="panel">
-          <p class="audit-section-title">What we checked</p>
-          <div id="breakdown"></div>
-        </div>
-
-        <div class="audit-tech">
-          <p class="audit-tech-title">Site Health Snapshot</p>
-          <div class="audit-tech-grid">
-            <div class="audit-tech-item">
-              <span>Page Speed</span>
-              <strong id="tech-speed">—</strong>
-            </div>
-            <div class="audit-tech-item">
-              <span>Mobile Readiness</span>
-              <strong id="tech-mobile">—</strong>
-            </div>
-            <div class="audit-tech-item">
-              <span>Meta Structure</span>
-              <strong id="tech-meta">—</strong>
-            </div>
-            <div class="audit-tech-item">
-              <span>Indexability</span>
-              <strong id="tech-index">—</strong>
-            </div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <p class="audit-section-title">What to fix first</p>
-          <ol id="priorities" class="priorities"></ol>
-        </div>
-
-        <div class="panel">
-          <p class="audit-section-title">Top AI queries to win</p>
-          <ol id="top-ai-queries" class="priorities"></ol>
-        </div>
-
-        <div class="panel">
-          <p class="audit-section-title">Why a competitor may be recommended first</p>
-          <ol id="competitor-advantage" class="priorities"></ol>
-        </div>
-
-        <div class="panel">
-          <p class="audit-section-title">Biggest opportunity</p>
-          <p id="opportunity" class="summary"></p>
-        </div>
-
-        <section class="cta-block results-cta">
-  <h2>Next Step</h2>
-  <p class="cta-copy">
-    Want a more tailored review? Book a quick walkthrough or explore a deeper full review.
-  </p>
-  <div class="cta-actions">
-    <a
-      class="primary-button cta-link"
-      href="https://calendar.app.google/XtiHBsQCKT1hSoJe6"
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      Book a 15 Minute Review
-    </a>
-
-    <a
-      class="secondary-button cta-link"
-      href="https://www.semanticsearchmarketing.com/contact"
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      Get Some Extra Help Here
-    </a>
+  <div class="score-block">
+    <div class="score">
+      <span id="score-value" class="score-value">0</span>
+      <span class="score-total">/ 100</span>
+    </div>
+    <p id="summary" class="summary"></p>
   </div>
+
+  <div class="panel panel-tight">
+    <p class="audit-section-title">AI Verdict</p>
+    <p id="ai-verdict" class="summary"></p>
+  </div>
+
+  <div class="audit-ai panel-tight">
+    <div class="audit-ai-item">
+      <span class="audit-ai-label">AI Recommendation Likelihood</span>
+      <strong id="ai-recommendation">—</strong>
+    </div>
+    <div class="audit-ai-item">
+      <span class="audit-ai-label">Entity Confidence</span>
+      <strong id="entity-confidence">—</strong>
+    </div>
+  </div>
+
+  <div class="panel">
+    <p class="audit-section-title">What we looked at</p>
+    <div id="breakdown"></div>
+  </div>
+
+  <div class="panel">
+    <p class="audit-section-title">What AI is missing</p>
+    <ol id="ai-issues" class="priorities"></ol>
+  </div>
+
+  <div class="panel">
+    <p class="audit-section-title">What you should fix</p>
+    <ol id="priorities" class="priorities"></ol>
+  </div>
+
+  <div class="panel email-note">
+    <p class="summary">
+      We sent a more detailed breakdown and next-step recommendations to your email.
+    </p>
+  </div>
+
+  <!-- keep these for desktop / script population -->
+  <div class="detail-desktop">
+    <div class="audit-meta">
+      <p class="audit-meta-title">How this was evaluated</p>
+      <p class="audit-meta-text">
+        This assessment combines public site checks, live search-result signals, and AI interpretation. We reviewed site structure, technical readiness, search presence, and simulated whether AI systems would be likely to recommend your business for its core offer.
+      </p>
+    </div>
+
+    <div class="audit-tech">
+      <p class="audit-tech-title">Site Health Snapshot</p>
+      <div class="audit-tech-grid">
+        <div class="audit-tech-item">
+          <span>Page Speed</span>
+          <strong id="tech-speed">—</strong>
+        </div>
+        <div class="audit-tech-item">
+          <span>Mobile Readiness</span>
+          <strong id="tech-mobile">—</strong>
+        </div>
+        <div class="audit-tech-item">
+          <span>Meta Structure</span>
+          <strong id="tech-meta">—</strong>
+        </div>
+        <div class="audit-tech-item">
+          <span>Indexability</span>
+          <strong id="tech-index">—</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <p class="audit-section-title">Top AI queries to win</p>
+      <ol id="top-ai-queries" class="priorities"></ol>
+    </div>
+
+    <div class="panel">
+      <p class="audit-section-title">Why a competitor may be recommended first</p>
+      <ol id="competitor-advantage" class="priorities"></ol>
+    </div>
+
+    <div class="panel">
+      <p class="audit-section-title">Biggest opportunity</p>
+      <p id="opportunity" class="summary"></p>
+    </div>
+  </div>
+
+  <section class="cta-block results-cta">
+    <h2>Next Step</h2>
+    <p class="cta-copy">
+      Want a more tailored review? Book a quick walkthrough or explore a deeper full review.
+    </p>
+    <div class="cta-actions">
+      <a
+        class="primary-button cta-link"
+        href="https://calendar.app.google/XtiHBsQCKT1hSoJe6"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Book a 15 Minute Review
+      </a>
+
+      <a
+        class="secondary-button cta-link"
+        href="https://www.semanticsearchmarketing.com/contact"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Get Some Extra Help Here
+      </a>
+    </div>
+  </section>
 </section>
-      </section>
     </section>
   </main>
 
