@@ -13,6 +13,7 @@ const techMeta = document.getElementById("tech-meta");
 const techIndex = document.getElementById("tech-index");
 const aiRecommendation = document.getElementById("ai-recommendation");
 const serpPresence = document.getElementById("serp-presence");
+
 const thinkingStatus = document.getElementById("thinking-status");
 const thinkingText = document.getElementById("thinking-text");
 
@@ -83,6 +84,7 @@ form.addEventListener("submit", async (event) => {
 
   try {
     const startedAt = Date.now();
+
     const steps = [
       "Checking site structure...",
       "Reviewing search visibility...",
@@ -152,17 +154,16 @@ form.addEventListener("submit", async (event) => {
     clearThinkingStep();
 
     await fadeOutForm();
-showResults();
+    showResults();
 
-// META PIXEL — AUDIT COMPLETED (LEAD EVENT)
-if (typeof fbq !== "undefined") {
-  fbq("track", "Lead", {
-    content_name: "AI Audit Completed",
-    content_category: "AI Visibility Audit",
-    value: data.score || 0,
-    currency: "USD"
-  });
-}
+    if (typeof fbq !== "undefined") {
+      fbq("track", "Lead", {
+        content_name: "AI Audit Completed",
+        content_category: "AI Visibility Audit",
+        value: data.score || 0,
+        currency: "USD"
+      });
+    }
 
     await fetch("/.netlify/functions/send-audit-email", {
       method: "POST",
@@ -170,23 +171,24 @@ if (typeof fbq !== "undefined") {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-  email: payload.email,
-  businessName: payload.businessName,
-  url: payload.url,
-  score: data.score ?? 0,
-  aiVerdict: data.aiVerdict || "",
-  summary: data.summary || "",
-  breakdown: data.breakdown || [],
-  aiIssues: data.aiIssues || [],
-  priorities: data.priorities || [],
-  topAiQueries: data.topAiQueries || [],
-  competitorAdvantage: data.competitorAdvantage || [],
-  opportunity: data.opportunity || "",
-  recommendation: data.recommendation || {},
-  entityConfidence: data.entityConfidence ?? 0,
-  tech: data.tech || {},
-  serp: data.serp || {}
-})
+        email: payload.email,
+        businessName: payload.businessName,
+        url: payload.url,
+        score: data.score ?? 0,
+        aiVerdict: data.aiVerdict || "",
+        summary: data.summary || "",
+        breakdown: data.breakdown || [],
+        aiIssues: data.aiIssues || [],
+        priorities: data.priorities || [],
+        topAiQueries: data.topAiQueries || [],
+        competitorAdvantage: data.competitorAdvantage || [],
+        opportunity: data.opportunity || "",
+        recommendation: data.recommendation || {},
+        entityConfidence: data.entityConfidence ?? 0,
+        tech: data.tech || {},
+        serp: data.serp || {}
+      })
+    });
   } catch (error) {
     clearInterval(thinkingInterval);
     clearThinkingStep();
