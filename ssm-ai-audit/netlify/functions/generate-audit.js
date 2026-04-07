@@ -30,44 +30,80 @@ exports.handler = async (event) => {
     };
 
     const prompt = `
-You are generating a concise AI visibility audit for a business.
+You are an expert in AI search visibility, semantic search, and how LLMs like ChatGPT, Gemini, and Perplexity discover and recommend brands.
 
-Business info:
+This is NOT a traditional SEO audit.
+
+Your job is to evaluate whether this business is understandable, trustworthy, and recommendable by AI systems.
+
+BUSINESS
 Website: ${url}
 Business name: ${input.businessName || ""}
 Industry: ${input.industry || ""}
-Main product or service: ${input.service || ""}
+Product/Service: ${input.service || ""}
 
-Technical findings:
-- Title tag present: ${htmlChecks.hasTitle}
-- Meta description present: ${htmlChecks.hasMetaDescription}
-- H1 present: ${htmlChecks.hasH1}
-- Canonical present: ${htmlChecks.hasCanonical}
-- Schema present: ${htmlChecks.hasSchema}
-- Robots noindex found: ${htmlChecks.hasNoindex}
-- PageSpeed mobile score: ${pageSpeed?.score ?? "Unavailable"}
+REAL SIGNALS AVAILABLE
 
-Search findings:
-- Search query used: ${serper?.query || "Unavailable"}
-- Brand found in organic results: ${serper?.brandFound ?? "Unknown"}
-- Organic results checked: ${serper?.organicCount ?? 0}
+STRUCTURE
+- Title: ${htmlChecks.hasTitle}
+- Meta description: ${htmlChecks.hasMetaDescription}
+- H1: ${htmlChecks.hasH1}
+- Schema: ${htmlChecks.hasSchema}
+- Canonical: ${htmlChecks.hasCanonical}
+
+INDEXABILITY
+- Noindex present: ${htmlChecks.hasNoindex}
+
+PERFORMANCE
+- PageSpeed mobile score: ${pageSpeed?.score ?? "Unknown"}
+
+SEARCH PRESENCE
+- Query used: ${serper?.query || "Unavailable"}
+- Brand appears in organic results: ${serper?.brandFound ?? "Unknown"}
+- Organic result count checked: ${serper?.organicCount ?? 0}
 - People Also Ask count: ${serper?.paaCount ?? 0}
 
-AI recommendation simulation:
-Would this business likely be recommended for its core offer based on these signals?
-Return likelihood as one of: Likely, Possible, Unlikely.
+Evaluate this through an AI visibility lens:
 
-Return valid JSON only with this exact shape:
+1. Can AI clearly understand what this business is?
+2. Can AI confidently recommend it as a solution?
+3. Does the site reinforce entity clarity?
+4. Does the site provide content that can be extracted into answers?
+5. Are there signs of authority, trust, and citation readiness?
+6. Would a competitor with stronger topic clusters, entity signals, and authority likely outrank this business in AI recommendations?
+
+Return valid JSON ONLY with this exact shape:
+
 {
   "score": number,
+  "entityConfidence": number,
+  "aiVerdict": "string",
   "summary": "string",
   "breakdown": [
     { "label": "Entity Clarity", "value": number },
-    { "label": "Content Structure", "value": number },
+    { "label": "Topic Coverage", "value": number },
     { "label": "Authority Signals", "value": number },
-    { "label": "Citation Readiness", "value": number }
+    { "label": "Answer Readiness", "value": number }
   ],
-  "priorities": ["string", "string", "string"],
+  "aiIssues": [
+    "string",
+    "string",
+    "string"
+  ],
+  "priorities": [
+    "string",
+    "string",
+    "string"
+  ],
+  "topAiQueries": [
+    "string",
+    "string",
+    "string"
+  ],
+  "competitorAdvantage": [
+    "string",
+    "string"
+  ],
   "opportunity": "string",
   "recommendation": {
     "likelihood": "Likely|Possible|Unlikely",
@@ -75,12 +111,22 @@ Return valid JSON only with this exact shape:
   }
 }
 
-Rules:
-- Summary should explain what the audit found overall.
-- Priorities should be specific fixes.
-- Opportunity should explain the single biggest upside if they improve visibility.
-- Keep the tone concise, strategic, and credible.
-- Do not use markdown fences.
+RULES:
+- DO NOT lead with generic SEO advice
+- Lead with AI discoverability issues first
+- Use AI-first language like:
+  - entity clarity
+  - topic clustering
+  - semantic coverage
+  - knowledge graph signals
+  - answer extraction
+  - citation readiness
+  - AI recommendation likelihood
+- priorities MUST be AI-first and action-oriented
+- topAiQueries should be realistic natural-language prompts a prospect might ask AI
+- competitorAdvantage should explain why a stronger competitor would be surfaced first
+- Keep tone concise, strategic, and modern
+- Do not use markdown fences
 `;
 
     const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -91,11 +137,12 @@ Rules:
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
-        temperature: 0.5,
+        temperature: 0.4,
         messages: [
           {
             role: "system",
-            content: "You are an expert in AI search visibility, semantic SEO, and technical site readiness. Return only valid JSON."
+            content:
+              "You are an expert in AI search visibility, semantic SEO, and technical site readiness. Return only valid JSON."
           },
           {
             role: "user",
@@ -122,7 +169,6 @@ Rules:
       .trim();
 
     let parsed;
-
     try {
       parsed = JSON.parse(cleaned);
     } catch {
@@ -138,6 +184,10 @@ Rules:
       likelihood: serper?.brandFound ? "Possible" : "Unlikely",
       reason: "Based on available search and site signals."
     };
+    parsed.entityConfidence = parsed.entityConfidence ?? 0;
+    parsed.aiIssues = parsed.aiIssues || [];
+    parsed.topAiQueries = parsed.topAiQueries || [];
+    parsed.competitorAdvantage = parsed.competitorAdvantage || [];
 
     return json(200, parsed);
   } catch (error) {
@@ -216,7 +266,9 @@ async function getPageSpeed(url, apiKey) {
       key: apiKey
     });
 
-    const response = await fetch(`https://www.googleapis.com/pagespeedonline/v5/runPagespeed?${params.toString()}`);
+    const response = await fetch(
+      `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?${params.toString()}`
+    );
     const json = await response.json();
 
     const score = json?.lighthouseResult?.categories?.performance?.score;
@@ -225,7 +277,14 @@ async function getPageSpeed(url, apiKey) {
     return {
       score: numeric,
       speedText: numeric !== null ? `${numeric}/100` : "Unavailable",
-      mobileText: numeric !== null ? (numeric >= 90 ? "Strong" : numeric >= 50 ? "Moderate" : "Needs work") : "Unknown"
+      mobileText:
+        numeric !== null
+          ? numeric >= 90
+            ? "Strong"
+            : numeric >= 50
+              ? "Moderate"
+              : "Needs work"
+          : "Unknown"
     };
   } catch {
     return null;
@@ -255,7 +314,10 @@ async function getSerperSignals(input, hostname, apiKey) {
     const brandFound = organic.some((item) => {
       const link = (item.link || "").toLowerCase();
       const title = (item.title || "").toLowerCase();
-      return link.includes(hostname) || title.includes((input.businessName || "").toLowerCase());
+      return (
+        link.includes(hostname) ||
+        title.includes((input.businessName || "").toLowerCase())
+      );
     });
 
     return {
