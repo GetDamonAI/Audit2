@@ -160,26 +160,23 @@ form.addEventListener("submit", async (event) => {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        email: payload.email,
-        businessName: payload.businessName,
-        url: payload.url,
-        industry: payload.industry,
-        service: payload.service,
-        score: data.score ?? 0,
-        aiVerdict: data.aiVerdict || "",
-        summary: data.summary || "",
-        breakdown: data.breakdown || [],
-        aiIssues: data.aiIssues || [],
-        priorities: data.priorities || [],
-        topAiQueries: data.topAiQueries || [],
-        competitorAdvantage: data.competitorAdvantage || [],
-        opportunity: data.opportunity || "",
-        recommendation: data.recommendation || {},
-        entityConfidence: data.entityConfidence ?? 0,
-        tech: data.tech || {},
-        serp: data.serp || {}
-      })
-    });
+  email: payload.email,
+  businessName: payload.businessName,
+  url: payload.url,
+  score: data.score ?? 0,
+  aiVerdict: data.aiVerdict || "",
+  summary: data.summary || "",
+  breakdown: data.breakdown || [],
+  aiIssues: data.aiIssues || [],
+  priorities: data.priorities || [],
+  topAiQueries: data.topAiQueries || [],
+  competitorAdvantage: data.competitorAdvantage || [],
+  opportunity: data.opportunity || "",
+  recommendation: data.recommendation || {},
+  entityConfidence: data.entityConfidence ?? 0,
+  tech: data.tech || {},
+  serp: data.serp || {}
+})
   } catch (error) {
     clearInterval(thinkingInterval);
     clearThinkingStep();
