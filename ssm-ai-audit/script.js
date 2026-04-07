@@ -152,7 +152,17 @@ form.addEventListener("submit", async (event) => {
     clearThinkingStep();
 
     await fadeOutForm();
-    showResults();
+showResults();
+
+// META PIXEL — AUDIT COMPLETED (LEAD EVENT)
+if (typeof fbq !== "undefined") {
+  fbq("track", "Lead", {
+    content_name: "AI Audit Completed",
+    content_category: "AI Visibility Audit",
+    value: data.score || 0,
+    currency: "USD"
+  });
+}
 
     await fetch("/.netlify/functions/send-audit-email", {
       method: "POST",
