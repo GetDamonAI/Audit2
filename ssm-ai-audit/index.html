@@ -74,6 +74,11 @@
           <p id="summary" class="summary"></p>
         </div>
 
+        <div class="panel">
+          <p class="audit-section-title">AI Verdict</p>
+          <p id="ai-verdict" class="summary"></p>
+        </div>
+
         <div class="audit-meta">
           <p class="audit-meta-title">How this was evaluated</p>
           <p class="audit-meta-text">
@@ -87,9 +92,14 @@
             <strong id="ai-recommendation">—</strong>
           </div>
           <div class="audit-ai-item">
-            <span class="audit-ai-label">Search Presence Check</span>
-            <strong id="serp-presence">—</strong>
+            <span class="audit-ai-label">Entity Confidence</span>
+            <strong id="entity-confidence">—</strong>
           </div>
+        </div>
+
+        <div class="panel">
+          <p class="audit-section-title">What AI is missing</p>
+          <ol id="ai-issues" class="priorities"></ol>
         </div>
 
         <div class="panel">
@@ -120,8 +130,18 @@
         </div>
 
         <div class="panel">
-          <p class="audit-section-title">What needs fixing</p>
+          <p class="audit-section-title">What to fix first</p>
           <ol id="priorities" class="priorities"></ol>
+        </div>
+
+        <div class="panel">
+          <p class="audit-section-title">Top AI queries to win</p>
+          <ol id="top-ai-queries" class="priorities"></ol>
+        </div>
+
+        <div class="panel">
+          <p class="audit-section-title">Why a competitor may be recommended first</p>
+          <ol id="competitor-advantage" class="priorities"></ol>
         </div>
 
         <div class="panel">
