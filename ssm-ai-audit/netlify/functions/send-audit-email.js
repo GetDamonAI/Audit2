@@ -48,9 +48,14 @@ exports.handler = async (event) => {
         </ul>
 
         <h3 style="font-size:16px; margin:20px 0 8px;">Top Priorities</h3>
-        <ol style="padding-left:18px; margin:0 0 24px;">
+        <ol style="padding-left:18px; margin:0 0 20px;">
           ${prioritiesHtml}
         </ol>
+
+        <h3 style="font-size:16px; margin:20px 0 8px;">Biggest Opportunity</h3>
+        <p style="font-size:16px; line-height:1.6; color:#444;">
+          ${data.opportunity || ""}
+        </p>
       </div>
     `;
 
@@ -68,19 +73,34 @@ exports.handler = async (event) => {
           ${data.summary || ""}
         </p>
 
-        <h3 style="font-size:16px; margin:0 0 8px;">Top Priorities</h3>
+        <h3 style="font-size:16px; margin:0 0 8px;">What needs fixing</h3>
         <ol style="padding-left:18px; margin:0 0 24px;">
           ${prioritiesHtml}
         </ol>
 
         <p style="font-size:16px; line-height:1.6; color:#444; margin:0 0 24px;">
-          This is a quick snapshot. I’ll review your site and follow up with a more tailored perspective on where AI visibility is being won or lost.
+          This is a quick snapshot of how your site is showing up for AI systems right now. If you want, we can walk through the results together or take a deeper look with a full review.
         </p>
 
-        <a href="https://calendar.app.google/XtiHBsQCKT1hSoJe6"
-           style="display:inline-block; padding:14px 22px; background:#232323; color:#fff; text-decoration:none; border-radius:999px;">
-          Book a 10 Minute Review
-        </a>
+        <p style="margin:0 0 14px;">
+          <a href="https://calendar.app.google/XtiHBsQCKT1hSoJe6"
+             style="display:inline-block; padding:14px 22px; background:#232323; color:#fff; text-decoration:none; border-radius:999px;">
+            Book a 15 Minute Review
+          </a>
+        </p>
+
+        <p style="margin:0 0 24px;">
+          <a href="https://www.semanticsearchmarketing.com/contact"
+             style="display:inline-block; padding:14px 22px; background:#f1efeb; color:#171717; text-decoration:none; border-radius:999px; border:1px solid #ddd;">
+            Get a Full Review
+          </a>
+        </p>
+
+        <p style="font-size:16px; line-height:1.6; color:#444; margin:0;">
+          Thanks,<br>
+          Damon Holowchak<br>
+          Semantic Search Marketing
+        </p>
       </div>
     `;
 
