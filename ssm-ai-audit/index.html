@@ -172,22 +172,24 @@ fbq('track', 'PageView');
           </p>
           <div class="cta-actions">
             <a
-              class="primary-button cta-link"
-              href="https://calendar.app.google/XtiHBsQCKT1hSoJe6"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Book a 15 Minute Review
-            </a>
+  class="primary-button cta-link"
+  href="https://calendar.app.google/XtiHBsQCKT1hSoJe6"
+  target="_blank"
+  rel="noopener noreferrer"
+  onclick="if (typeof fbq !== 'undefined') fbq('track', 'Contact', {content_name: 'Book 15 Minute Review'});"
+>
+  Book a 15 Minute Review
+</a>
 
             <a
-              class="secondary-button cta-link"
-              href="https://www.semanticsearchmarketing.com/contact"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Inquire About a Full Review
-            </a>
+  class="secondary-button cta-link"
+  href="https://www.semanticsearchmarketing.com/contact"
+  target="_blank"
+  rel="noopener noreferrer"
+  onclick="if (typeof fbq !== 'undefined') fbq('track', 'Lead', {content_name: 'Full Review Inquiry'});"
+>
+  Get Some Extra Help Here
+</a>
           </div>
         </section>
       </section>
