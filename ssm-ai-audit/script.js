@@ -73,7 +73,7 @@ form.addEventListener("submit", async (event) => {
       await new Promise((resolve) => setTimeout(resolve, minDuration - elapsed));
     }
 
-    scoreValue.textContent = data.score;
+    scoreValue.textContent = data.score ?? "0";
     summary.textContent = data.summary || "";
 
     breakdown.innerHTML = "";
@@ -95,34 +95,39 @@ form.addEventListener("submit", async (event) => {
       data.opportunity ||
       "The clearest upside is improving how your site communicates its offer, trust signals, and structure so AI systems can understand and recommend it more confidently.";
 
-    if (techSpeed) techSpeed.textContent = data.tech?.speed || "—";
-    if (techMobile) techMobile.textContent = data.tech?.mobile || "—";
-    if (techMeta) techMeta.textContent = data.tech?.meta || "—";
-    if (techIndex) techIndex.textContent = data.tech?.indexability || "—";
-    if (aiRecommendation) aiRecommendation.textContent = data.recommendation?.likelihood || "—";
-    if (serpPresence) serpPresence.textContent = data.serp?.presence || "—";
+    techSpeed.textContent = data.tech?.speed || "—";
+    techMobile.textContent = data.tech?.mobile || "—";
+    techMeta.textContent = data.tech?.meta || "—";
+    techIndex.textContent = data.tech?.indexability || "—";
+    aiRecommendation.textContent = data.recommendation?.likelihood || "—";
+    serpPresence.textContent = data.serp?.presence || "—";
 
     clearThinkingStep();
     results.hidden = false;
     results.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    const emailPayload = {
+      email: payload.email,
+      businessName: payload.businessName,
+      url: payload.url,
+      industry: payload.industry,
+      service: payload.service,
+      score: data.score ?? 0,
+      summary: data.summary || "",
+      breakdown: data.breakdown || [],
+      priorities: data.priorities || [],
+      opportunity: data.opportunity || "",
+      recommendation: data.recommendation || {},
+      tech: data.tech || {},
+      serp: data.serp || {}
+    };
 
     const emailResponse = await fetch("/.netlify/functions/send-audit-email", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({
-        email: payload.email,
-        businessName: payload.businessName,
-        url: payload.url,
-        industry: payload.industry,
-        service: payload.service,
-        score: data.score,
-        summary: data.summary,
-        breakdown: data.breakdown,
-        priorities: data.priorities,
-        opportunity: data.opportunity
-      })
+      body: JSON.stringify(emailPayload)
     });
 
     const emailData = await emailResponse.json();
