@@ -13,9 +13,14 @@ const techMeta = document.getElementById("tech-meta");
 const techIndex = document.getElementById("tech-index");
 const aiRecommendation = document.getElementById("ai-recommendation");
 const serpPresence = document.getElementById("serp-presence");
-
 const thinkingStatus = document.getElementById("thinking-status");
 const thinkingText = document.getElementById("thinking-text");
+
+const aiVerdict = document.getElementById("ai-verdict");
+const entityConfidence = document.getElementById("entity-confidence");
+const aiIssues = document.getElementById("ai-issues");
+const topAiQueries = document.getElementById("top-ai-queries");
+const competitorAdvantage = document.getElementById("competitor-advantage");
 
 function normalizeUrl(value) {
   const trimmed = (value || "").trim();
@@ -40,7 +45,6 @@ function delay(ms) {
 
 function fadeOutForm() {
   form.classList.add("form-fade-out");
-
   return new Promise((resolve) => {
     setTimeout(() => {
       form.style.display = "none";
@@ -53,6 +57,16 @@ function showResults() {
   results.hidden = false;
   results.classList.add("results-visible");
   results.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function fillList(el, items) {
+  if (!el) return;
+  el.innerHTML = "";
+  (items || []).forEach((item) => {
+    const li = document.createElement("li");
+    li.textContent = item;
+    el.appendChild(li);
+  });
 }
 
 form.addEventListener("submit", async (event) => {
@@ -69,7 +83,6 @@ form.addEventListener("submit", async (event) => {
 
   try {
     const startedAt = Date.now();
-
     const steps = [
       "Checking site structure...",
       "Reviewing search visibility...",
@@ -108,6 +121,9 @@ form.addEventListener("submit", async (event) => {
     scoreValue.textContent = data.score ?? "0";
     summary.textContent = data.summary || "";
 
+    if (aiVerdict) aiVerdict.textContent = data.aiVerdict || "";
+    if (entityConfidence) entityConfidence.textContent = `${data.entityConfidence ?? 0}/100`;
+
     breakdown.innerHTML = "";
     (data.breakdown || []).forEach((item) => {
       const row = document.createElement("div");
@@ -116,12 +132,10 @@ form.addEventListener("submit", async (event) => {
       breakdown.appendChild(row);
     });
 
-    priorities.innerHTML = "";
-    (data.priorities || []).forEach((item) => {
-      const li = document.createElement("li");
-      li.textContent = item;
-      priorities.appendChild(li);
-    });
+    fillList(aiIssues, data.aiIssues);
+    fillList(priorities, data.priorities);
+    fillList(topAiQueries, data.topAiQueries);
+    fillList(competitorAdvantage, data.competitorAdvantage);
 
     if (opportunity) {
       opportunity.textContent = data.opportunity || "";
@@ -152,16 +166,20 @@ form.addEventListener("submit", async (event) => {
         industry: payload.industry,
         service: payload.service,
         score: data.score ?? 0,
+        aiVerdict: data.aiVerdict || "",
         summary: data.summary || "",
         breakdown: data.breakdown || [],
+        aiIssues: data.aiIssues || [],
         priorities: data.priorities || [],
+        topAiQueries: data.topAiQueries || [],
+        competitorAdvantage: data.competitorAdvantage || [],
         opportunity: data.opportunity || "",
         recommendation: data.recommendation || {},
+        entityConfidence: data.entityConfidence ?? 0,
         tech: data.tech || {},
         serp: data.serp || {}
       })
     });
-
   } catch (error) {
     clearInterval(thinkingInterval);
     clearThinkingStep();
