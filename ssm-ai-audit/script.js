@@ -10,6 +10,7 @@ const aiIssues = document.getElementById("ai-issues");
 const thinkingStatus = document.getElementById("thinking-status");
 const thinkingText = document.getElementById("thinking-text");
 const formMessage = document.getElementById("form-message");
+const shell = document.querySelector(".audit-shell");
 
 function normalizeUrl(value) {
   const trimmed = String(value || "").trim();
@@ -35,6 +36,7 @@ function setFormMessage(message, type = "error") {
   if (!formMessage) return;
   formMessage.textContent = message;
   formMessage.classList.toggle("is-success", type === "success");
+  notifyParentHeight();
 }
 
 function clearFormMessage() {
@@ -57,20 +59,47 @@ function validatePayload(payload) {
   return "";
 }
 
+function getDocumentHeight() {
+  return Math.max(
+    document.body.scrollHeight,
+    document.body.offsetHeight,
+    document.documentElement.scrollHeight,
+    document.documentElement.offsetHeight
+  );
+}
+
+function notifyParentHeight() {
+  const height = getDocumentHeight();
+  window.parent.postMessage({ type: "ssm-audit-resize", height }, "*");
+  window.parent.postMessage({ type: "ssm-audit-height", height }, "*");
+}
+
+function queueHeightSync() {
+  window.requestAnimationFrame(() => {
+    notifyParentHeight();
+    window.setTimeout(notifyParentHeight, 120);
+    window.setTimeout(notifyParentHeight, 350);
+    window.setTimeout(notifyParentHeight, 700);
+  });
+}
+
 function setThinkingStep(message) {
   if (thinkingStatus) thinkingStatus.hidden = false;
   if (thinkingText) thinkingText.textContent = message;
+  queueHeightSync();
 }
 
 function clearThinkingStep() {
   if (thinkingStatus) thinkingStatus.hidden = true;
   if (thinkingText) thinkingText.textContent = "";
+  queueHeightSync();
 }
 
 function setLoadingState(isLoading) {
   form.classList.toggle("is-submitting", isLoading);
   form.setAttribute("aria-busy", String(isLoading));
   submitButton.classList.toggle("is-loading", isLoading);
+  queueHeightSync();
 }
 
 function delay(ms) {
@@ -79,9 +108,12 @@ function delay(ms) {
 
 function fadeOutForm() {
   form.classList.add("form-fade-out");
+  queueHeightSync();
+
   return new Promise((resolve) => {
     window.setTimeout(() => {
       form.hidden = true;
+      queueHeightSync();
       resolve();
     }, 280);
   });
@@ -152,6 +184,17 @@ async function readJson(response) {
     throw new Error("The audit service returned an invalid response.");
   }
 }
+
+if (window.ResizeObserver && shell) {
+  const resizeObserver = new ResizeObserver(() => {
+    notifyParentHeight();
+  });
+  resizeObserver.observe(shell);
+}
+
+window.addEventListener("load", queueHeightSync);
+window.addEventListener("resize", queueHeightSync);
+window.addEventListener("orientationchange", queueHeightSync);
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -227,9 +270,12 @@ form.addEventListener("submit", async (event) => {
     await fadeOutForm();
     results.hidden = false;
     results.classList.add("results-visible");
+    queueHeightSync();
     results.scrollIntoView({ behavior: "smooth", block: "start" });
 
-    window.parent.postMessage({ type: "ssm-audit-complete" }, "*");
+    const height = getDocumentHeight();
+    window.parent.postMessage({ type: "ssm-audit-complete", height }, "*");
+    window.parent.postMessage({ type: "ssm-audit-resize", height }, "*");
 
     await fetch("/.netlify/functions/send-audit-email", {
       method: "POST",
@@ -255,6 +301,8 @@ form.addEventListener("submit", async (event) => {
         serp: data.serp || {}
       })
     });
+
+    queueHeightSync();
   } catch (error) {
     window.clearInterval(thinkingInterval);
     clearThinkingStep();
@@ -264,5 +312,6 @@ form.addEventListener("submit", async (event) => {
     setLoadingState(false);
     submitButton.disabled = false;
     submitButton.textContent = "Get My AI Visibility Score";
+    queueHeightSync();
   }
 });
