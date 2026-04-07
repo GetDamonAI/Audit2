@@ -29,6 +29,7 @@ function setThinkingStep(message) {
 }
 
 function clearThinkingStep() {
+  form.style.display = "none";
   if (thinkingStatus) thinkingStatus.hidden = true;
   if (thinkingText) thinkingText.textContent = "";
 }
