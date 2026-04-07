@@ -24,13 +24,13 @@ function normalizeUrl(value) {
 }
 
 function setThinkingStep(message) {
-  thinkingStatus.hidden = false;
-  thinkingText.textContent = message;
+  if (thinkingStatus) thinkingStatus.hidden = false;
+  if (thinkingText) thinkingText.textContent = message;
 }
 
 function clearThinkingStep() {
-  thinkingStatus.hidden = true;
-  thinkingText.textContent = "";
+  if (thinkingStatus) thinkingStatus.hidden = true;
+  if (thinkingText) thinkingText.textContent = "";
 }
 
 form.addEventListener("submit", async (event) => {
@@ -41,20 +41,9 @@ form.addEventListener("submit", async (event) => {
 
   const formData = new FormData(form);
   const payload = Object.fromEntries(formData.entries());
-
   payload.url = normalizeUrl(payload.url);
-  payload.email = (payload.email || "").trim();
-  payload.businessName = (payload.businessName || "").trim();
-  payload.industry = (payload.industry || "").trim();
-  payload.service = (payload.service || "").trim();
 
   try {
-    if (!payload.email || !payload.url) {
-      throw new Error("Please enter both your website URL and email.");
-    }
-
-    const startedAt = Date.now();
-
     setThinkingStep("Checking site structure...");
     await new Promise((resolve) => setTimeout(resolve, 700));
 
@@ -62,6 +51,7 @@ form.addEventListener("submit", async (event) => {
     await new Promise((resolve) => setTimeout(resolve, 700));
 
     setThinkingStep("Scoring AI recommendation likelihood...");
+
     const auditResponse = await fetch("/.netlify/functions/generate-audit", {
       method: "POST",
       headers: {
@@ -74,12 +64,6 @@ form.addEventListener("submit", async (event) => {
 
     if (!auditResponse.ok) {
       throw new Error(data.error || "Audit generation failed.");
-    }
-
-    const minDuration = 2600;
-    const elapsed = Date.now() - startedAt;
-    if (elapsed < minDuration) {
-      await new Promise((resolve) => setTimeout(resolve, minDuration - elapsed));
     }
 
     scoreValue.textContent = data.score ?? "0";
@@ -100,16 +84,16 @@ form.addEventListener("submit", async (event) => {
       priorities.appendChild(li);
     });
 
-    opportunity.textContent =
-      data.opportunity ||
-      "The clearest upside is improving how your site communicates its offer, trust signals, and structure so AI systems can understand and recommend it more confidently.";
+    if (opportunity) {
+      opportunity.textContent = data.opportunity || "";
+    }
 
-    techSpeed.textContent = data.tech?.speed || "—";
-    techMobile.textContent = data.tech?.mobile || "—";
-    techMeta.textContent = data.tech?.meta || "—";
-    techIndex.textContent = data.tech?.indexability || "—";
-    aiRecommendation.textContent = data.recommendation?.likelihood || "—";
-    serpPresence.textContent = data.serp?.presence || "—";
+    if (techSpeed) techSpeed.textContent = data.tech?.speed || "—";
+    if (techMobile) techMobile.textContent = data.tech?.mobile || "—";
+    if (techMeta) techMeta.textContent = data.tech?.meta || "—";
+    if (techIndex) techIndex.textContent = data.tech?.indexability || "—";
+    if (aiRecommendation) aiRecommendation.textContent = data.recommendation?.likelihood || "—";
+    if (serpPresence) serpPresence.textContent = data.serp?.presence || "—";
 
     clearThinkingStep();
     results.hidden = false;
