@@ -5,23 +5,11 @@ const scoreValue = document.getElementById("score-value");
 const summary = document.getElementById("summary");
 const breakdown = document.getElementById("breakdown");
 const priorities = document.getElementById("priorities");
-const opportunity = document.getElementById("opportunity");
-
-const techSpeed = document.getElementById("tech-speed");
-const techMobile = document.getElementById("tech-mobile");
-const techMeta = document.getElementById("tech-meta");
-const techIndex = document.getElementById("tech-index");
 const aiRecommendation = document.getElementById("ai-recommendation");
-const serpPresence = document.getElementById("serp-presence");
-
-const thinkingStatus = document.getElementById("thinking-status");
-const thinkingText = document.getElementById("thinking-text");
-
-const aiVerdict = document.getElementById("ai-verdict");
 const entityConfidence = document.getElementById("entity-confidence");
 const aiIssues = document.getElementById("ai-issues");
-const topAiQueries = document.getElementById("top-ai-queries");
-const competitorAdvantage = document.getElementById("competitor-advantage");
+const thinkingStatus = document.getElementById("thinking-status");
+const thinkingText = document.getElementById("thinking-text");
 
 function normalizeUrl(value) {
   const trimmed = (value || "").trim();
@@ -50,20 +38,14 @@ function fadeOutForm() {
     setTimeout(() => {
       form.style.display = "none";
       resolve();
-    }, 350);
+    }, 300);
   });
-}
-
-function showResults() {
-  results.hidden = false;
-  results.classList.add("results-visible");
-  results.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function fillList(el, items) {
   if (!el) return;
   el.innerHTML = "";
-  (items || []).forEach((item) => {
+  (items || []).slice(0, 3).forEach((item) => {
     const li = document.createElement("li");
     li.textContent = item;
     el.appendChild(li);
@@ -83,8 +65,6 @@ form.addEventListener("submit", async (event) => {
   let thinkingInterval;
 
   try {
-    const startedAt = Date.now();
-
     const steps = [
       "Checking site structure...",
       "Reviewing search visibility...",
@@ -100,6 +80,8 @@ form.addEventListener("submit", async (event) => {
       setThinkingStep(steps[stepIndex]);
     }, 1200);
 
+    const startedAt = Date.now();
+
     const auditResponse = await fetch("/.netlify/functions/generate-audit", {
       method: "POST",
       headers: {
@@ -114,20 +96,18 @@ form.addEventListener("submit", async (event) => {
       throw new Error(data.error || "Audit generation failed.");
     }
 
-    const minDuration = 3200;
     const elapsed = Date.now() - startedAt;
-    if (elapsed < minDuration) {
-      await delay(minDuration - elapsed);
+    if (elapsed < 2600) {
+      await delay(2600 - elapsed);
     }
 
     scoreValue.textContent = data.score ?? "0";
     summary.textContent = data.summary || "";
-
-    if (aiVerdict) aiVerdict.textContent = data.aiVerdict || "";
-    if (entityConfidence) entityConfidence.textContent = `${data.entityConfidence ?? 0}/100`;
+    aiRecommendation.textContent = data.recommendation?.likelihood || "—";
+    entityConfidence.textContent = `${data.entityConfidence ?? 0}/100`;
 
     breakdown.innerHTML = "";
-    (data.breakdown || []).forEach((item) => {
+    (data.breakdown || []).slice(0, 4).forEach((item) => {
       const row = document.createElement("div");
       row.className = "breakdown-row";
       row.innerHTML = `<p>${item.label}</p><p>${item.value} / 100</p>`;
@@ -136,34 +116,16 @@ form.addEventListener("submit", async (event) => {
 
     fillList(aiIssues, data.aiIssues);
     fillList(priorities, data.priorities);
-    fillList(topAiQueries, data.topAiQueries);
-    fillList(competitorAdvantage, data.competitorAdvantage);
-
-    if (opportunity) {
-      opportunity.textContent = data.opportunity || "";
-    }
-
-    if (techSpeed) techSpeed.textContent = data.tech?.speed || "—";
-    if (techMobile) techMobile.textContent = data.tech?.mobile || "—";
-    if (techMeta) techMeta.textContent = data.tech?.meta || "—";
-    if (techIndex) techIndex.textContent = data.tech?.indexability || "—";
-    if (aiRecommendation) aiRecommendation.textContent = data.recommendation?.likelihood || "—";
-    if (serpPresence) serpPresence.textContent = data.serp?.presence || "—";
 
     clearInterval(thinkingInterval);
     clearThinkingStep();
 
     await fadeOutForm();
-    showResults();
+    results.hidden = false;
+    results.classList.add("results-visible");
+    results.scrollIntoView({ behavior: "smooth", block: "start" });
 
-    if (typeof fbq !== "undefined") {
-      fbq("track", "Lead", {
-        content_name: "AI Audit Completed",
-        content_category: "AI Visibility Audit",
-        value: data.score || 0,
-        currency: "USD"
-      });
-    }
+    window.parent.postMessage({ type: "ssm-audit-complete" }, "*");
 
     await fetch("/.netlify/functions/send-audit-email", {
       method: "POST",
@@ -175,8 +137,8 @@ form.addEventListener("submit", async (event) => {
         businessName: payload.businessName,
         url: payload.url,
         score: data.score ?? 0,
-        aiVerdict: data.aiVerdict || "",
         summary: data.summary || "",
+        aiVerdict: data.aiVerdict || "",
         breakdown: data.breakdown || [],
         aiIssues: data.aiIssues || [],
         priorities: data.priorities || [],
@@ -196,6 +158,6 @@ form.addEventListener("submit", async (event) => {
     console.error(error);
   } finally {
     submitButton.disabled = false;
-    submitButton.textContent = "Find Out How You Show Up in AI";
+    submitButton.textContent = "Get My AI Visibility Score";
   }
 });
