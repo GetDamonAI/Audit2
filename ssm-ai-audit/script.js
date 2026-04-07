@@ -67,8 +67,14 @@ function clearThinkingStep() {
   if (thinkingText) thinkingText.textContent = "";
 }
 
+function setLoadingState(isLoading) {
+  form.classList.toggle("is-submitting", isLoading);
+  form.setAttribute("aria-busy", String(isLoading));
+  submitButton.classList.toggle("is-loading", isLoading);
+}
+
 function delay(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
 function fadeOutForm() {
@@ -93,6 +99,21 @@ function createBreakdownRow(item) {
 
   row.append(label, value);
   return row;
+}
+
+function fillBreakdown(items) {
+  breakdown.innerHTML = "";
+
+  const values = Array.isArray(items) ? items.slice(0, 4) : [];
+
+  if (!values.length) {
+    breakdown.appendChild(createBreakdownRow({ label: "Audit signals", value: 0 }));
+    return;
+  }
+
+  values.forEach((item) => {
+    breakdown.appendChild(createBreakdownRow(item));
+  });
 }
 
 function fillList(element, items, fallbackText) {
@@ -149,6 +170,7 @@ form.addEventListener("submit", async (event) => {
     return;
   }
 
+  setLoadingState(true);
   submitButton.disabled = true;
   submitButton.textContent = "Running Audit...";
 
@@ -195,11 +217,7 @@ form.addEventListener("submit", async (event) => {
     aiRecommendation.textContent = data.recommendation?.likelihood || "—";
     entityConfidence.textContent = `${data.entityConfidence ?? 0}/100`;
 
-    breakdown.innerHTML = "";
-    (data.breakdown || []).slice(0, 4).forEach((item) => {
-      breakdown.appendChild(createBreakdownRow(item));
-    });
-
+    fillBreakdown(data.breakdown);
     fillList(aiIssues, data.aiIssues, "No major gaps surfaced from the quick scan.");
     fillList(priorities, data.priorities, "No immediate fixes were returned.");
 
@@ -243,6 +261,7 @@ form.addEventListener("submit", async (event) => {
     setFormMessage(error.message || "Something went wrong. Please try again.");
     console.error(error);
   } finally {
+    setLoadingState(false);
     submitButton.disabled = false;
     submitButton.textContent = "Get My AI Visibility Score";
   }

@@ -10,16 +10,18 @@
   <main class="audit-shell">
     <div class="audit-wrap">
       <section class="hero" aria-labelledby="hero-title">
-        <h1 id="hero-title" class="hero-title">
-          <span>Find Out How</span>
-          <span>You Show Up in AI</span>
-        </h1>
+        <div class="hero-copy">
+          <h1 id="hero-title" class="hero-title">
+            <span>Find Out How</span>
+            <span>You Show Up in AI</span>
+          </h1>
 
-        <p class="hero-subhead">
-          Enter your website to see how AI understands your business, what it misses, and what to fix first.
-        </p>
+          <p class="hero-subhead">
+            Enter your website to see how AI understands your business, what it misses, and what to fix first.
+          </p>
 
-        <p class="hero-micro">Free • Takes 60 seconds</p>
+          <p class="hero-micro">Free • Takes 60 seconds</p>
+        </div>
 
         <div class="logo-row" aria-label="Platforms checked">
           <div class="logo-item">
@@ -93,14 +95,23 @@
               <span></span>
             </div>
             <p id="thinking-text">Checking site...</p>
+            <div class="thinking-track" aria-hidden="true">
+              <span class="thinking-track-bar"></span>
+            </div>
           </div>
         </form>
       </section>
 
       <section id="results" class="results" hidden aria-labelledby="results-title">
-        <h2 id="results-title">Your AI visibility assessment</h2>
+        <div class="report-header">
+          <p class="report-kicker">Quick Report</p>
+          <h2 id="results-title">Your AI visibility assessment</h2>
+        </div>
+
+        <div class="report-divider" aria-hidden="true"></div>
 
         <div class="score-block">
+          <p class="report-label">AI Visibility Score</p>
           <div class="score">
             <span id="score-value" class="score-value">0</span>
             <span class="score-total">/ 100</span>
@@ -134,7 +145,7 @@
         </div>
 
         <div class="panel email-note">
-          <p class="email-note-text">A full detailed audit was sent to your email.</p>
+          <p class="email-note-text">A full detailed report was sent to your email.</p>
         </div>
 
         <section class="cta-block results-cta" aria-labelledby="cta-title">
