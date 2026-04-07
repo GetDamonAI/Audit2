@@ -2,7 +2,6 @@ const form = document.getElementById("audit-form");
 const results = document.getElementById("results");
 const submitButton = document.getElementById("submit-button");
 const scoreValue = document.getElementById("score-value");
-const summary = document.getElementById("summary");
 const breakdown = document.getElementById("breakdown");
 const priorities = document.getElementById("priorities");
 const aiRecommendation = document.getElementById("ai-recommendation");
@@ -10,12 +9,52 @@ const entityConfidence = document.getElementById("entity-confidence");
 const aiIssues = document.getElementById("ai-issues");
 const thinkingStatus = document.getElementById("thinking-status");
 const thinkingText = document.getElementById("thinking-text");
+const formMessage = document.getElementById("form-message");
 
 function normalizeUrl(value) {
-  const trimmed = (value || "").trim();
+  const trimmed = String(value || "").trim();
   if (!trimmed) return "";
   if (/^https?:\/\//i.test(trimmed)) return trimmed;
   return `https://${trimmed}`;
+}
+
+function isValidUrl(value) {
+  try {
+    const candidate = new URL(normalizeUrl(value));
+    return Boolean(candidate.hostname);
+  } catch {
+    return false;
+  }
+}
+
+function isValidEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
+}
+
+function setFormMessage(message, type = "error") {
+  if (!formMessage) return;
+  formMessage.textContent = message;
+  formMessage.classList.toggle("is-success", type === "success");
+}
+
+function clearFormMessage() {
+  setFormMessage("", "error");
+}
+
+function validatePayload(payload) {
+  if (!payload.url || !isValidUrl(payload.url)) {
+    return "Enter a valid website URL.";
+  }
+
+  if (!payload.businessName || !String(payload.businessName).trim()) {
+    return "Enter your business name.";
+  }
+
+  if (!payload.email || !isValidEmail(payload.email)) {
+    return "Enter a valid email address.";
+  }
+
+  return "";
 }
 
 function setThinkingStep(message) {
@@ -35,32 +74,83 @@ function delay(ms) {
 function fadeOutForm() {
   form.classList.add("form-fade-out");
   return new Promise((resolve) => {
-    setTimeout(() => {
-      form.style.display = "none";
+    window.setTimeout(() => {
+      form.hidden = true;
       resolve();
-    }, 300);
+    }, 280);
   });
 }
 
-function fillList(el, items) {
-  if (!el) return;
-  el.innerHTML = "";
-  (items || []).slice(0, 3).forEach((item) => {
+function createBreakdownRow(item) {
+  const row = document.createElement("div");
+  row.className = "breakdown-row";
+
+  const label = document.createElement("p");
+  label.textContent = item.label || "Signal";
+
+  const value = document.createElement("p");
+  value.textContent = `${item.value ?? 0} / 100`;
+
+  row.append(label, value);
+  return row;
+}
+
+function fillList(element, items, fallbackText) {
+  if (!element) return;
+
+  element.innerHTML = "";
+
+  const values = Array.isArray(items)
+    ? items.filter((item) => String(item || "").trim()).slice(0, 3)
+    : [];
+
+  if (!values.length) {
+    const li = document.createElement("li");
+    li.textContent = fallbackText;
+    element.appendChild(li);
+    return;
+  }
+
+  values.forEach((item) => {
     const li = document.createElement("li");
     li.textContent = item;
-    el.appendChild(li);
+    element.appendChild(li);
   });
+}
+
+async function readJson(response) {
+  const text = await response.text();
+
+  if (!text) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error("The audit service returned an invalid response.");
+  }
 }
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
+  clearFormMessage();
+
+  const formData = new FormData(form);
+  const payload = {
+    url: normalizeUrl(formData.get("url")),
+    businessName: String(formData.get("businessName") || "").trim(),
+    email: String(formData.get("email") || "").trim()
+  };
+
+  const validationMessage = validatePayload(payload);
+  if (validationMessage) {
+    setFormMessage(validationMessage);
+    return;
+  }
 
   submitButton.disabled = true;
   submitButton.textContent = "Running Audit...";
-
-  const formData = new FormData(form);
-  const payload = Object.fromEntries(formData.entries());
-  payload.url = normalizeUrl(payload.url);
 
   let thinkingInterval;
 
@@ -75,7 +165,7 @@ form.addEventListener("submit", async (event) => {
     let stepIndex = 0;
     setThinkingStep(steps[stepIndex]);
 
-    thinkingInterval = setInterval(() => {
+    thinkingInterval = window.setInterval(() => {
       stepIndex = (stepIndex + 1) % steps.length;
       setThinkingStep(steps[stepIndex]);
     }, 1200);
@@ -90,7 +180,7 @@ form.addEventListener("submit", async (event) => {
       body: JSON.stringify(payload)
     });
 
-    const data = await auditResponse.json();
+    const data = await readJson(auditResponse);
 
     if (!auditResponse.ok) {
       throw new Error(data.error || "Audit generation failed.");
@@ -102,22 +192,18 @@ form.addEventListener("submit", async (event) => {
     }
 
     scoreValue.textContent = data.score ?? "0";
-    summary.textContent = data.summary || "";
     aiRecommendation.textContent = data.recommendation?.likelihood || "—";
     entityConfidence.textContent = `${data.entityConfidence ?? 0}/100`;
 
     breakdown.innerHTML = "";
     (data.breakdown || []).slice(0, 4).forEach((item) => {
-      const row = document.createElement("div");
-      row.className = "breakdown-row";
-      row.innerHTML = `<p>${item.label}</p><p>${item.value} / 100</p>`;
-      breakdown.appendChild(row);
+      breakdown.appendChild(createBreakdownRow(item));
     });
 
-    fillList(aiIssues, data.aiIssues);
-    fillList(priorities, data.priorities);
+    fillList(aiIssues, data.aiIssues, "No major gaps surfaced from the quick scan.");
+    fillList(priorities, data.priorities, "No immediate fixes were returned.");
 
-    clearInterval(thinkingInterval);
+    window.clearInterval(thinkingInterval);
     clearThinkingStep();
 
     await fadeOutForm();
@@ -152,9 +238,9 @@ form.addEventListener("submit", async (event) => {
       })
     });
   } catch (error) {
-    clearInterval(thinkingInterval);
+    window.clearInterval(thinkingInterval);
     clearThinkingStep();
-    alert(error.message || "Something went wrong.");
+    setFormMessage(error.message || "Something went wrong. Please try again.");
     console.error(error);
   } finally {
     submitButton.disabled = false;

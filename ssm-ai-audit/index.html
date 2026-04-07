@@ -6,15 +6,13 @@
   <title>AI Visibility Audit</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
-
 <body>
   <main class="audit-shell">
     <div class="audit-wrap">
-
-      <!-- HERO -->
-      <section class="hero">
-        <h1 class="hero-title">
-          Find Out How You Show Up in AI
+      <section class="hero" aria-labelledby="hero-title">
+        <h1 id="hero-title" class="hero-title">
+          <span>Find Out How</span>
+          <span>You Show Up in AI</span>
         </h1>
 
         <p class="hero-subhead">
@@ -23,20 +21,26 @@
 
         <p class="hero-micro">Free • Takes 60 seconds</p>
 
-        <div class="logo-row">
-          <div class="logo-item"><img src="/logos/chatgpt.svg" alt="ChatGPT" /></div>
-          <div class="logo-item"><img src="/logos/gemini.svg" alt="Gemini" /></div>
-          <div class="logo-item"><img src="/logos/claude.svg" alt="Claude" /></div>
-          <div class="logo-item"><img src="/logos/perplexity.svg" alt="Perplexity" /></div>
+        <div class="logo-row" aria-label="Platforms checked">
+          <div class="logo-item">
+            <img src="logos/chatgpt.png" alt="ChatGPT" />
+          </div>
+          <div class="logo-item logo-item--gemini">
+            <img src="logos/gemini.png" alt="Gemini" />
+          </div>
+          <div class="logo-item">
+            <img src="logos/claude.png" alt="Claude" />
+          </div>
+          <div class="logo-item">
+            <img src="logos/perplexity.png" alt="Perplexity" />
+          </div>
         </div>
       </section>
 
-      <!-- FORM -->
-      <section class="form-intro">
-        <h2>Start with the basics.</h2>
+      <section class="form-intro" aria-labelledby="form-title">
+        <h2 id="form-title">Start with the basics.</h2>
 
         <form id="audit-form" class="audit-form" novalidate>
-
           <div class="field">
             <label for="url">Website URL</label>
             <input
@@ -44,6 +48,7 @@
               name="url"
               type="text"
               inputmode="url"
+              autocomplete="url"
               placeholder="yourwebsite.com"
               required
             />
@@ -55,6 +60,7 @@
               id="businessName"
               name="businessName"
               type="text"
+              autocomplete="organization"
               placeholder="Your business name"
               required
             />
@@ -65,8 +71,9 @@
             <input
               id="email"
               name="email"
-              type="email"
+              type="text"
               inputmode="email"
+              autocomplete="email"
               placeholder="you@company.com"
               required
             />
@@ -77,101 +84,85 @@
           </button>
 
           <p class="micro-copy">No signup • Instant results</p>
+          <p id="form-message" class="form-message" role="status" aria-live="polite"></p>
 
-          <div id="thinking-status" class="thinking-status" hidden>
-            <div class="thinking-dots">
-              <span></span><span></span><span></span>
+          <div id="thinking-status" class="thinking-status" hidden aria-live="polite">
+            <div class="thinking-dots" aria-hidden="true">
+              <span></span>
+              <span></span>
+              <span></span>
             </div>
             <p id="thinking-text">Checking site...</p>
           </div>
-
         </form>
       </section>
 
-      <!-- RESULTS -->
-      <section id="results" class="results" hidden>
-  <h2>Your AI visibility assessment</h2>
+      <section id="results" class="results" hidden aria-labelledby="results-title">
+        <h2 id="results-title">Your AI visibility assessment</h2>
 
-  <div class="score-block">
-    <div class="score">
-      <span id="score-value" class="score-value">0</span>
-      <span class="score-total">/ 100</span>
-    </div>
-    <p id="summary" class="summary"></p>
-  </div>
+        <div class="score-block">
+          <div class="score">
+            <span id="score-value" class="score-value">0</span>
+            <span class="score-total">/ 100</span>
+          </div>
+        </div>
 
-  <div class="audit-ai">
-    <div class="audit-ai-item">
-      <span class="audit-ai-label">AI Recommendation</span>
-      <strong id="ai-recommendation">—</strong>
-    </div>
-    <div class="audit-ai-item">
-      <span class="audit-ai-label">Entity Confidence</span>
-      <strong id="entity-confidence">—</strong>
-    </div>
-  </div>
+        <div class="audit-ai">
+          <div class="audit-ai-item">
+            <span class="audit-ai-label">AI Recommendation</span>
+            <strong id="ai-recommendation">—</strong>
+          </div>
+          <div class="audit-ai-item">
+            <span class="audit-ai-label">Entity Confidence</span>
+            <strong id="entity-confidence">—</strong>
+          </div>
+        </div>
 
-  <div class="panel">
-    <p class="audit-section-title">What we looked at</p>
-    <div id="breakdown"></div>
-  </div>
+        <div class="panel">
+          <p class="audit-section-title">What we looked at</p>
+          <div id="breakdown" class="breakdown"></div>
+        </div>
 
-  <div class="panel">
-    <p class="audit-section-title">What AI is missing</p>
-    <ol id="ai-issues" class="priorities"></ol>
-  </div>
+        <div class="panel">
+          <p class="audit-section-title">What AI is missing</p>
+          <ol id="ai-issues" class="priorities"></ol>
+        </div>
 
-  <div class="panel">
-    <p class="audit-section-title">What you should fix</p>
-    <ol id="priorities" class="priorities"></ol>
-  </div>
+        <div class="panel">
+          <p class="audit-section-title">What you should fix</p>
+          <ol id="priorities" class="priorities"></ol>
+        </div>
 
-  <div class="panel email-note">
-    <p class="summary">
-      We sent a more detailed breakdown and recommendations to your email.
-    </p>
-  </div>
+        <div class="panel email-note">
+          <p class="email-note-text">A full detailed audit was sent to your email.</p>
+        </div>
 
-  <!-- hidden support fields for script / desktop only -->
-  <div class="detail-desktop">
-    <div id="top-ai-queries"></div>
-    <div id="competitor-advantage"></div>
-    <div id="opportunity"></div>
-    <div id="tech-speed"></div>
-    <div id="tech-mobile"></div>
-    <div id="tech-meta"></div>
-    <div id="tech-index"></div>
-    <div id="ai-verdict"></div>
-  </div>
+        <section class="cta-block results-cta" aria-labelledby="cta-title">
+          <h2 id="cta-title">Next Step</h2>
+          <p class="cta-copy">
+            Want a more tailored review? Book a quick walkthrough or get extra help.
+          </p>
+          <div class="cta-actions">
+            <a
+              class="primary-button cta-link"
+              href="https://calendar.app.google/XtiHBsQCKT1hSoJe6"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Book a 15 Minute Review
+            </a>
 
-  <section class="cta-block results-cta">
-    <h2>Next Step</h2>
-    <p class="cta-copy">
-      Want a more tailored review? Book a quick walkthrough or get extra help.
-    </p>
-    <div class="cta-actions">
-      <a
-        class="primary-button cta-link"
-        href="https://calendar.app.google/XtiHBsQCKT1hSoJe6"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        Book a 15 Minute Review
-      </a>
-
-      <a
-        class="secondary-button cta-link"
-        href="https://www.semanticsearchmarketing.com/contact"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        Get Some Extra Help Here
-      </a>
-    </div>
-  </section>
-</section>
+            <a
+              class="secondary-button cta-link"
+              href="https://www.semanticsearchmarketing.com/contact"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Get Some Extra Help Here
+            </a>
+          </div>
+        </section>
       </section>
-
     </div>
   </main>
 
