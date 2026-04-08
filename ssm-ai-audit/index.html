@@ -12,15 +12,159 @@
       <section class="hero" aria-labelledby="hero-title">
         <div class="hero-copy">
           <h1 id="hero-title" class="hero-title">
-            <span>Find Out How</span>
-            <span>You Show Up in AI</span>
+            <span>Find out how your brand</span>
+            <span>shows up in AI</span>
           </h1>
-
           <p class="hero-subhead">
-            Enter your website to see how AI understands your business, what it misses, and what to fix first.
+            Run a free AI visibility check for ChatGPT, Google AI Overviews, and answer engines.
           </p>
+        </div>
+      </section>
 
-          <p class="hero-micro">Free • Takes 60 seconds</p>
+      <section class="tool-stage" aria-live="polite">
+        <div class="tool-stage-ambient" aria-hidden="true"></div>
+
+        <section id="state-input" class="state-panel state-panel-active" aria-label="Run free AI audit">
+          <form id="url-form" class="url-form" novalidate>
+            <label class="sr-only" for="url">Website URL</label>
+            <input
+              id="url"
+              name="url"
+              type="text"
+              inputmode="url"
+              autocomplete="url"
+              placeholder="Enter your website"
+              required
+            />
+
+            <button type="submit" id="url-submit" class="primary-button">
+              Run Free AI Audit
+            </button>
+          </form>
+
+          <p id="url-message" class="form-message" role="status" aria-live="polite"></p>
+        </section>
+
+        <section id="state-loading" class="state-panel state-loading" hidden aria-labelledby="loading-title">
+          <p class="state-kicker">Running Audit</p>
+          <h2 id="loading-title" class="tool-title">Checking how AI sees your brand.</h2>
+
+          <div class="loading-visual" aria-hidden="true">
+            <div class="thinking-dots">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+            <div class="thinking-track">
+              <span class="thinking-track-bar"></span>
+            </div>
+          </div>
+
+          <ol id="loading-steps" class="loading-steps">
+            <li class="loading-step is-active">Checking AI search visibility</li>
+            <li class="loading-step">Scanning authority and trust signals</li>
+            <li class="loading-step">Looking for brand mentions and citations</li>
+            <li class="loading-step">Reviewing structure, entities, and discoverability</li>
+          </ol>
+        </section>
+
+        <section id="state-preview" class="state-panel state-preview" hidden aria-labelledby="preview-title">
+          <div class="preview-header">
+            <p class="state-kicker">Partial Audit</p>
+            <h2 id="preview-title" class="tool-title">Your AI visibility snapshot</h2>
+          </div>
+
+          <div class="preview-summary">
+            <div class="preview-score-wrap">
+              <span id="preview-score" class="preview-score">0</span>
+              <span class="preview-score-total">/ 100</span>
+            </div>
+
+            <div class="preview-status-wrap">
+              <p class="preview-label">Current Status</p>
+              <p id="preview-status" class="preview-status">Checking your signals</p>
+              <p id="preview-support" class="preview-support">
+                Based on live checks for discoverability, trust signals, and answer-readiness.
+              </p>
+            </div>
+          </div>
+
+          <div class="preview-divider" aria-hidden="true"></div>
+
+          <div class="preview-findings-block">
+            <p class="preview-label">What we found first</p>
+            <ol id="preview-findings" class="preview-findings"></ol>
+          </div>
+
+          <div id="email-gate" class="email-gate">
+            <div class="email-gate-copy">
+              <h3 class="gate-title">Get your full AI Visibility Report</h3>
+              <p class="gate-copy">
+                We’ll send you the full audit with deeper findings, opportunities, and next-step recommendations.
+              </p>
+            </div>
+
+            <form id="email-form" class="email-form" novalidate>
+              <label class="sr-only" for="email">Email</label>
+              <input
+                id="email"
+                name="email"
+                type="text"
+                inputmode="email"
+                autocomplete="email"
+                placeholder="Enter your email"
+                required
+              />
+
+              <button type="submit" id="email-submit" class="primary-button">
+                Send My Full Report
+              </button>
+            </form>
+
+            <p class="gate-reassurance">No spam • Free report • Actionable recommendations</p>
+            <p id="email-message" class="form-message" role="status" aria-live="polite"></p>
+          </div>
+
+          <div id="delivery-success" class="delivery-success" hidden>
+            <p class="state-kicker">Full Report Sent</p>
+            <h3 class="gate-title">Your full audit is on its way.</h3>
+            <p class="gate-copy">
+              Check your inbox for the deeper report, opportunity areas, and next-step recommendations.
+            </p>
+          </div>
+
+          <section id="results-cta" class="cta-block results-cta" hidden aria-labelledby="cta-title">
+            <h3 id="cta-title" class="gate-title">Next step</h3>
+            <p class="cta-copy">
+              Want a more tailored review? Book a quick walkthrough or get extra help.
+            </p>
+            <div class="cta-actions">
+              <a
+                class="primary-button cta-link"
+                href="https://calendar.app.google/XtiHBsQCKT1hSoJe6"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Book a 15 Minute Review
+              </a>
+
+              <a
+                class="secondary-button cta-link"
+                href="https://www.semanticsearchmarketing.com/contact"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Get Some Extra Help Here
+              </a>
+            </div>
+          </section>
+        </section>
+      </section>
+
+      <section class="support-band" aria-labelledby="support-title">
+        <div class="support-band-copy">
+          <p class="state-kicker">What The Audit Checks</p>
+          <h2 id="support-title" class="support-title">A quick read on discoverability, authority, and citation readiness.</h2>
         </div>
 
         <div class="logo-row" aria-label="Platforms checked">
@@ -37,142 +181,23 @@
             <img src="logos/perplexity.png" alt="Perplexity" />
           </div>
         </div>
-      </section>
 
-      <section class="form-intro" aria-labelledby="form-title">
-        <h2 id="form-title">Start with the basics.</h2>
+        <div class="support-grid">
+          <article class="support-card">
+            <h3>Checks your visibility in AI answers</h3>
+            <p>Reviews whether your brand is easy for answer engines to understand and surface.</p>
+          </article>
 
-        <form id="audit-form" class="audit-form" novalidate>
-          <div class="field">
-            <label for="url">Website URL</label>
-            <input
-              id="url"
-              name="url"
-              type="text"
-              inputmode="url"
-              autocomplete="url"
-              placeholder="yourwebsite.com"
-              required
-            />
-          </div>
+          <article class="support-card">
+            <h3>Reviews trust, authority, and citations</h3>
+            <p>Looks for the signals that help AI systems recommend and reference your business.</p>
+          </article>
 
-          <div class="field">
-            <label for="businessName">Business Name</label>
-            <input
-              id="businessName"
-              name="businessName"
-              type="text"
-              autocomplete="organization"
-              placeholder="Your business name"
-              required
-            />
-          </div>
-
-          <div class="field">
-            <label for="email">Email</label>
-            <input
-              id="email"
-              name="email"
-              type="text"
-              inputmode="email"
-              autocomplete="email"
-              placeholder="you@company.com"
-              required
-            />
-          </div>
-
-          <button type="submit" id="submit-button" class="primary-button">
-            Get My AI Visibility Score
-          </button>
-
-          <p class="micro-copy">No signup • Instant results</p>
-          <p id="form-message" class="form-message" role="status" aria-live="polite"></p>
-
-          <div id="thinking-status" class="thinking-status" hidden aria-live="polite">
-            <div class="thinking-dots" aria-hidden="true">
-              <span></span>
-              <span></span>
-              <span></span>
-            </div>
-            <p id="thinking-text">Checking site...</p>
-            <div class="thinking-track" aria-hidden="true">
-              <span class="thinking-track-bar"></span>
-            </div>
-          </div>
-        </form>
-      </section>
-
-      <section id="results" class="results" hidden aria-labelledby="results-title">
-        <div class="report-header">
-          <p class="report-kicker">Quick Report</p>
-          <h2 id="results-title">Your AI visibility assessment</h2>
+          <article class="support-card">
+            <h3>Finds where your brand is missing</h3>
+            <p>Highlights the gaps that can keep you out of AI-driven discovery and recommendations.</p>
+          </article>
         </div>
-
-        <div class="report-divider" aria-hidden="true"></div>
-
-        <div class="score-block">
-          <p class="report-label">AI Visibility Score</p>
-          <div class="score">
-            <span id="score-value" class="score-value">0</span>
-            <span class="score-total">/ 100</span>
-          </div>
-        </div>
-
-        <div class="audit-ai">
-          <div class="audit-ai-item">
-            <span class="audit-ai-label">AI Recommendation</span>
-            <strong id="ai-recommendation">—</strong>
-          </div>
-          <div class="audit-ai-item">
-            <span class="audit-ai-label">Entity Confidence</span>
-            <strong id="entity-confidence">—</strong>
-          </div>
-        </div>
-
-        <div class="panel">
-          <p class="audit-section-title">What we looked at</p>
-          <div id="breakdown" class="breakdown"></div>
-        </div>
-
-        <div class="panel">
-          <p class="audit-section-title">What AI is missing</p>
-          <ol id="ai-issues" class="priorities"></ol>
-        </div>
-
-        <div class="panel">
-          <p class="audit-section-title">What you should fix</p>
-          <ol id="priorities" class="priorities"></ol>
-        </div>
-
-        <div class="panel email-note">
-          <p class="email-note-text">A full detailed report was sent to your email.</p>
-        </div>
-
-        <section class="cta-block results-cta" aria-labelledby="cta-title">
-          <h2 id="cta-title">Next Step</h2>
-          <p class="cta-copy">
-            Want a more tailored review? Book a quick walkthrough or get extra help.
-          </p>
-          <div class="cta-actions">
-            <a
-              class="primary-button cta-link"
-              href="https://calendar.app.google/XtiHBsQCKT1hSoJe6"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Book a 15 Minute Review
-            </a>
-
-            <a
-              class="secondary-button cta-link"
-              href="https://www.semanticsearchmarketing.com/contact"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Get Some Extra Help Here
-            </a>
-          </div>
-        </section>
       </section>
     </div>
   </main>
