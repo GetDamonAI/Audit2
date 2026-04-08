@@ -7,10 +7,11 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <main class="audit-shell">
-    <div class="audit-wrap">
+  <main class="audit-shell" data-stage="landing">
+    <div id="landing-view" class="landing-view">
       <section class="hero" aria-labelledby="hero-title">
         <div class="hero-copy">
+          <p class="hero-kicker">AI Visibility Audit</p>
           <h1 id="hero-title" class="hero-title">
             <span>Find out how your brand</span>
             <span>shows up in AI</span>
@@ -19,12 +20,8 @@
             Run a free AI visibility check for ChatGPT, Google AI Overviews, and answer engines.
           </p>
         </div>
-      </section>
 
-      <section class="tool-stage" aria-live="polite">
-        <div class="tool-stage-ambient" aria-hidden="true"></div>
-
-        <section id="state-input" class="state-panel state-panel-active" aria-label="Run free AI audit">
+        <div class="hero-tool" aria-label="Run a free AI audit">
           <form id="url-form" class="url-form" novalidate>
             <label class="sr-only" for="url">Website URL</label>
             <input
@@ -43,163 +40,286 @@
           </form>
 
           <p id="url-message" class="form-message" role="status" aria-live="polite"></p>
-        </section>
-
-        <section id="state-loading" class="state-panel state-loading" hidden aria-labelledby="loading-title">
-          <p class="state-kicker">Running Audit</p>
-          <h2 id="loading-title" class="tool-title">Checking how AI sees your brand.</h2>
-
-          <div class="loading-visual" aria-hidden="true">
-            <div class="thinking-dots">
-              <span></span>
-              <span></span>
-              <span></span>
-            </div>
-            <div class="thinking-track">
-              <span class="thinking-track-bar"></span>
-            </div>
-          </div>
-
-          <ol id="loading-steps" class="loading-steps">
-            <li class="loading-step is-active">Checking AI search visibility</li>
-            <li class="loading-step">Scanning authority and trust signals</li>
-            <li class="loading-step">Looking for brand mentions and citations</li>
-            <li class="loading-step">Reviewing structure, entities, and discoverability</li>
-          </ol>
-        </section>
-
-        <section id="state-preview" class="state-panel state-preview" hidden aria-labelledby="preview-title">
-          <div class="preview-header">
-            <p class="state-kicker">Partial Audit</p>
-            <h2 id="preview-title" class="tool-title">Your AI visibility snapshot</h2>
-          </div>
-
-          <div class="preview-summary">
-            <div class="preview-score-wrap">
-              <span id="preview-score" class="preview-score">0</span>
-              <span class="preview-score-total">/ 100</span>
-            </div>
-
-            <div class="preview-status-wrap">
-              <p class="preview-label">Current Status</p>
-              <p id="preview-status" class="preview-status">Checking your signals</p>
-              <p id="preview-support" class="preview-support">
-                Based on live checks for discoverability, trust signals, and answer-readiness.
-              </p>
-            </div>
-          </div>
-
-          <div class="preview-divider" aria-hidden="true"></div>
-
-          <div class="preview-findings-block">
-            <p class="preview-label">What we found first</p>
-            <ol id="preview-findings" class="preview-findings"></ol>
-          </div>
-
-          <div id="email-gate" class="email-gate">
-            <div class="email-gate-copy">
-              <h3 class="gate-title">Get your full AI Visibility Report</h3>
-              <p class="gate-copy">
-                We’ll send you the full audit with deeper findings, opportunities, and next-step recommendations.
-              </p>
-            </div>
-
-            <form id="email-form" class="email-form" novalidate>
-              <label class="sr-only" for="email">Email</label>
-              <input
-                id="email"
-                name="email"
-                type="text"
-                inputmode="email"
-                autocomplete="email"
-                placeholder="Enter your email"
-                required
-              />
-
-              <button type="submit" id="email-submit" class="primary-button">
-                Send My Full Report
-              </button>
-            </form>
-
-            <p class="gate-reassurance">No spam • Free report • Actionable recommendations</p>
-            <p id="email-message" class="form-message" role="status" aria-live="polite"></p>
-          </div>
-
-          <div id="delivery-success" class="delivery-success" hidden>
-            <p class="state-kicker">Full Report Sent</p>
-            <h3 class="gate-title">Your full audit is on its way.</h3>
-            <p class="gate-copy">
-              Check your inbox for the deeper report, opportunity areas, and next-step recommendations.
-            </p>
-          </div>
-
-          <section id="results-cta" class="cta-block results-cta" hidden aria-labelledby="cta-title">
-            <h3 id="cta-title" class="gate-title">Next step</h3>
-            <p class="cta-copy">
-              Want a more tailored review? Book a quick walkthrough or get extra help.
-            </p>
-            <div class="cta-actions">
-              <a
-                class="primary-button cta-link"
-                href="https://calendar.app.google/XtiHBsQCKT1hSoJe6"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Book a 15 Minute Review
-              </a>
-
-              <a
-                class="secondary-button cta-link"
-                href="https://www.semanticsearchmarketing.com/contact"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Get Some Extra Help Here
-              </a>
-            </div>
-          </section>
-        </section>
+        </div>
       </section>
 
-      <section class="support-band" aria-labelledby="support-title">
-        <div class="support-band-copy">
-          <p class="state-kicker">What The Audit Checks</p>
-          <h2 id="support-title" class="support-title">A quick read on discoverability, authority, and citation readiness.</h2>
+      <section class="platform-band" aria-labelledby="platform-title">
+        <div class="section-heading">
+          <p class="section-kicker">Why This Matters</p>
+          <h2 id="platform-title" class="section-title">AI answers are becoming the first place buyers make up their minds.</h2>
+          <p class="section-copy">
+            Search is shifting from blue links to answers. If answer engines do not understand or trust your brand, you miss the highest-intent discovery moments before buyers ever click through.
+          </p>
         </div>
 
-        <div class="logo-row" aria-label="Platforms checked">
-          <div class="logo-item">
-            <img src="logos/chatgpt.png" alt="ChatGPT" />
-          </div>
-          <div class="logo-item logo-item--gemini">
-            <img src="logos/gemini.png" alt="Gemini" />
-          </div>
-          <div class="logo-item">
-            <img src="logos/claude.png" alt="Claude" />
-          </div>
-          <div class="logo-item">
-            <img src="logos/perplexity.png" alt="Perplexity" />
-          </div>
+        <div class="platform-strip" aria-label="Platforms referenced">
+          <div class="platform-chip"><img src="logos/chatgpt.png" alt="ChatGPT" /></div>
+          <div class="platform-chip"><img src="logos/gemini.png" alt="Gemini" /></div>
+          <div class="platform-chip"><img src="logos/claude.png" alt="Claude" /></div>
+          <div class="platform-chip"><img src="logos/perplexity.png" alt="Perplexity" /></div>
+          <div class="platform-chip platform-chip-text">Google AI Overviews</div>
         </div>
 
-        <div class="support-grid">
-          <article class="support-card">
-            <h3>Checks your visibility in AI answers</h3>
-            <p>Reviews whether your brand is easy for answer engines to understand and surface.</p>
+        <div class="platform-notes" aria-label="Why AI answer visibility matters">
+          <article class="platform-note">
+            <h3>Discovery is shifting</h3>
+            <p>Buyers are increasingly asking AI who to trust, who to hire, and what to choose before they ever reach a SERP.</p>
           </article>
 
-          <article class="support-card">
-            <h3>Reviews trust, authority, and citations</h3>
-            <p>Looks for the signals that help AI systems recommend and reference your business.</p>
+          <article class="platform-note">
+            <h3>Trust beats presence</h3>
+            <p>Answer engines do not just need to find your brand. They need enough clarity and authority to feel good about surfacing it.</p>
           </article>
 
-          <article class="support-card">
-            <h3>Finds where your brand is missing</h3>
-            <p>Highlights the gaps that can keep you out of AI-driven discovery and recommendations.</p>
+          <article class="platform-note">
+            <h3>Citability compounds</h3>
+            <p>When your site is easier to understand, quote, and verify, you are more likely to show up in AI-led discovery moments.</p>
           </article>
+        </div>
+      </section>
+
+      <section class="insight-section" aria-labelledby="insight-title">
+        <div class="section-heading section-heading-tight">
+          <p class="section-kicker">Why AI Discoverability Matters</p>
+          <h2 id="insight-title" class="section-title">Visibility is no longer just rankings and blue links.</h2>
+        </div>
+
+        <div class="insight-layout">
+          <article class="insight-card insight-card-feature">
+            <div class="signal-graphic" aria-hidden="true">
+              <span class="signal-ring signal-ring-one"></span>
+              <span class="signal-ring signal-ring-two"></span>
+              <span class="signal-node signal-node-one"></span>
+              <span class="signal-node signal-node-two"></span>
+              <span class="signal-node signal-node-three"></span>
+            </div>
+            <h3>Answer engines surface brands they understand and trust.</h3>
+            <p>
+              The winners in AI-led discovery are not just present online. They are legible, credible, and easy for answer engines to cite with confidence.
+            </p>
+          </article>
+
+          <article class="insight-card">
+            <h3>Absent in AI answers means absent in the shortlist.</h3>
+            <p>
+              When buyers ask AI for who to trust, what to buy, or which provider to choose, weak discoverability keeps your brand out of the conversation.
+            </p>
+          </article>
+
+          <article class="insight-card">
+            <h3>Strong signals compound across search and answers.</h3>
+            <p>
+              Clear entity signals, strong authority, and better citation readiness improve both discoverability and the likelihood of recommendation.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="checks-section" aria-labelledby="checks-title">
+        <div class="section-heading section-heading-tight">
+          <p class="section-kicker">What The Audit Looks For</p>
+          <h2 id="checks-title" class="section-title">A quick read on discoverability, trust, and answer-readiness.</h2>
+        </div>
+
+        <div class="checks-grid">
+          <article class="check-card">
+            <h3>Visibility in AI-generated answers</h3>
+            <p>Checks whether your brand appears present, understandable, and competitive in answer-engine discovery.</p>
+          </article>
+
+          <article class="check-card">
+            <h3>Authority, trust, and citation signals</h3>
+            <p>Reviews the signals that help models feel confident surfacing and referencing your business.</p>
+          </article>
+
+          <article class="check-card">
+            <h3>Structure, entities, and discoverability</h3>
+            <p>Looks for the clarity and site signals that make your brand easier for AI systems to interpret.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="trust-section" aria-labelledby="trust-title">
+        <div class="trust-copy">
+          <p class="section-kicker">Why Trust And Citability Matter</p>
+          <h2 id="trust-title" class="section-title">Being understood is not enough. Answer engines also need a reason to believe you.</h2>
+          <p class="section-copy">
+            Brands that show up in AI answers usually make their expertise, authority, and relevance easy to verify. The audit highlights where that confidence is thin and where it can be strengthened.
+          </p>
+        </div>
+
+        <div class="trust-panel" aria-hidden="true">
+          <div class="trust-panel-inner">
+            <span class="trust-line trust-line-one"></span>
+            <span class="trust-line trust-line-two"></span>
+            <span class="trust-line trust-line-three"></span>
+            <div class="trust-pill">Entity clarity</div>
+            <div class="trust-pill">Authority</div>
+            <div class="trust-pill">Citation readiness</div>
+          </div>
         </div>
       </section>
     </div>
+
+    <section id="audit-experience" class="audit-experience" hidden aria-live="polite">
+      <div class="audit-experience-ambient" aria-hidden="true"></div>
+
+      <section id="state-loading" class="audit-panel audit-panel-active" hidden aria-labelledby="loading-title">
+        <div class="audit-panel-header">
+          <p class="section-kicker">Running Audit</p>
+          <h2 id="loading-title" class="audit-title">Checking how AI sees your brand.</h2>
+          <p id="loading-detail" class="loading-detail">Checking AI answer visibility.</p>
+        </div>
+
+        <div class="progress-meta">
+          <span id="loading-phase-label" class="progress-label">Phase 1 of 5</span>
+          <span id="loading-progress-value" class="progress-value">12%</span>
+        </div>
+
+        <div class="progress-track" aria-hidden="true">
+          <span id="loading-progress-bar" class="progress-bar"></span>
+        </div>
+
+        <div class="progress-foot">
+          <p id="loading-support" class="loading-support">Looking for signs of life in AI answers.</p>
+          <p class="progress-note">Live signal scan</p>
+        </div>
+
+        <div class="loading-visual" aria-hidden="true">
+          <div class="thinking-dots">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <div class="thinking-track">
+            <span class="thinking-track-bar"></span>
+          </div>
+          <div class="loading-orbit">
+            <span class="loading-orbit-dot loading-orbit-dot-one"></span>
+            <span class="loading-orbit-dot loading-orbit-dot-two"></span>
+            <span class="loading-orbit-dot loading-orbit-dot-three"></span>
+          </div>
+        </div>
+
+        <ol id="loading-steps" class="loading-steps">
+          <li class="loading-step is-active">
+            <strong>Checking AI answer visibility</strong>
+            <span>Seeing whether your brand is even making it into the conversation.</span>
+          </li>
+          <li class="loading-step">
+            <strong>Reviewing trust and authority signals</strong>
+            <span>Looking for the signals answer engines rely on before they cite or recommend.</span>
+          </li>
+          <li class="loading-step">
+            <strong>Looking for structured brand understanding</strong>
+            <span>Seeing if the machines actually get what you do.</span>
+          </li>
+          <li class="loading-step">
+            <strong>Evaluating citation readiness</strong>
+            <span>Looking for clues, citations, and credibility.</span>
+          </li>
+          <li class="loading-step">
+            <strong>Comparing discoverability across answer engines</strong>
+            <span>Asking the robots who knows you and why.</span>
+          </li>
+        </ol>
+      </section>
+
+      <section id="state-preview" class="audit-panel state-preview" hidden aria-labelledby="preview-title">
+        <div class="preview-header">
+          <div class="preview-header-copy">
+            <p class="section-kicker">Quick Audit</p>
+            <h2 id="preview-title" class="audit-title">Your visibility</h2>
+            <p id="preview-domain" class="preview-domain"></p>
+          </div>
+
+          <div class="preview-score-wrap">
+            <span id="preview-score" class="preview-score">0</span>
+            <span class="preview-score-total">/ 100</span>
+          </div>
+        </div>
+
+        <div class="result-status-card">
+          <p class="current-status-label">Current Status</p>
+          <p id="preview-status" class="preview-status">Checking your signals</p>
+          <p id="preview-support" class="preview-support">
+            Based on live checks for discoverability, authority, and answer-engine readiness.
+          </p>
+        </div>
+
+        <div class="result-divider" aria-hidden="true"></div>
+
+        <div class="preview-findings-block">
+          <p class="preview-label">What we found</p>
+          <p class="preview-intro">A quick read on how answer engines are likely to interpret, trust, and surface your brand today.</p>
+          <ol id="preview-findings" class="preview-findings"></ol>
+        </div>
+
+        <div id="email-gate" class="email-gate">
+          <div class="email-gate-copy">
+            <h3 class="gate-title">Get your full AI Visibility Report</h3>
+            <p class="gate-copy">
+              We’ll send the full audit with deeper findings, opportunity areas, and next-step recommendations.
+            </p>
+          </div>
+
+          <form id="email-form" class="email-form" novalidate>
+            <label class="sr-only" for="email">Email</label>
+            <input
+              id="email"
+              name="email"
+              type="text"
+              inputmode="email"
+              autocomplete="email"
+              placeholder="Enter your email"
+              required
+            />
+
+            <button type="submit" id="email-submit" class="primary-button">
+              Send My Full Report
+            </button>
+          </form>
+
+          <p class="gate-reassurance">No spam • Free report • Actionable recommendations</p>
+          <p id="email-message" class="form-message" role="status" aria-live="polite"></p>
+        </div>
+
+        <div id="delivery-success" class="delivery-success" hidden>
+          <p class="section-kicker">Report Sent</p>
+          <h3 class="gate-title">Full report on the way</h3>
+          <p class="gate-copy">
+            We’ve sent your AI Visibility Report to your inbox with deeper findings and next-step opportunities.
+          </p>
+          <p class="gate-reassurance">Check promotions or spam if it doesn’t show up in a few minutes.</p>
+        </div>
+
+        <section id="results-cta" class="cta-block results-cta" hidden aria-labelledby="cta-title">
+          <h3 id="cta-title" class="gate-title">Next step</h3>
+          <p class="cta-copy">
+            Want a more tailored review? Book a quick walkthrough or get extra help.
+          </p>
+          <div class="cta-actions">
+            <a
+              class="primary-button cta-link"
+              href="https://calendar.app.google/XtiHBsQCKT1hSoJe6"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Book a 15 Minute Review
+            </a>
+
+            <a
+              class="secondary-button cta-link"
+              href="https://www.semanticsearchmarketing.com/contact"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Get Some Extra Help Here
+            </a>
+          </div>
+        </section>
+      </section>
+    </section>
   </main>
 
   <script src="script.js"></script>

@@ -4,6 +4,7 @@ exports.handler = async (event) => {
     const openAiKey = process.env.OPENAI_API_KEY;
     const pageSpeedKey = process.env.PAGESPEED_API_KEY;
     const serperKey = process.env.SERPER_API_KEY;
+    const resendKey = process.env.RESEND_API_KEY;
 
     if (!openAiKey) {
       return json(500, { error: "Missing OPENAI_API_KEY" });
@@ -11,6 +12,7 @@ exports.handler = async (event) => {
 
     const url = normalizeUrl(input.url);
     const hostname = getHostname(url);
+    const businessName = String(input.businessName || "").trim() || hostname;
 
     const homepageHtml = await fetchHtml(url);
     const htmlChecks = getHtmlChecks(homepageHtml);
@@ -38,7 +40,7 @@ Your job is to evaluate whether this business is understandable, trustworthy, an
 
 BUSINESS
 Website: ${url}
-Business name: ${input.businessName || ""}
+Business name: ${businessName}
 Industry: ${input.industry || ""}
 Product/Service: ${input.service || ""}
 
@@ -115,16 +117,18 @@ RULES:
 - DO NOT lead with generic SEO advice
 - Lead with AI discoverability issues first
 - Use AI-first language like:
-  - entity clarity
-  - topic clustering
-  - semantic coverage
-  - knowledge graph signals
-  - answer extraction
-  - citation readiness
-  - AI recommendation likelihood
-- priorities MUST be AI-first and action-oriented
+  - visibility in AI-generated answers
+  - answer-engine understanding
+  - brand or entity clarity
+  - authority, trust, and citation readiness
+  - surfaced in AI-led discovery
+- aiVerdict should be a memorable, concise current-status line that sounds like an AI visibility readout
+- summary should explain the overall AI discoverability picture in plain English
+- aiIssues MUST be short, crisp, and explicitly about AI visibility or answer-engine readiness
+- priorities MUST be AI-first, action-oriented, and clearly tied to answer-engine discoverability
 - topAiQueries should be realistic natural-language prompts a prospect might ask AI
 - competitorAdvantage should explain why a stronger competitor would be surfaced first
+- Avoid generic phrases like "improve SEO" or "optimize rankings" unless explicitly tied to AI answers
 - Keep tone concise, strategic, and modern
 - Do not use markdown fences
 `;
@@ -185,15 +189,124 @@ RULES:
       reason: "Based on available search and site signals."
     };
     parsed.entityConfidence = parsed.entityConfidence ?? 0;
-    parsed.aiIssues = parsed.aiIssues || [];
-    parsed.topAiQueries = parsed.topAiQueries || [];
-    parsed.competitorAdvantage = parsed.competitorAdvantage || [];
+    parsed.aiIssues = Array.isArray(parsed.aiIssues) ? parsed.aiIssues : [];
+    parsed.priorities = Array.isArray(parsed.priorities) ? parsed.priorities : [];
+    parsed.topAiQueries = Array.isArray(parsed.topAiQueries) ? parsed.topAiQueries : [];
+    parsed.competitorAdvantage = Array.isArray(parsed.competitorAdvantage)
+      ? parsed.competitorAdvantage
+      : [];
+    parsed.summary = String(parsed.summary || "").trim();
+    parsed.aiVerdict = String(parsed.aiVerdict || "").trim();
+    parsed.breakdown = Array.isArray(parsed.breakdown) ? parsed.breakdown : [];
+
+    if (resendKey) {
+      sendQuickAuditNotification({
+        resendKey,
+        businessName,
+        url,
+        parsed
+      }).catch(() => {});
+    }
 
     return json(200, parsed);
   } catch (error) {
     return json(500, { error: error.message || "Audit generation failed." });
   }
 };
+
+async function sendQuickAuditNotification({ resendKey, businessName, url, parsed }) {
+  const alertTo = process.env.AUDIT_ALERT_EMAIL || "hello@semanticsearchmarketing.com";
+  const submittedAt = new Date().toISOString();
+  const findings = renderList(parsed.aiIssues, "No quick findings returned.");
+  const priorities = renderList(parsed.priorities, "No priorities returned.");
+  const breakdown = renderBreakdown(parsed.breakdown);
+  const recommendation = escapeHtml(formatRecommendation(parsed.recommendation));
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; padding: 24px; max-width: 680px; margin: 0 auto;">
+      <h2 style="margin:0 0 12px;">Quick Audit Completed</h2>
+      <p><strong>Website:</strong> ${escapeHtml(url)}</p>
+      <p><strong>Business:</strong> ${escapeHtml(businessName || "Unknown")}</p>
+      <p><strong>Timestamp:</strong> ${escapeHtml(submittedAt)}</p>
+      <p><strong>Score:</strong> ${escapeHtml(String(parsed.score ?? 0))}/100</p>
+      <p><strong>Current Status:</strong> ${escapeHtml(String(parsed.aiVerdict || "Not available"))}</p>
+      <p><strong>Summary:</strong> ${escapeHtml(String(parsed.summary || "Not available"))}</p>
+      <p><strong>Entity Confidence:</strong> ${escapeHtml(String(parsed.entityConfidence ?? 0))}/100</p>
+      <p><strong>Recommendation:</strong> ${recommendation}</p>
+      <div style="margin-top:18px;">
+        <p><strong>Breakdown</strong></p>
+        <ul>${breakdown}</ul>
+      </div>
+      <div style="margin-top:18px;">
+        <p><strong>Main Findings</strong></p>
+        <ol>${findings}</ol>
+      </div>
+      <div style="margin-top:18px;">
+        <p><strong>Priorities</strong></p>
+        <ol>${priorities}</ol>
+      </div>
+    </div>
+  `;
+
+  await sendEmail({
+    resendKey,
+    to: alertTo,
+    subject: `Quick Audit Completed - ${businessName || url}`,
+    html
+  });
+}
+
+async function sendEmail({ resendKey, to, subject, html }) {
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${resendKey}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      from: "audit@semanticsearchmarketing.com",
+      to: [to],
+      subject,
+      html
+    })
+  });
+
+  if (!res.ok) {
+    throw new Error("Notification send failed");
+  }
+}
+
+function renderBreakdown(items) {
+  const rows = Array.isArray(items) ? items.filter(Boolean) : [];
+  if (!rows.length) {
+    return "<li>No breakdown returned.</li>";
+  }
+
+  return rows
+    .map((item) => {
+      const label = escapeHtml(String(item?.label || "Signal"));
+      const value = escapeHtml(String(item?.value ?? 0));
+      return `<li>${label}: ${value}/100</li>`;
+    })
+    .join("");
+}
+
+function renderList(items, fallback) {
+  const values = Array.isArray(items) ? items.filter((item) => String(item || "").trim()) : [];
+  const entries = values.length ? values : [fallback];
+  return entries.map((item) => `<li>${escapeHtml(String(item))}</li>`).join("");
+}
+
+function formatRecommendation(recommendation) {
+  const likelihood = String(recommendation?.likelihood || "").trim();
+  const reason = String(recommendation?.reason || "").trim();
+
+  if (likelihood && reason) {
+    return `${likelihood}: ${reason}`;
+  }
+
+  return likelihood || reason || "Not available";
+}
 
 function json(statusCode, body) {
   return {
@@ -336,4 +449,13 @@ async function getSerperSignals(input, hostname, apiKey) {
       presence: "Unavailable"
     };
   }
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }

@@ -1,8 +1,9 @@
 const shell = document.querySelector(".audit-shell");
+const landingView = document.getElementById("landing-view");
+const auditExperience = document.getElementById("audit-experience");
 
-const inputState = document.getElementById("state-input");
-const loadingState = document.getElementById("state-loading");
-const previewState = document.getElementById("state-preview");
+const stateLoading = document.getElementById("state-loading");
+const statePreview = document.getElementById("state-preview");
 
 const urlForm = document.getElementById("url-form");
 const emailForm = document.getElementById("email-form");
@@ -17,8 +18,14 @@ const urlMessage = document.getElementById("url-message");
 const emailMessage = document.getElementById("email-message");
 
 const loadingSteps = Array.from(document.querySelectorAll(".loading-step"));
+const loadingDetail = document.getElementById("loading-detail");
+const loadingSupport = document.getElementById("loading-support");
+const loadingPhaseLabel = document.getElementById("loading-phase-label");
+const loadingProgressValue = document.getElementById("loading-progress-value");
+const loadingProgressBar = document.getElementById("loading-progress-bar");
 
 const previewScore = document.getElementById("preview-score");
+const previewDomain = document.getElementById("preview-domain");
 const previewStatus = document.getElementById("preview-status");
 const previewSupport = document.getElementById("preview-support");
 const previewFindings = document.getElementById("preview-findings");
@@ -27,10 +34,44 @@ const emailGate = document.getElementById("email-gate");
 const deliverySuccess = document.getElementById("delivery-success");
 const resultsCta = document.getElementById("results-cta");
 
+const loadingPhases = [
+  {
+    title: "Checking AI answer visibility",
+    detail: "Seeing whether your brand is even making it into the conversation.",
+    support: "Looking for signs of life in AI answers.",
+    progress: 12
+  },
+  {
+    title: "Reviewing trust and authority signals",
+    detail: "Looking for the signals answer engines rely on before they cite or recommend.",
+    support: "Checking whether your brand gives the machines enough reason to trust it.",
+    progress: 28
+  },
+  {
+    title: "Looking for structured brand understanding",
+    detail: "Seeing if the machines actually get what you do.",
+    support: "Scanning for the entity clues that help models name, frame, and surface your brand correctly.",
+    progress: 48
+  },
+  {
+    title: "Evaluating citation readiness",
+    detail: "Looking for clues, citations, and credibility.",
+    support: "Checking whether your site makes it easy to quote, verify, and recommend.",
+    progress: 68
+  },
+  {
+    title: "Comparing discoverability across answer engines",
+    detail: "Asking the robots who knows you and why.",
+    support: "Looking at how consistently your brand is likely to appear across answer-engine discovery moments.",
+    progress: 86
+  }
+];
+
 let auditContext = {
   url: "",
   businessName: "",
-  data: null
+  data: null,
+  email: ""
 };
 
 function normalizeUrl(value) {
@@ -53,6 +94,20 @@ function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
 }
 
+function hostnameToName(url) {
+  try {
+    const hostname = new URL(url).hostname.replace(/^www\./i, "");
+    return hostname
+      .split(".")[0]
+      .split(/[-_]/)
+      .filter(Boolean)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(" ");
+  } catch {
+    return "";
+  }
+}
+
 function getDocumentHeight() {
   return Math.max(
     document.body.scrollHeight,
@@ -66,6 +121,7 @@ function notifyParentHeight() {
   const height = getDocumentHeight();
   window.parent.postMessage({ type: "ssm-audit-resize", height }, "*");
   window.parent.postMessage({ type: "ssm-audit-height", height }, "*");
+  window.parent.postMessage({ type: "ssm-audit-stage", stage: shell?.dataset.stage || "landing", height }, "*");
 }
 
 function queueHeightSync() {
@@ -83,7 +139,7 @@ function revealNodeAtTop(node) {
 
   const top = Math.max(
     0,
-    Math.round(node.getBoundingClientRect().top + window.scrollY - 8)
+    Math.round(node.getBoundingClientRect().top + window.scrollY)
   );
 
   window.scrollTo({
@@ -106,66 +162,91 @@ function clearMessage(element) {
   setMessage(element, "", "error");
 }
 
-function setActiveLoadingStep(index) {
-  loadingSteps.forEach((step, stepIndex) => {
-    step.classList.toggle("is-active", stepIndex === index);
-  });
-}
-
-function setLoadingState(isLoading, button) {
+function setLoadingButton(button, isLoading) {
   if (!button) return;
   button.disabled = isLoading;
   button.classList.toggle("is-loading", isLoading);
 }
 
-function setPanelState(activePanel) {
-  [inputState, loadingState, previewState].forEach((panel) => {
-    if (!panel) return;
-    const isActive = panel === activePanel;
-    panel.hidden = !isActive;
-    panel.classList.toggle("state-panel-active", isActive);
+function setAppStage(stage) {
+  shell.dataset.stage = stage;
+  document.body.dataset.auditStage = stage;
+
+  const isLanding = stage === "landing";
+  landingView.hidden = !isLanding;
+  auditExperience.hidden = isLanding;
+
+  stateLoading.hidden = stage !== "loading";
+  statePreview.hidden = stage !== "preview" && stage !== "sent";
+
+  stateLoading.classList.toggle("audit-panel-active", stage === "loading");
+  statePreview.classList.toggle("audit-panel-active", stage === "preview" || stage === "sent");
+
+  window.parent.postMessage({ type: "ssm-audit-state-change", stage }, "*");
+  queueHeightSync();
+}
+
+function setActiveLoadingStep(index) {
+  loadingSteps.forEach((step, stepIndex) => {
+    step.classList.toggle("is-active", stepIndex === index);
   });
 
-  queueHeightSync();
+  const phase = loadingPhases[index] || loadingPhases[loadingPhases.length - 1];
+  const phaseNumber = Math.min(index + 1, loadingPhases.length);
+
+  loadingDetail.textContent = phase.detail;
+  loadingSupport.textContent = phase.support || "";
+  loadingPhaseLabel.textContent = `Phase ${phaseNumber} of ${loadingPhases.length}`;
+  loadingProgressValue.textContent = `${phase.progress}%`;
+  loadingProgressBar.style.width = `${phase.progress}%`;
 }
 
 function delay(ms) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
-function hostnameToName(url) {
-  try {
-    const hostname = new URL(url).hostname.replace(/^www\./i, "");
-    return hostname
-      .split(".")[0]
-      .split(/[-_]/)
-      .filter(Boolean)
-      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-      .join(" ");
-  } catch {
-    return "";
-  }
-}
-
 function describeScore(score) {
   if (score >= 75) {
     return {
-      title: "Strong footing in AI discovery",
-      support: "Your brand is showing useful signals, but there is still room to improve recommendation strength."
+      title: "Strong footing in AI-led discovery",
+      support: "Your brand is giving answer engines useful signals, but there is still room to strengthen recommendation confidence."
     };
   }
 
   if (score >= 50) {
     return {
-      title: "Some visibility, but clear gaps",
-      support: "AI systems can find signals, but your authority, clarity, or answer-readiness still needs work."
+      title: "Some visibility, but clear AI search gaps",
+      support: "AI systems can find signals, but trust, entity clarity, or citation readiness still needs work."
     };
   }
 
   return {
-    title: "Low visibility in AI answers",
+    title: "Low visibility in AI-generated answers",
     support: "Your brand is not yet giving answer engines enough confidence to surface or recommend it consistently."
   };
+}
+
+function getCurrentStatus(data) {
+  const aiVerdict = String(data.aiVerdict || "").trim();
+  if (aiVerdict) {
+    return aiVerdict;
+  }
+
+  return describeScore(Number(data.score ?? 0)).title;
+}
+
+function getStatusSupport(data) {
+  const summary = String(data.summary || "").trim();
+  if (summary) {
+    return summary;
+  }
+
+  const recommendationReason = String(data.recommendation?.reason || "").trim();
+  if (recommendationReason) {
+    return recommendationReason;
+  }
+
+  return describeScore(Number(data.score ?? 0)).support;
 }
 
 function buildFallbackFindings(data) {
@@ -173,37 +254,62 @@ function buildFallbackFindings(data) {
   const sorted = breakdownItems.sort((a, b) => (a?.value ?? 0) - (b?.value ?? 0));
 
   return sorted.slice(0, 3).map((item) => {
-    const label = item?.label || "AI visibility";
+    const label = item?.label || "Answer-engine visibility";
     const value = item?.value ?? 0;
-    return `${label} is currently weak at ${value}/100.`;
+    if (/entity/i.test(label)) {
+      return `Entity clarity is still weak at ${value}/100, which makes it harder for answer engines to confidently understand and surface your brand.`;
+    }
+
+    if (/authority/i.test(label)) {
+      return `Authority and trust signals are only ${value}/100, limiting how credible your brand looks in AI-led discovery.`;
+    }
+
+    if (/answer/i.test(label)) {
+      return `Answer readiness is currently ${value}/100, so your site may not be giving AI systems enough extractable language to cite or recommend.`;
+    }
+
+    return `${label} sits at ${value}/100, which is limiting how strongly your brand is likely to surface in AI-generated answers.`;
   });
+}
+
+function toAiNativeFinding(text) {
+  const value = String(text || "").trim();
+  if (!value) return "";
+
+  return value
+    .replace(/\bSEO\b/gi, "AI visibility")
+    .replace(/\bsearch results\b/gi, "AI-generated answers")
+    .replace(/\bsearch engine\b/gi, "answer engine")
+    .replace(/\bsearch engines\b/gi, "answer engines")
+    .replace(/\brankings\b/gi, "answer-engine visibility");
 }
 
 function getPreviewFindings(data) {
   const aiIssues = Array.isArray(data.aiIssues)
-    ? data.aiIssues.filter((item) => String(item || "").trim())
+    ? data.aiIssues.map(toAiNativeFinding).filter(Boolean)
     : [];
 
-  if (aiIssues.length >= 3) {
-    return aiIssues.slice(0, 3);
+  const combined = [...aiIssues, ...buildFallbackFindings(data)];
+  return combined.slice(0, 3);
+}
+
+function formatPreviewDomain(url) {
+  try {
+    const hostname = new URL(url).hostname.replace(/^www\./i, "");
+    return `Audited live: ${hostname}`;
+  } catch {
+    return "";
   }
-
-  const combined = [
-    ...aiIssues,
-    ...buildFallbackFindings(data)
-  ];
-
-  return combined.filter(Boolean).slice(0, 3);
 }
 
 function fillPreview(data) {
   const score = Number(data.score ?? 0);
-  const scoreSummary = describeScore(score);
   const findings = getPreviewFindings(data);
 
   previewScore.textContent = String(score);
-  previewStatus.textContent = scoreSummary.title;
-  previewSupport.textContent = scoreSummary.support;
+  previewDomain.textContent = formatPreviewDomain(auditContext.url);
+  previewStatus.textContent = getCurrentStatus(data);
+  previewSupport.textContent = getStatusSupport(data);
 
   previewFindings.innerHTML = "";
   findings.forEach((item) => {
@@ -214,9 +320,22 @@ function fillPreview(data) {
 
   if (!findings.length) {
     const li = document.createElement("li");
-    li.textContent = "We found a few important gaps in how AI systems understand and recommend your brand.";
+    li.textContent = "Your brand is not yet giving answer engines enough confidence to understand, trust, and surface it consistently.";
     previewFindings.appendChild(li);
   }
+}
+
+function resetEmailState() {
+  clearMessage(emailMessage);
+
+  if (emailInput) {
+    emailInput.value = "";
+  }
+
+  emailGate.hidden = false;
+  emailForm.hidden = false;
+  deliverySuccess.hidden = true;
+  resultsCta.hidden = true;
 }
 
 async function readJson(response) {
@@ -233,30 +352,6 @@ async function readJson(response) {
   }
 }
 
-function resetEmailGate() {
-  if (emailForm) {
-    emailForm.hidden = false;
-  }
-
-  if (emailGate) {
-    emailGate.hidden = false;
-  }
-
-  if (deliverySuccess) {
-    deliverySuccess.hidden = true;
-  }
-
-  if (resultsCta) {
-    resultsCta.hidden = true;
-  }
-
-  if (emailInput) {
-    emailInput.value = "";
-  }
-
-  clearMessage(emailMessage);
-}
-
 if (window.ResizeObserver && shell) {
   const resizeObserver = new ResizeObserver(() => {
     notifyParentHeight();
@@ -267,6 +362,9 @@ if (window.ResizeObserver && shell) {
 window.addEventListener("load", queueHeightSync);
 window.addEventListener("resize", queueHeightSync);
 window.addEventListener("orientationchange", queueHeightSync);
+if (window.visualViewport) {
+  window.visualViewport.addEventListener("resize", queueHeightSync);
+}
 
 urlForm.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -281,26 +379,19 @@ urlForm.addEventListener("submit", async (event) => {
   auditContext = {
     url,
     businessName: hostnameToName(url),
-    data: null
+    data: null,
+    email: ""
   };
 
-  setLoadingState(true, urlSubmit);
-  setPanelState(loadingState);
-  revealNodeAtTop(loadingState);
+  setLoadingButton(urlSubmit, true);
+  setAppStage("loading");
+  setActiveLoadingStep(0);
+  revealNodeAtTop(auditExperience);
 
-  const steps = [
-    "Checking AI search visibility",
-    "Scanning authority and trust signals",
-    "Looking for brand mentions and citations",
-    "Reviewing structure, entities, and discoverability"
-  ];
-
-  let stepIndex = 0;
-  setActiveLoadingStep(stepIndex);
-
+  let phaseIndex = 0;
   const loadingInterval = window.setInterval(() => {
-    stepIndex = (stepIndex + 1) % steps.length;
-    setActiveLoadingStep(stepIndex);
+    phaseIndex = (phaseIndex + 1) % loadingPhases.length;
+    setActiveLoadingStep(phaseIndex);
   }, 1200);
 
   try {
@@ -328,25 +419,31 @@ urlForm.addEventListener("submit", async (event) => {
       await delay(2600 - elapsed);
     }
 
+    setActiveLoadingStep(loadingPhases.length - 1);
+    loadingProgressValue.textContent = "100%";
+    loadingProgressBar.style.width = "100%";
+
     auditContext.data = data;
     fillPreview(data);
-    resetEmailGate();
+    resetEmailState();
 
     window.clearInterval(loadingInterval);
-    setPanelState(previewState);
-    revealNodeAtTop(previewState);
+    await delay(220);
+
+    setAppStage("preview");
+    revealNodeAtTop(statePreview);
 
     const height = getDocumentHeight();
-    window.parent.postMessage({ type: "ssm-audit-partial-ready", height }, "*");
+    window.parent.postMessage({ type: "ssm-audit-quick-audit-ready", height }, "*");
     window.parent.postMessage({ type: "ssm-audit-complete", height }, "*");
     queueHeightSync();
   } catch (error) {
     window.clearInterval(loadingInterval);
-    setPanelState(inputState);
+    setAppStage("landing");
     setMessage(urlMessage, error.message || "Something went wrong. Please try again.");
     console.error(error);
   } finally {
-    setLoadingState(false, urlSubmit);
+    setLoadingButton(urlSubmit, false);
     setActiveLoadingStep(0);
     queueHeightSync();
   }
@@ -367,7 +464,8 @@ emailForm.addEventListener("submit", async (event) => {
     return;
   }
 
-  setLoadingState(true, emailSubmit);
+  auditContext.email = email;
+  setLoadingButton(emailSubmit, true);
 
   try {
     const emailResponse = await fetch("/.netlify/functions/send-audit-email", {
@@ -401,7 +499,7 @@ emailForm.addEventListener("submit", async (event) => {
       throw new Error(emailData.error || "Email send failed.");
     }
 
-    emailForm.hidden = true;
+    setAppStage("sent");
     emailGate.hidden = true;
     deliverySuccess.hidden = false;
     resultsCta.hidden = false;
@@ -409,12 +507,12 @@ emailForm.addEventListener("submit", async (event) => {
     const height = getDocumentHeight();
     window.parent.postMessage({ type: "ssm-audit-report-sent", height }, "*");
     queueHeightSync();
-    revealNodeAtTop(previewState);
+    revealNodeAtTop(statePreview);
   } catch (error) {
     setMessage(emailMessage, error.message || "Email send failed.");
     console.error(error);
   } finally {
-    setLoadingState(false, emailSubmit);
+    setLoadingButton(emailSubmit, false);
     queueHeightSync();
   }
 });
