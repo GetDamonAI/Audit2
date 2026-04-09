@@ -3,22 +3,51 @@ exports.handler = async (event) => {
     const data = JSON.parse(event.body || "{}");
     const resendKey = process.env.RESEND_API_KEY;
     const alertTo = process.env.AUDIT_ALERT_EMAIL || "hello@semanticsearchmarketing.com";
+    const mode = String(data.mode || "full-report").trim();
 
     if (!resendKey) {
       return respond(500, { error: "Missing RESEND_API_KEY" });
     }
 
-    const email = String(data.email || "").trim();
     const businessName = String(data.businessName || "").trim();
     const url = String(data.url || "").trim();
     const submittedAt = new Date().toISOString();
 
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return respond(400, { error: "Please enter a valid email address." });
-    }
-
     if (!url) {
       return respond(400, { error: "Missing website URL." });
+    }
+
+    if (mode === "quick-audit-notify") {
+      const quickAuditHtml = renderQuickAuditInternalEmail({
+        businessName,
+        url,
+        submittedAt,
+        data
+      });
+
+      const quickAuditSend = await sendOne({
+        resendKey,
+        to: alertTo,
+        subject: `Quick Audit Completed - ${businessName || url}`,
+        html: quickAuditHtml
+      });
+
+      if (!quickAuditSend.ok) {
+        return respond(500, {
+          error: "Quick audit notification send failed",
+          quickAuditSend
+        });
+      }
+
+      return respond(200, {
+        success: true,
+        mode
+      });
+    }
+
+    const email = String(data.email || "").trim();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return respond(400, { error: "Please enter a valid email address." });
     }
 
     const userHtml = renderUserEmail({
@@ -35,12 +64,20 @@ exports.handler = async (event) => {
       data
     });
 
-    const userSend = await sendOne({
-      resendKey,
-      to: email,
-      subject: `Your AI Visibility Audit${businessName ? ` - ${businessName}` : ""}`,
-      html: userHtml
-    });
+    const [userSend, internalSend] = await Promise.all([
+      sendOne({
+        resendKey,
+        to: email,
+        subject: `Your AI Visibility Audit${businessName ? ` - ${businessName}` : ""}`,
+        html: userHtml
+      }),
+      sendOne({
+        resendKey,
+        to: alertTo,
+        subject: `Full Report Requested - ${businessName || url}`,
+        html: internalHtml
+      }).catch((error) => ({ ok: false, error: error.message }))
+    ]);
 
     if (!userSend.ok) {
       return respond(500, {
@@ -49,15 +86,9 @@ exports.handler = async (event) => {
       });
     }
 
-    const internalSend = await sendOne({
-      resendKey,
-      to: alertTo,
-      subject: `Full Report Requested - ${businessName || url}`,
-      html: internalHtml
-    }).catch((error) => ({ ok: false, error: error.message }));
-
     return respond(200, {
       success: true,
+      mode,
       internalNotificationSent: Boolean(internalSend?.ok)
     });
   } catch (error) {
@@ -90,6 +121,34 @@ async function sendOne({ resendKey, to, subject, html }) {
   }
 
   return { ok: res.ok, result };
+}
+
+function renderQuickAuditInternalEmail({ businessName, url, submittedAt, data }) {
+  return `
+    <div style="font-family: Arial, sans-serif; padding: 24px; max-width: 680px; margin: 0 auto;">
+      <h2 style="margin:0 0 12px;">Quick Audit Completed</h2>
+      <p><strong>Website:</strong> ${escapeHtml(url)}</p>
+      <p><strong>Business:</strong> ${escapeHtml(businessName || "Unknown")}</p>
+      <p><strong>Timestamp:</strong> ${escapeHtml(submittedAt)}</p>
+      <p><strong>Score:</strong> ${escapeHtml(String(data.score || 0))}/100</p>
+      <p><strong>Current Status:</strong> ${escapeHtml(String(data.aiVerdict || "Not available"))}</p>
+      <p><strong>Summary:</strong> ${escapeHtml(String(data.summary || "Not available"))}</p>
+      <p><strong>Entity Confidence:</strong> ${escapeHtml(formatEntityConfidence(data.entityConfidence))}</p>
+      <p><strong>AI Recommendation:</strong> ${escapeHtml(formatRecommendation(data.recommendation))}</p>
+      <div style="margin-top:18px;">
+        <p><strong>Breakdown</strong></p>
+        <ul>${renderPlainBreakdownItems(data.breakdown)}</ul>
+      </div>
+      <div style="margin-top:18px;">
+        <p><strong>Main Findings</strong></p>
+        <ol>${renderPlainListItems(data.aiIssues, "No findings returned.")}</ol>
+      </div>
+      <div style="margin-top:18px;">
+        <p><strong>Priorities</strong></p>
+        <ol>${renderPlainListItems(data.priorities, "No priorities returned.")}</ol>
+      </div>
+    </div>
+  `;
 }
 
 function renderUserEmail({ businessName, url, data }) {

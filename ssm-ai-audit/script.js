@@ -41,27 +41,22 @@ const loadingPhases = [
   {
     title: "Checking AI answer visibility",
     detail: "Checking whether your brand is making it into AI answers.",
-    progress: 18
+    progress: 20
   },
   {
     title: "Reviewing trust and authority signals",
-    detail: "Looking for the signals answer engines lean on before they cite or recommend.",
-    progress: 38
+    detail: "Checking whether your brand looks credible enough to cite.",
+    progress: 42
   },
   {
     title: "Looking for structured brand understanding",
-    detail: "Seeing if the machines can actually tell what you do.",
-    progress: 58
+    detail: "Seeing if the machines can quickly tell what you do.",
+    progress: 68
   },
   {
     title: "Evaluating citation readiness",
-    detail: "Checking for clues, citations, and credibility signals.",
-    progress: 78
-  },
-  {
-    title: "Comparing discoverability across answer engines",
     detail: "Checking whether your brand would make the shortlist.",
-    progress: 92
+    progress: 90
   }
 ];
 
@@ -336,6 +331,48 @@ function resetEmailState() {
   resultsCta.hidden = true;
 }
 
+function showSentState() {
+  emailGate.hidden = true;
+  emailForm.hidden = true;
+  deliverySuccess.hidden = false;
+  resultsCta.hidden = false;
+}
+
+async function notifyQuickAuditAdmin() {
+  if (!auditContext.url || !auditContext.data) {
+    return;
+  }
+
+  try {
+    await fetch("/.netlify/functions/send-audit-email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        mode: "quick-audit-notify",
+        businessName: auditContext.businessName,
+        url: auditContext.url,
+        score: auditContext.data.score ?? 0,
+        summary: auditContext.data.summary || "",
+        aiVerdict: auditContext.data.aiVerdict || "",
+        breakdown: auditContext.data.breakdown || [],
+        aiIssues: auditContext.data.aiIssues || [],
+        priorities: auditContext.data.priorities || [],
+        topAiQueries: auditContext.data.topAiQueries || [],
+        competitorAdvantage: auditContext.data.competitorAdvantage || [],
+        opportunity: auditContext.data.opportunity || "",
+        recommendation: auditContext.data.recommendation || {},
+        entityConfidence: auditContext.data.entityConfidence ?? 0,
+        tech: auditContext.data.tech || {},
+        serp: auditContext.data.serp || {}
+      })
+    });
+  } catch (error) {
+    console.error("Quick audit admin notification failed.", error);
+  }
+}
+
 async function readJson(response) {
   const text = await response.text();
 
@@ -364,6 +401,8 @@ if (window.visualViewport) {
   window.visualViewport.addEventListener("resize", queueHeightSync);
 }
 
+resetEmailState();
+
 urlForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   clearMessage(urlMessage);
@@ -390,7 +429,7 @@ urlForm.addEventListener("submit", async (event) => {
   const loadingInterval = window.setInterval(() => {
     phaseIndex = (phaseIndex + 1) % loadingPhases.length;
     setActiveLoadingStep(phaseIndex);
-  }, 1650);
+  }, 1750);
 
   try {
     const startedAt = Date.now();
@@ -413,8 +452,8 @@ urlForm.addEventListener("submit", async (event) => {
     }
 
     const elapsed = Date.now() - startedAt;
-    if (elapsed < 2200) {
-      await delay(2200 - elapsed);
+    if (elapsed < 1900) {
+      await delay(1900 - elapsed);
     }
 
     setActiveLoadingStep(loadingPhases.length - 1);
@@ -424,6 +463,7 @@ urlForm.addEventListener("submit", async (event) => {
     auditContext.data = data;
     fillPreview(data);
     resetEmailState();
+    notifyQuickAuditAdmin();
 
     window.clearInterval(loadingInterval);
     await delay(220);
@@ -498,9 +538,7 @@ emailForm.addEventListener("submit", async (event) => {
     }
 
     setAppStage("sent");
-    emailGate.hidden = true;
-    deliverySuccess.hidden = false;
-    resultsCta.hidden = false;
+    showSentState();
 
     const height = getDocumentHeight();
     window.parent.postMessage({ type: "ssm-audit-report-sent", height }, "*");
