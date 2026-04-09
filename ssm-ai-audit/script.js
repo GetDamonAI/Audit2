@@ -533,7 +533,7 @@ emailForm.addEventListener("submit", async (event) => {
 
     const emailData = await readJson(emailResponse);
 
-    if (!emailResponse.ok) {
+    if (!emailResponse.ok || emailData.success !== true) {
       throw new Error(emailData.error || "Email send failed.");
     }
 
