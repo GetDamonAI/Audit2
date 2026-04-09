@@ -49,6 +49,11 @@ a {
   padding: 20px 14px 40px;
 }
 
+.audit-shell[data-stage="preview"],
+.audit-shell[data-stage="sent"] {
+  padding-bottom: 22px;
+}
+
 .landing-view,
 .audit-experience {
   min-width: 0;
@@ -647,6 +652,11 @@ input:focus {
 @media (min-width: 720px) {
   .audit-shell {
     padding: 28px 22px 52px;
+  }
+
+  .audit-shell[data-stage="preview"],
+  .audit-shell[data-stage="sent"] {
+    padding-bottom: 30px;
   }
 
   .landing-view {

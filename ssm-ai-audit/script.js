@@ -45,17 +45,17 @@ const loadingPhases = [
   },
   {
     title: "Reviewing trust and authority signals",
-    detail: "Checking whether your brand looks credible enough to cite.",
+    detail: "Looking for the kinds of signals answer engines would trust enough to cite.",
     progress: 42
   },
   {
     title: "Looking for structured brand understanding",
-    detail: "Seeing if the machines can quickly tell what you do.",
+    detail: "Seeing whether the machines can tell what you do at a glance.",
     progress: 68
   },
   {
     title: "Evaluating citation readiness",
-    detail: "Checking whether your brand would make the shortlist.",
+    detail: "Pressure-testing whether your brand would make the shortlist.",
     progress: 90
   }
 ];
@@ -176,6 +176,13 @@ function setAppStage(stage) {
 
   stateLoading.hidden = stage !== "loading";
   statePreview.hidden = stage !== "preview" && stage !== "sent";
+
+  if (stage !== "sent") {
+    deliverySuccess.hidden = true;
+    resultsCta.hidden = true;
+    deliverySuccess.style.display = "none";
+    resultsCta.style.display = "none";
+  }
 
   stateLoading.classList.toggle("audit-panel-active", stage === "loading");
   statePreview.classList.toggle("audit-panel-active", stage === "preview" || stage === "sent");
@@ -329,6 +336,8 @@ function resetEmailState() {
   emailForm.hidden = false;
   deliverySuccess.hidden = true;
   resultsCta.hidden = true;
+  deliverySuccess.style.display = "none";
+  resultsCta.style.display = "none";
 }
 
 function showSentState() {
@@ -336,6 +345,8 @@ function showSentState() {
   emailForm.hidden = true;
   deliverySuccess.hidden = false;
   resultsCta.hidden = false;
+  deliverySuccess.style.display = "";
+  resultsCta.style.display = "";
 }
 
 async function notifyQuickAuditAdmin() {
@@ -344,11 +355,12 @@ async function notifyQuickAuditAdmin() {
   }
 
   try {
-    await fetch("/.netlify/functions/send-audit-email", {
+    const response = await fetch("/.netlify/functions/send-audit-email", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
+      keepalive: true,
       body: JSON.stringify({
         mode: "quick-audit-notify",
         businessName: auditContext.businessName,
@@ -368,6 +380,11 @@ async function notifyQuickAuditAdmin() {
         serp: auditContext.data.serp || {}
       })
     });
+
+    const result = await readJson(response);
+    if (!response.ok || result.success !== true) {
+      throw new Error(result.error || "Quick audit admin notification failed.");
+    }
   } catch (error) {
     console.error("Quick audit admin notification failed.", error);
   }
@@ -429,7 +446,7 @@ urlForm.addEventListener("submit", async (event) => {
   const loadingInterval = window.setInterval(() => {
     phaseIndex = (phaseIndex + 1) % loadingPhases.length;
     setActiveLoadingStep(phaseIndex);
-  }, 1750);
+  }, 1600);
 
   try {
     const startedAt = Date.now();
@@ -452,8 +469,8 @@ urlForm.addEventListener("submit", async (event) => {
     }
 
     const elapsed = Date.now() - startedAt;
-    if (elapsed < 1900) {
-      await delay(1900 - elapsed);
+    if (elapsed < 1700) {
+      await delay(1700 - elapsed);
     }
 
     setActiveLoadingStep(loadingPhases.length - 1);
@@ -533,7 +550,7 @@ emailForm.addEventListener("submit", async (event) => {
 
     const emailData = await readJson(emailResponse);
 
-    if (!emailResponse.ok || emailData.success !== true) {
+    if (!emailResponse.ok || emailData.success !== true || emailData.mode !== "full-report") {
       throw new Error(emailData.error || "Email send failed.");
     }
 
