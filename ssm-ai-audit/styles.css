@@ -602,6 +602,11 @@ input:focus {
   font-weight: 500;
 }
 
+.delivery-success {
+  gap: 10px;
+  padding: 16px 18px;
+}
+
 .results-cta {
   background: rgba(255, 255, 255, 0.84);
 }

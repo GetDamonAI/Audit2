@@ -40,28 +40,28 @@ const resultsCta = document.getElementById("results-cta");
 const loadingPhases = [
   {
     title: "Checking AI answer visibility",
-    detail: "Seeing whether your brand is even making it into the conversation.",
-    progress: 12
+    detail: "Checking whether your brand is making it into AI answers.",
+    progress: 18
   },
   {
     title: "Reviewing trust and authority signals",
-    detail: "Looking for the signals answer engines rely on before they cite or recommend.",
-    progress: 28
+    detail: "Looking for the signals answer engines lean on before they cite or recommend.",
+    progress: 38
   },
   {
     title: "Looking for structured brand understanding",
-    detail: "Seeing if the machines actually get what you do.",
-    progress: 48
+    detail: "Seeing if the machines can actually tell what you do.",
+    progress: 58
   },
   {
     title: "Evaluating citation readiness",
-    detail: "Looking for clues, citations, and credibility.",
-    progress: 68
+    detail: "Checking for clues, citations, and credibility signals.",
+    progress: 78
   },
   {
     title: "Comparing discoverability across answer engines",
-    detail: "Asking the robots who knows you and why.",
-    progress: 86
+    detail: "Checking whether your brand would make the shortlist.",
+    progress: 92
   }
 ];
 
@@ -390,7 +390,7 @@ urlForm.addEventListener("submit", async (event) => {
   const loadingInterval = window.setInterval(() => {
     phaseIndex = (phaseIndex + 1) % loadingPhases.length;
     setActiveLoadingStep(phaseIndex);
-  }, 1900);
+  }, 1650);
 
   try {
     const startedAt = Date.now();
@@ -413,8 +413,8 @@ urlForm.addEventListener("submit", async (event) => {
     }
 
     const elapsed = Date.now() - startedAt;
-    if (elapsed < 2600) {
-      await delay(2600 - elapsed);
+    if (elapsed < 2200) {
+      await delay(2200 - elapsed);
     }
 
     setActiveLoadingStep(loadingPhases.length - 1);
