@@ -121,7 +121,6 @@ a {
 .hero-subhead,
 .section-copy,
 .loading-detail,
-.loading-support,
 .preview-support,
 .gate-copy,
 .gate-reassurance,
@@ -496,159 +495,8 @@ input:focus {
   transition: width 0.35s ease;
 }
 
-.progress-foot {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.loading-support {
-  max-width: 32rem;
-}
-
-.progress-note {
-  margin: 0;
-  white-space: nowrap;
-  font-size: 12px;
-  line-height: 1.25;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #7b7268;
-}
-
-.loading-visual {
-  display: grid;
-  gap: 12px;
-}
-
-.thinking-dots {
-  display: inline-flex;
-  gap: 8px;
-}
-
-.thinking-dots span {
-  width: 9px;
-  height: 9px;
-  border-radius: 999px;
-  background: #111;
-  opacity: 0.22;
-  animation: thinkingPulse 1.05s infinite ease-in-out;
-}
-
-.thinking-dots span:nth-child(2) {
-  animation-delay: 0.15s;
-}
-
-.thinking-dots span:nth-child(3) {
-  animation-delay: 0.3s;
-}
-
-.thinking-track {
-  position: relative;
-  width: 100%;
-  height: 2px;
-  overflow: hidden;
-  background: rgba(23, 23, 23, 0.08);
-  border-radius: 999px;
-}
-
-.thinking-track-bar {
-  position: absolute;
-  inset: 0 auto 0 -35%;
-  width: 35%;
-  border-radius: inherit;
-  background: #111;
-  animation: thinkingSweep 1.55s ease-in-out infinite;
-}
-
-.loading-orbit {
-  position: relative;
-  height: 40px;
-  border-radius: 999px;
-  border: 1px solid rgba(23, 23, 23, 0.06);
-  background:
-    radial-gradient(circle at center, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.16)),
-    #fbf8f3;
-  overflow: hidden;
-}
-
-.loading-orbit-dot {
-  position: absolute;
-  top: 50%;
-  width: 9px;
-  height: 9px;
-  border-radius: 999px;
-  background: #171717;
-  opacity: 0.24;
-  transform: translateY(-50%);
-  animation: orbitFloat 3.1s linear infinite;
-}
-
-.loading-orbit-dot-one {
-  left: 14%;
-}
-
-.loading-orbit-dot-two {
-  left: 46%;
-  animation-delay: 0.45s;
-}
-
-.loading-orbit-dot-three {
-  left: 76%;
-  animation-delay: 0.9s;
-}
-
-.loading-steps {
-  display: grid;
-  gap: 12px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.loading-step {
-  position: relative;
-  display: grid;
-  gap: 4px;
-  padding: 14px 14px 14px 34px;
-  border-radius: 18px;
-  background: #fcfaf7;
-  border: 1px solid rgba(23, 23, 23, 0.05);
-  color: #6f6961;
-}
-
-.loading-step::before {
-  content: "";
-  position: absolute;
-  left: 14px;
-  top: 18px;
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  background: rgba(23, 23, 23, 0.14);
-}
-
-.loading-step strong {
-  font-size: 15px;
-  line-height: 1.35;
-  color: inherit;
-}
-
-.loading-step span {
-  font-size: 14px;
-  line-height: 1.42;
-}
-
-.loading-step.is-active {
-  color: #1a1a1a;
-  background: #faf7f2;
-  box-shadow: 0 12px 30px rgba(23, 23, 23, 0.04);
-}
-
-.loading-step.is-active::before {
-  background: #171717;
-  box-shadow: 0 0 0 6px rgba(23, 23, 23, 0.06);
+.loading-detail {
+  animation: loadingCopyPulse 2.4s ease-in-out infinite;
 }
 
 .preview-header {
@@ -763,43 +611,17 @@ input:focus {
   gap: 12px;
 }
 
-@keyframes thinkingPulse {
-  0%,
-  100% {
-    opacity: 0.22;
-    transform: translateY(0);
+@keyframes loadingCopyPulse {
+  0% {
+    opacity: 0.52;
   }
 
   50% {
-    opacity: 0.95;
-    transform: translateY(-1px);
-  }
-}
-
-@keyframes thinkingSweep {
-  0% {
-    transform: translateX(0);
+    opacity: 1;
   }
 
   100% {
-    transform: translateX(390%);
-  }
-}
-
-@keyframes orbitFloat {
-  0% {
-    transform: translateY(-50%) scale(0.9);
-    opacity: 0.2;
-  }
-
-  30% {
-    transform: translateY(-50%) scale(1.08);
-    opacity: 0.92;
-  }
-
-  100% {
-    transform: translateY(-50%) scale(0.92);
-    opacity: 0.2;
+    opacity: 0.52;
   }
 }
 
@@ -869,7 +691,7 @@ input:focus {
   }
 
   .platform-strip {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 12px;
   }
 
@@ -905,10 +727,6 @@ input:focus {
   .preview-header {
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: end;
-  }
-
-  .progress-foot {
-    align-items: center;
   }
 
   .cta-actions {

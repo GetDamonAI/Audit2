@@ -1,7 +1,11 @@
 const shell = document.querySelector(".audit-shell");
 const landingView = document.getElementById("landing-view");
 const auditExperience = document.getElementById("audit-experience");
+const heroCopy = document.querySelector(".hero-copy");
 const heroTool = document.querySelector(".hero-tool");
+const landingSections = Array.from(
+  document.querySelectorAll(".platform-band, .insight-section, .checks-section")
+);
 
 const stateLoading = document.getElementById("state-loading");
 const statePreview = document.getElementById("state-preview");
@@ -18,9 +22,7 @@ const emailSubmit = document.getElementById("email-submit");
 const urlMessage = document.getElementById("url-message");
 const emailMessage = document.getElementById("email-message");
 
-const loadingSteps = Array.from(document.querySelectorAll(".loading-step"));
 const loadingDetail = document.getElementById("loading-detail");
-const loadingSupport = document.getElementById("loading-support");
 const loadingPhaseLabel = document.getElementById("loading-phase-label");
 const loadingProgressValue = document.getElementById("loading-progress-value");
 const loadingProgressBar = document.getElementById("loading-progress-bar");
@@ -39,31 +41,26 @@ const loadingPhases = [
   {
     title: "Checking AI answer visibility",
     detail: "Seeing whether your brand is even making it into the conversation.",
-    support: "Looking for signs of life in AI answers.",
     progress: 12
   },
   {
     title: "Reviewing trust and authority signals",
     detail: "Looking for the signals answer engines rely on before they cite or recommend.",
-    support: "Checking whether your brand gives the machines enough reason to trust it.",
     progress: 28
   },
   {
     title: "Looking for structured brand understanding",
     detail: "Seeing if the machines actually get what you do.",
-    support: "Scanning for the entity clues that help models name, frame, and surface your brand correctly.",
     progress: 48
   },
   {
     title: "Evaluating citation readiness",
     detail: "Looking for clues, citations, and credibility.",
-    support: "Checking whether your site makes it easy to quote, verify, and recommend.",
     progress: 68
   },
   {
     title: "Comparing discoverability across answer engines",
     detail: "Asking the robots who knows you and why.",
-    support: "Looking at how consistently your brand is likely to appear across answer-engine discovery moments.",
     progress: 86
   }
 ];
@@ -176,7 +173,11 @@ function setAppStage(stage) {
   const isLanding = stage === "landing";
   landingView.hidden = false;
   auditExperience.hidden = isLanding;
+  heroCopy.hidden = !isLanding;
   heroTool.hidden = !isLanding;
+  landingSections.forEach((section) => {
+    section.hidden = !isLanding;
+  });
 
   stateLoading.hidden = stage !== "loading";
   statePreview.hidden = stage !== "preview" && stage !== "sent";
@@ -189,15 +190,10 @@ function setAppStage(stage) {
 }
 
 function setActiveLoadingStep(index) {
-  loadingSteps.forEach((step, stepIndex) => {
-    step.classList.toggle("is-active", stepIndex === index);
-  });
-
   const phase = loadingPhases[index] || loadingPhases[loadingPhases.length - 1];
   const phaseNumber = Math.min(index + 1, loadingPhases.length);
 
   loadingDetail.textContent = phase.detail;
-  loadingSupport.textContent = phase.support || "";
   loadingPhaseLabel.textContent = `Phase ${phaseNumber} of ${loadingPhases.length}`;
   loadingProgressValue.textContent = `${phase.progress}%`;
   loadingProgressBar.style.width = `${phase.progress}%`;
@@ -385,6 +381,7 @@ urlForm.addEventListener("submit", async (event) => {
     email: ""
   };
 
+  urlInput.blur();
   setLoadingButton(urlSubmit, true);
   setAppStage("loading");
   setActiveLoadingStep(0);
@@ -393,7 +390,7 @@ urlForm.addEventListener("submit", async (event) => {
   const loadingInterval = window.setInterval(() => {
     phaseIndex = (phaseIndex + 1) % loadingPhases.length;
     setActiveLoadingStep(phaseIndex);
-  }, 1200);
+  }, 1900);
 
   try {
     const startedAt = Date.now();
@@ -465,6 +462,7 @@ emailForm.addEventListener("submit", async (event) => {
   }
 
   auditContext.email = email;
+  emailInput.blur();
   setLoadingButton(emailSubmit, true);
 
   try {
