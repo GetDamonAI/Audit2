@@ -1,6 +1,7 @@
 const shell = document.querySelector(".audit-shell");
 const landingView = document.getElementById("landing-view");
 const auditExperience = document.getElementById("audit-experience");
+const heroTool = document.querySelector(".hero-tool");
 
 const stateLoading = document.getElementById("state-loading");
 const statePreview = document.getElementById("state-preview");
@@ -173,8 +174,9 @@ function setAppStage(stage) {
   document.body.dataset.auditStage = stage;
 
   const isLanding = stage === "landing";
-  landingView.hidden = !isLanding;
+  landingView.hidden = false;
   auditExperience.hidden = isLanding;
+  heroTool.hidden = !isLanding;
 
   stateLoading.hidden = stage !== "loading";
   statePreview.hidden = stage !== "preview" && stage !== "sent";
@@ -386,7 +388,6 @@ urlForm.addEventListener("submit", async (event) => {
   setLoadingButton(urlSubmit, true);
   setAppStage("loading");
   setActiveLoadingStep(0);
-  revealNodeAtTop(auditExperience);
 
   let phaseIndex = 0;
   const loadingInterval = window.setInterval(() => {
@@ -431,7 +432,6 @@ urlForm.addEventListener("submit", async (event) => {
     await delay(220);
 
     setAppStage("preview");
-    revealNodeAtTop(statePreview);
 
     const height = getDocumentHeight();
     window.parent.postMessage({ type: "ssm-audit-quick-audit-ready", height }, "*");
@@ -507,7 +507,6 @@ emailForm.addEventListener("submit", async (event) => {
     const height = getDocumentHeight();
     window.parent.postMessage({ type: "ssm-audit-report-sent", height }, "*");
     queueHeightSync();
-    revealNodeAtTop(statePreview);
   } catch (error) {
     setMessage(emailMessage, error.message || "Email send failed.");
     console.error(error);
