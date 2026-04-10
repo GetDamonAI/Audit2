@@ -147,12 +147,66 @@ a {
 }
 
 .hero-tool {
+  display: grid;
+  gap: 12px;
   margin-top: 20px;
   padding: 0;
   border: 0;
   border-radius: 0;
   background: transparent;
   backdrop-filter: none;
+}
+
+.hero-form-copy,
+.hero-value-group {
+  display: grid;
+  gap: 6px;
+}
+
+.hero-form-intro,
+.hero-form-meta,
+.hero-value-label,
+.hero-value-list li {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #57514a;
+}
+
+.hero-form-intro,
+.hero-value-label {
+  color: #3d3832;
+}
+
+.hero-form-meta,
+.hero-value-label {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hero-value-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hero-value-list li {
+  position: relative;
+  padding-left: 14px;
+}
+
+.hero-value-list li::before {
+  content: "";
+  position: absolute;
+  top: 0.55em;
+  left: 0;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(23, 23, 23, 0.55);
 }
 
 .url-form,
@@ -685,6 +739,11 @@ input:focus {
   .email-form {
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
+  }
+
+  .hero-value-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 16px;
   }
 
   .primary-button,

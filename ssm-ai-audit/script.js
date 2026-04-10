@@ -208,21 +208,21 @@ function delay(ms) {
 function describeScore(score) {
   if (score >= 75) {
     return {
-      title: "Strong footing in AI-led discovery",
-      support: "Your brand is giving answer engines useful signals, but there is still room to strengthen recommendation confidence."
+      title: "AI sees strong signals, with room to sharpen visibility",
+      support: "Here’s what AI currently sees when it evaluates your site. Your full report shows what to fix next."
     };
   }
 
   if (score >= 50) {
     return {
-      title: "Some visibility, but clear AI search gaps",
-      support: "AI systems can find signals, but trust, entity clarity, or citation readiness still needs work."
+      title: "Some visibility, but meaningful gaps remain",
+      support: "Your quick audit found visibility gaps worth addressing, and your site may be missing signals that affect AI recommendations."
     };
   }
 
   return {
     title: "Low visibility in AI-generated answers",
-    support: "Your brand is not yet giving answer engines enough confidence to surface or recommend it consistently."
+    support: "Your site may be missing signals that affect AI recommendations. Your full report shows what to fix next."
   };
 }
 
