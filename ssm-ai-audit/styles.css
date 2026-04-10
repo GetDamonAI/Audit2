@@ -163,6 +163,10 @@ a {
   gap: 6px;
 }
 
+.hero-form-copy {
+  margin-top: 20px;
+}
+
 .hero-form-intro,
 .hero-form-meta,
 .hero-value-label,
@@ -744,6 +748,10 @@ input:focus {
   .hero-value-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     column-gap: 16px;
+  }
+
+  .hero-form-copy {
+    margin-top: 14px;
   }
 
   .primary-button,
