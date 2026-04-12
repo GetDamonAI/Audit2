@@ -2,7 +2,8 @@ exports.handler = async (event) => {
   try {
     const data = JSON.parse(event.body || "{}");
     const resendKey = process.env.RESEND_API_KEY;
-    const alertTo = process.env.AUDIT_ALERT_EMAIL || "hello@semanticsearchmarketing.com";
+    const alertTo = process.env.AUDIT_NOTIFICATION_TO || process.env.AUDIT_ALERT_EMAIL || "hello@semanticsearchmarketing.com";
+    const fromEmail = process.env.AUDIT_EMAIL_FROM || "audit@semanticsearchmarketing.com";
     const mode = String(data.mode || "full-report").trim();
 
     if (!resendKey) {
@@ -27,6 +28,7 @@ exports.handler = async (event) => {
 
       const quickAuditSend = await sendOne({
         resendKey,
+        fromEmail,
         to: alertTo,
         subject: `Quick Audit Completed - ${businessName || url}`,
         html: quickAuditHtml
@@ -67,12 +69,14 @@ exports.handler = async (event) => {
     const [userSend, internalSend] = await Promise.all([
       sendOne({
         resendKey,
+        fromEmail,
         to: email,
         subject: `Your AI Visibility Audit${businessName ? ` - ${businessName}` : ""}`,
         html: userHtml
       }),
       sendOne({
         resendKey,
+        fromEmail,
         to: alertTo,
         subject: `Full Report Requested - ${businessName || url}`,
         html: internalHtml
@@ -96,7 +100,7 @@ exports.handler = async (event) => {
   }
 };
 
-async function sendOne({ resendKey, to, subject, html }) {
+async function sendOne({ resendKey, fromEmail, to, subject, html }) {
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
@@ -104,7 +108,7 @@ async function sendOne({ resendKey, to, subject, html }) {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      from: "audit@semanticsearchmarketing.com",
+      from: fromEmail || "audit@semanticsearchmarketing.com",
       to: [to],
       subject,
       html

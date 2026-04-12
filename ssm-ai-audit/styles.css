@@ -30,6 +30,11 @@ a {
   font: inherit;
 }
 
+textarea,
+select {
+  font: inherit;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -214,12 +219,15 @@ a {
 }
 
 .url-form,
-.email-form {
+.email-form,
+.paid-intake-form {
   display: grid;
   gap: 12px;
 }
 
-input {
+input,
+textarea,
+select {
   width: 100%;
   min-width: 0;
   min-height: 60px;
@@ -233,11 +241,24 @@ input {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-input::placeholder {
+textarea {
+  min-height: 132px;
+  padding: 16px;
+  resize: vertical;
+}
+
+select {
+  appearance: none;
+}
+
+input::placeholder,
+textarea::placeholder {
   color: #8c8479;
 }
 
-input:focus {
+input:focus,
+textarea:focus,
+select:focus {
   border-color: #171717;
   box-shadow: 0 0 0 3px rgba(23, 23, 23, 0.08);
 }
@@ -651,6 +672,7 @@ input:focus {
 }
 
 .email-gate,
+.paid-offer,
 .delivery-success,
 .results-cta {
   display: grid;
@@ -681,6 +703,98 @@ input:focus {
 .cta-actions {
   display: grid;
   gap: 12px;
+}
+
+.paid-offer-summary {
+  display: grid;
+  gap: 16px;
+}
+
+.paid-offer-copy {
+  display: grid;
+  gap: 10px;
+}
+
+.paid-offer-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.paid-offer-list li {
+  position: relative;
+  padding-left: 16px;
+  font-size: 15px;
+  line-height: 1.46;
+  color: #57514a;
+}
+
+.paid-offer-list li::before {
+  content: "";
+  position: absolute;
+  top: 0.55em;
+  left: 0;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(23, 23, 23, 0.55);
+}
+
+.paid-offer-price {
+  display: flex;
+  align-items: flex-end;
+}
+
+.paid-offer-price-value {
+  font-size: 40px;
+  line-height: 0.92;
+  letter-spacing: -0.045em;
+  font-weight: 500;
+  color: #171717;
+}
+
+.paid-success-shell {
+  max-width: 840px;
+}
+
+.paid-intake-panel,
+.paid-final-state {
+  background:
+    radial-gradient(circle at top right, rgba(239, 231, 223, 0.72), rgba(255, 255, 255, 0) 36%),
+    rgba(255, 255, 255, 0.94);
+}
+
+.paid-intake-form {
+  margin-top: 6px;
+}
+
+.paid-intake-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.field-group {
+  display: grid;
+  gap: 8px;
+}
+
+.field-label {
+  font-size: 14px;
+  line-height: 1.35;
+  color: #3d3832;
+}
+
+.field-note {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #6a635a;
+}
+
+.paid-final-state {
+  margin-top: 14px;
 }
 
 @keyframes loadingCopyPulse {
@@ -743,6 +857,15 @@ input:focus {
   .email-form {
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
+  }
+
+  .paid-intake-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .field-group-fieldspan,
+  .field-group-full {
+    grid-column: 1 / -1;
   }
 
   .hero-value-list {
@@ -811,6 +934,11 @@ input:focus {
   }
 
   .preview-header {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+  }
+
+  .paid-offer-summary {
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: end;
   }

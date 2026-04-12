@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Visibility Audit Success</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <main class="audit-shell paid-success-shell">
+    <section class="audit-panel audit-panel-active paid-intake-panel" aria-labelledby="paid-success-title">
+      <div class="audit-panel-header">
+        <p class="section-kicker">Paid Audit</p>
+        <h1 id="paid-success-title" class="audit-title">You’re in. Let’s make your report more accurate.</h1>
+        <p class="gate-copy">
+          Your quick audit is complete. Add a few more details so we can build a more in-depth AI visibility report and implementation plan tailored to your site, content, and goals.
+        </p>
+      </div>
+
+      <p id="paid-session-note" class="field-note"></p>
+
+      <form id="paid-intake-form" class="paid-intake-form" novalidate>
+        <input id="paid-session-id" name="sessionId" type="hidden" />
+
+        <div class="paid-intake-grid">
+          <div class="field-group field-group-full">
+            <label class="field-label" for="business-goal">Primary business goal</label>
+            <textarea id="business-goal" name="businessGoal" placeholder="What matters most right now? More leads, more local visibility, better recommendations, stronger authority, or something else?"></textarea>
+          </div>
+
+          <div class="field-group field-group-full">
+            <label class="field-label" for="top-services">Top services or products</label>
+            <textarea id="top-services" name="topServices" placeholder="List the services or products that matter most for this report."></textarea>
+          </div>
+
+          <div class="field-group field-group-full">
+            <label class="field-label" for="priority-pages">Top priority pages</label>
+            <textarea id="priority-pages" name="priorityPages" placeholder="Share the pages you most want AI platforms to understand and recommend."></textarea>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="target-locations">Target locations</label>
+            <input id="target-locations" name="targetLocations" type="text" placeholder="Vancouver, BC; Seattle; Canada-wide" />
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="top-competitors">Top competitors</label>
+            <input id="top-competitors" name="topCompetitors" type="text" placeholder="Who do you most want to outrank in AI recommendations?" />
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="has-blog">Do you have a blog or resources section?</label>
+            <select id="has-blog" name="hasBlog">
+              <option value="">Select one</option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+              <option value="not-sure">Not sure</option>
+            </select>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="cms-platform">CMS or platform</label>
+            <input id="cms-platform" name="cmsPlatform" type="text" placeholder="WordPress, Webflow, Shopify, Squarespace, custom, etc." />
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="can-edit-code">Can you edit code or schema?</label>
+            <select id="can-edit-code" name="canEditCode">
+              <option value="">Select one</option>
+              <option value="yes">Yes</option>
+              <option value="limited">Limited access</option>
+              <option value="no">No</option>
+            </select>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="marketing-support">Do you have internal marketing support?</label>
+            <select id="marketing-support" name="marketingSupport">
+              <option value="">Select one</option>
+              <option value="yes">Yes</option>
+              <option value="part-time">Part-time or freelance support</option>
+              <option value="no">No</option>
+            </select>
+          </div>
+
+          <div class="field-group field-group-full">
+            <label class="field-label" for="report-questions">Any specific questions you want the report to answer?</label>
+            <textarea id="report-questions" name="reportQuestions" placeholder="If there are specific pages, visibility problems, or AI-search questions you want us to focus on, add them here."></textarea>
+          </div>
+        </div>
+
+        <button type="submit" id="paid-intake-submit" class="primary-button">Submit My Details</button>
+      </form>
+
+      <p id="paid-intake-message" class="form-message" role="status" aria-live="polite"></p>
+
+      <section id="paid-final-state" class="delivery-success paid-final-state" hidden>
+        <p class="section-kicker">Next Up</p>
+        <h2 class="gate-title">Perfect. Your report is on the way.</h2>
+        <p class="gate-copy">
+          We’re preparing your detailed AI Visibility Audit + Implementation Plan now. Next, book your real live human implementation coaching session with Damon.
+        </p>
+        <a id="paid-booking-link" class="primary-button cta-link" href="#" target="_blank" rel="noopener noreferrer">
+          Book My Coaching Session
+        </a>
+      </section>
+    </section>
+  </main>
+
+  <script src="/audit-success/success.js"></script>
+</body>
+</html>

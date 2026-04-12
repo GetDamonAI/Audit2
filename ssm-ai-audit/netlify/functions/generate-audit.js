@@ -215,7 +215,8 @@ RULES:
 };
 
 async function sendQuickAuditNotification({ resendKey, businessName, url, parsed }) {
-  const alertTo = process.env.AUDIT_ALERT_EMAIL || "hello@semanticsearchmarketing.com";
+  const alertTo = process.env.AUDIT_NOTIFICATION_TO || process.env.AUDIT_ALERT_EMAIL || "hello@semanticsearchmarketing.com";
+  const fromEmail = process.env.AUDIT_EMAIL_FROM || "audit@semanticsearchmarketing.com";
   const submittedAt = new Date().toISOString();
   const findings = renderList(parsed.aiIssues, "No quick findings returned.");
   const priorities = renderList(parsed.priorities, "No priorities returned.");
@@ -250,13 +251,14 @@ async function sendQuickAuditNotification({ resendKey, businessName, url, parsed
 
   await sendEmail({
     resendKey,
+    fromEmail,
     to: alertTo,
     subject: `Quick Audit Completed - ${businessName || url}`,
     html
   });
 }
 
-async function sendEmail({ resendKey, to, subject, html }) {
+async function sendEmail({ resendKey, fromEmail, to, subject, html }) {
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
@@ -264,7 +266,7 @@ async function sendEmail({ resendKey, to, subject, html }) {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      from: "audit@semanticsearchmarketing.com",
+      from: fromEmail || "audit@semanticsearchmarketing.com",
       to: [to],
       subject,
       html

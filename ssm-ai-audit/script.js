@@ -33,6 +33,11 @@ const previewStatus = document.getElementById("preview-status");
 const previewSupport = document.getElementById("preview-support");
 const previewFindings = document.getElementById("preview-findings");
 
+const paidOffer = document.getElementById("paid-offer");
+const paidOfferSubmit = document.getElementById("paid-offer-submit");
+const paidOfferFallback = document.getElementById("paid-offer-fallback");
+const paidOfferMessage = document.getElementById("paid-offer-message");
+
 const emailGate = document.getElementById("email-gate");
 const deliverySuccess = document.getElementById("delivery-success");
 const resultsCta = document.getElementById("results-cta");
@@ -64,7 +69,10 @@ let auditContext = {
   url: "",
   businessName: "",
   data: null,
-  email: ""
+  email: "",
+  industry: "",
+  service: "",
+  checkoutSessionId: ""
 };
 
 function normalizeUrl(value) {
@@ -155,6 +163,12 @@ function clearMessage(element) {
   setMessage(element, "", "error");
 }
 
+function setBlockVisibility(element, visible) {
+  if (!element) return;
+  element.hidden = !visible;
+  element.style.display = visible ? "" : "none";
+}
+
 function setLoadingButton(button, isLoading) {
   if (!button) return;
   button.disabled = isLoading;
@@ -178,10 +192,8 @@ function setAppStage(stage) {
   statePreview.hidden = stage !== "preview" && stage !== "sent";
 
   if (stage !== "sent") {
-    deliverySuccess.hidden = true;
-    resultsCta.hidden = true;
-    deliverySuccess.style.display = "none";
-    resultsCta.style.display = "none";
+    setBlockVisibility(deliverySuccess, false);
+    setBlockVisibility(resultsCta, false);
   }
 
   stateLoading.classList.toggle("audit-panel-active", stage === "loading");
@@ -325,28 +337,49 @@ function fillPreview(data) {
   }
 }
 
-function resetEmailState() {
+function persistAuditContext() {
+  try {
+    window.sessionStorage.setItem("ssm-ai-audit-context", JSON.stringify(auditContext));
+  } catch {
+    // Session storage is optional in embed contexts.
+  }
+}
+
+function resetPostAuditState() {
+  clearMessage(paidOfferMessage);
   clearMessage(emailMessage);
 
   if (emailInput) {
     emailInput.value = "";
   }
 
-  emailGate.hidden = false;
+  setBlockVisibility(paidOffer, true);
+  setBlockVisibility(emailGate, false);
+  setBlockVisibility(deliverySuccess, false);
+  setBlockVisibility(resultsCta, false);
   emailForm.hidden = false;
-  deliverySuccess.hidden = true;
-  resultsCta.hidden = true;
-  deliverySuccess.style.display = "none";
-  resultsCta.style.display = "none";
 }
 
 function showSentState() {
-  emailGate.hidden = true;
+  setBlockVisibility(paidOffer, false);
+  setBlockVisibility(emailGate, false);
   emailForm.hidden = true;
-  deliverySuccess.hidden = false;
-  resultsCta.hidden = false;
-  deliverySuccess.style.display = "";
-  resultsCta.style.display = "";
+  setBlockVisibility(deliverySuccess, true);
+  setBlockVisibility(resultsCta, true);
+}
+
+function showEmailFallback() {
+  setBlockVisibility(emailGate, true);
+  emailForm.hidden = false;
+  clearMessage(emailMessage);
+  queueHeightSync();
+
+  if (emailInput) {
+    window.setTimeout(() => {
+      emailInput.focus({ preventScroll: true });
+      revealNodeAtTop(emailGate);
+    }, 40);
+  }
 }
 
 async function notifyQuickAuditAdmin() {
@@ -418,7 +451,7 @@ if (window.visualViewport) {
   window.visualViewport.addEventListener("resize", queueHeightSync);
 }
 
-resetEmailState();
+resetPostAuditState();
 
 urlForm.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -434,7 +467,10 @@ urlForm.addEventListener("submit", async (event) => {
     url,
     businessName: hostnameToName(url),
     data: null,
-    email: ""
+    email: "",
+    industry: "",
+    service: "",
+    checkoutSessionId: ""
   };
 
   urlInput.blur();
@@ -479,7 +515,8 @@ urlForm.addEventListener("submit", async (event) => {
 
     auditContext.data = data;
     fillPreview(data);
-    resetEmailState();
+    persistAuditContext();
+    resetPostAuditState();
     notifyQuickAuditAdmin();
 
     window.clearInterval(loadingInterval);
@@ -499,6 +536,58 @@ urlForm.addEventListener("submit", async (event) => {
   } finally {
     setLoadingButton(urlSubmit, false);
     setActiveLoadingStep(0);
+    queueHeightSync();
+  }
+});
+
+paidOfferFallback.addEventListener("click", () => {
+  showEmailFallback();
+});
+
+paidOfferSubmit.addEventListener("click", async () => {
+  clearMessage(paidOfferMessage);
+
+  if (!auditContext.url || !auditContext.data) {
+    setMessage(paidOfferMessage, "Run the audit first.");
+    return;
+  }
+
+  setLoadingButton(paidOfferSubmit, true);
+
+  try {
+    persistAuditContext();
+
+    const response = await fetch("/.netlify/functions/create-checkout-session", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        url: auditContext.url,
+        businessName: auditContext.businessName,
+        industry: auditContext.industry || "",
+        service: auditContext.service || "",
+        email: auditContext.email || "",
+        quickAuditScore: auditContext.data.score ?? 0,
+        aiVerdict: auditContext.data.aiVerdict || "",
+        summary: auditContext.data.summary || ""
+      })
+    });
+
+    const checkoutData = await readJson(response);
+
+    if (!response.ok || checkoutData.success !== true || !checkoutData.url) {
+      throw new Error(checkoutData.error || "Checkout setup failed.");
+    }
+
+    auditContext.checkoutSessionId = String(checkoutData.sessionId || "").trim();
+    persistAuditContext();
+    window.location.assign(checkoutData.url);
+  } catch (error) {
+    setMessage(paidOfferMessage, error.message || "Checkout setup failed.");
+    console.error(error);
+  } finally {
+    setLoadingButton(paidOfferSubmit, false);
     queueHeightSync();
   }
 });
