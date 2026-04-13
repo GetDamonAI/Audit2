@@ -1,11 +1,13 @@
-const {
-  collectSiteIntelligence,
-  getHostname: getSharedHostname,
-  normalizeUrl: normalizeSharedUrl
-} = require("./_site-intelligence");
-
 exports.handler = async (event) => {
+  let statusPath = "started";
+
   try {
+    const {
+      collectSiteIntelligence,
+      getHostname: getSharedHostname,
+      normalizeUrl: normalizeSharedUrl
+    } = require("./_site-intelligence");
+
     const input = JSON.parse(event.body || "{}");
     const openAiKey = process.env.OPENAI_API_KEY;
     const pageSpeedKey = process.env.PAGESPEED_API_KEY;
@@ -13,12 +15,15 @@ exports.handler = async (event) => {
     const resendKey = process.env.RESEND_API_KEY;
 
     if (!openAiKey) {
-      return json(500, { error: "Missing OPENAI_API_KEY" });
+      statusPath = "missing-openai-key";
+      return json(500, { success: false, error: "Missing OPENAI_API_KEY" });
     }
 
     const url = normalizeSharedUrl(input.url);
     const hostname = getSharedHostname(url);
     const businessName = String(input.businessName || "").trim() || hostname;
+
+    statusPath = "collecting-site-intelligence";
     const siteIntelligence = await collectSiteIntelligence({
       url,
       businessName,
@@ -28,7 +33,9 @@ exports.handler = async (event) => {
       targetLocations: input.targetLocations || "",
       serperKey
     });
+
     const htmlChecks = siteIntelligence.htmlChecks;
+    statusPath = "collecting-pagespeed";
     const pageSpeed = pageSpeedKey ? await getPageSpeed(url, pageSpeedKey) : null;
     const serper = siteIntelligence.serper;
     const crawl = siteIntelligence.crawl;
@@ -174,6 +181,7 @@ RULES:
 - Do not use markdown fences
 `;
 
+    statusPath = "requesting-openai";
     const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -200,7 +208,9 @@ RULES:
     const aiJson = await aiResponse.json();
 
     if (!aiResponse.ok) {
+      statusPath = "openai-error";
       return json(500, {
+        success: false,
         error: aiJson.error?.message || "OpenAI request failed."
       });
     }
@@ -217,52 +227,104 @@ RULES:
     try {
       parsed = JSON.parse(cleaned);
     } catch {
+      statusPath = "openai-invalid-json";
       return json(500, {
+        success: false,
         error: "OpenAI returned invalid JSON",
         raw: cleaned
       });
     }
 
-    parsed.tech = tech;
-    parsed.serp = serp;
-    parsed.crawl = {
-      summary: crawl.summary,
-      schema: crawl.schema,
-      contentDepth: crawl.contentDepth,
-      pages: crawlSnapshot
+    const normalizedAudit = normalizeAuditPayload({
+      ...parsed,
+      tech,
+      serp,
+      crawl: {
+        summary: crawl.summary,
+        schema: crawl.schema,
+        contentDepth: crawl.contentDepth,
+        pages: crawlSnapshot
+      },
+      recommendation: parsed?.recommendation || {
+        likelihood: serper?.brandFound ? "Possible" : "Unlikely",
+        reason: "Based on available search and site signals."
+      }
+    });
+
+    const responsePayload = {
+      ...normalizedAudit,
+      overallScore: normalizedAudit.score,
+      audit: {
+        ...normalizedAudit,
+        overallScore: normalizedAudit.score
+      }
     };
-    parsed.recommendation = parsed.recommendation || {
-      likelihood: serper?.brandFound ? "Possible" : "Unlikely",
-      reason: "Based on available search and site signals."
-    };
-    parsed.entityConfidence = parsed.entityConfidence ?? 0;
-    parsed.aiIssues = Array.isArray(parsed.aiIssues) ? parsed.aiIssues : [];
-    parsed.priorities = Array.isArray(parsed.priorities) ? parsed.priorities : [];
-    parsed.topAiQueries = Array.isArray(parsed.topAiQueries) ? parsed.topAiQueries : [];
-    parsed.competitorAdvantage = Array.isArray(parsed.competitorAdvantage)
-      ? parsed.competitorAdvantage
-      : [];
-    parsed.summary = String(parsed.summary || "").trim();
-    parsed.aiVerdict = String(parsed.aiVerdict || "").trim();
-    parsed.breakdown = Array.isArray(parsed.breakdown) ? parsed.breakdown : [];
+
+    console.log(
+      JSON.stringify({
+        statusPath: "success",
+        topLevelResponseKeys: Object.keys(responsePayload),
+        auditExists: Boolean(responsePayload.audit),
+        overallScoreExists: Number.isFinite(responsePayload.overallScore)
+      })
+    );
 
     if (resendKey) {
       sendQuickAuditNotification({
         resendKey,
         businessName,
         url,
-        parsed
+        parsed: normalizedAudit
       }).catch(() => {});
     }
 
-    return json(200, parsed);
+    return json(200, responsePayload);
   } catch (error) {
-    return json(500, { error: error.message || "Audit generation failed." });
+    console.error(
+      JSON.stringify({
+        statusPath,
+        error: error.message || "Audit generation failed."
+      })
+    );
+
+    return json(500, {
+      success: false,
+      error: error.message || "Audit generation failed."
+    });
   }
 };
 
+function normalizeAuditPayload(parsed) {
+  const normalized = parsed && typeof parsed === "object" ? { ...parsed } : {};
+
+  normalized.score = Number(normalized.score ?? normalized.overallScore ?? 0);
+  normalized.entityConfidence = Number(normalized.entityConfidence ?? 0);
+  normalized.aiVerdict = String(normalized.aiVerdict || "").trim();
+  normalized.summary = String(normalized.summary || "").trim();
+  normalized.breakdown = Array.isArray(normalized.breakdown) ? normalized.breakdown : [];
+  normalized.aiIssues = Array.isArray(normalized.aiIssues) ? normalized.aiIssues : [];
+  normalized.priorities = Array.isArray(normalized.priorities) ? normalized.priorities : [];
+  normalized.topAiQueries = Array.isArray(normalized.topAiQueries) ? normalized.topAiQueries : [];
+  normalized.competitorAdvantage = Array.isArray(normalized.competitorAdvantage)
+    ? normalized.competitorAdvantage
+    : [];
+  normalized.opportunity = String(normalized.opportunity || "").trim();
+  normalized.recommendation = normalized.recommendation || {
+    likelihood: "Possible",
+    reason: "Based on available search and site signals."
+  };
+  normalized.tech = normalized.tech || {};
+  normalized.serp = normalized.serp || {};
+  normalized.crawl = normalized.crawl || {};
+
+  return normalized;
+}
+
 async function sendQuickAuditNotification({ resendKey, businessName, url, parsed }) {
-  const alertTo = process.env.AUDIT_NOTIFICATION_TO || process.env.AUDIT_ALERT_EMAIL || "hello@semanticsearchmarketing.com";
+  const alertTo =
+    process.env.AUDIT_NOTIFICATION_TO ||
+    process.env.AUDIT_ALERT_EMAIL ||
+    "hello@semanticsearchmarketing.com";
   const fromEmail = process.env.AUDIT_EMAIL_FROM || "audit@semanticsearchmarketing.com";
   const submittedAt = new Date().toISOString();
   const findings = renderList(parsed.aiIssues, "No quick findings returned.");
@@ -358,65 +420,26 @@ function formatRecommendation(recommendation) {
 }
 
 function json(statusCode, body) {
+  const payload = body && typeof body === "object" ? body : { error: String(body || "") };
+
+  if (statusCode >= 400 && payload.success === undefined) {
+    payload.success = false;
+  }
+
   return {
     statusCode,
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body)
+    body: JSON.stringify(payload)
   };
 }
 
-function normalizeUrl(value) {
-  const trimmed = (value || "").trim();
-  if (!trimmed) return "";
-  if (/^https?:\/\//i.test(trimmed)) return trimmed;
-  return `https://${trimmed}`;
-}
-
-function getHostname(url) {
-  try {
-    return new URL(url).hostname.replace(/^www\./i, "");
-  } catch {
-    return "";
-  }
-}
-
-async function fetchHtml(url) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 8000);
-
-  try {
-    const response = await fetch(url, {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (compatible; SemanticSearchMarketingAudit/1.0)"
-      },
-      signal: controller.signal
-    });
-    return await response.text();
-  } catch {
-    return "";
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
-function getHtmlChecks(html) {
-  const hasTitle = /<title[^>]*>[\s\S]*?<\/title>/i.test(html);
-  const hasMetaDescription = /<meta[^>]+name=["']description["'][^>]*content=["'][^"']+["'][^>]*>/i.test(html);
-  const hasH1 = /<h1[^>]*>[\s\S]*?<\/h1>/i.test(html);
-  const hasCanonical = /<link[^>]+rel=["']canonical["'][^>]*href=["'][^"']+["'][^>]*>/i.test(html);
-  const hasSchema = /<script[^>]+type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/i.test(html);
-  const hasNoindex = /<meta[^>]+name=["']robots["'][^>]*content=["'][^"']*noindex/i.test(html);
-
-  return {
-    hasTitle,
-    hasMetaDescription,
-    hasH1,
-    hasCanonical,
-    hasSchema,
-    hasNoindex,
-    metaText: hasTitle && hasMetaDescription ? "Good" : hasTitle || hasMetaDescription ? "Partial" : "Weak",
-    indexabilityText: hasNoindex ? "Restricted" : "Valid"
-  };
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 async function getPageSpeed(url, apiKey) {
@@ -451,60 +474,4 @@ async function getPageSpeed(url, apiKey) {
   } catch {
     return null;
   }
-}
-
-async function getSerperSignals(input, hostname, apiKey) {
-  const query = `${input.service || input.businessName || hostname} ${input.industry || ""}`.trim();
-
-  try {
-    const response = await fetch("https://google.serper.dev/search", {
-      method: "POST",
-      headers: {
-        "X-API-KEY": apiKey,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        q: query,
-        num: 10
-      })
-    });
-
-    const json = await response.json();
-    const organic = json.organic || [];
-    const peopleAlsoAsk = json.peopleAlsoAsk || [];
-
-    const brandFound = organic.some((item) => {
-      const link = (item.link || "").toLowerCase();
-      const title = (item.title || "").toLowerCase();
-      return (
-        link.includes(hostname) ||
-        title.includes((input.businessName || "").toLowerCase())
-      );
-    });
-
-    return {
-      query,
-      organicCount: organic.length,
-      paaCount: peopleAlsoAsk.length,
-      brandFound,
-      presence: brandFound ? "Found in search results" : "Not found in top results"
-    };
-  } catch {
-    return {
-      query,
-      organicCount: 0,
-      paaCount: 0,
-      brandFound: false,
-      presence: "Unavailable"
-    };
-  }
-}
-
-function escapeHtml(str) {
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
 }
