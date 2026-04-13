@@ -63,6 +63,16 @@ exports.handler = async (event) => {
       intake
     });
 
+    const reportQueueResult = await queuePaidReportGeneration({
+      event,
+      session,
+      intake
+    });
+
+    if (!reportQueueResult.ok) {
+      throw new Error(reportQueueResult.error || "Paid report queue failed.");
+    }
+
     if (resendKey) {
       const customerEmail = session.customer_details?.email || session.customer_email || "";
       const bookingUrl = getAuditBookingUrl();
@@ -70,7 +80,8 @@ exports.handler = async (event) => {
         session,
         intake,
         implementationPlanSeed,
-        bookingUrl
+        bookingUrl,
+        reportQueueResult
       });
 
       const sends = [
@@ -87,7 +98,7 @@ exports.handler = async (event) => {
           sendResendEmail({
             resendKey,
             to: customerEmail,
-            subject: "We’ve got your AI Visibility Audit details",
+            subject: "Your AI Visibility Audit + Implementation Plan is in production",
             html: renderCustomerIntakeReceiptEmail({
               session,
               bookingUrl
@@ -105,14 +116,65 @@ exports.handler = async (event) => {
     return respond(200, {
       success: true,
       bookingUrl: getAuditBookingUrl(),
-      implementationPlanSeed
+      implementationPlanSeed,
+      reportQueued: true
     });
   } catch (error) {
     return respond(500, { error: error.message || "Paid intake submission failed." });
   }
 };
 
-function renderInternalPaidIntakeEmail({ session, intake, implementationPlanSeed, bookingUrl }) {
+async function queuePaidReportGeneration({ event, session, intake }) {
+  const baseUrl = getBaseUrl(event);
+
+  if (!baseUrl) {
+    return {
+      ok: false,
+      error: "Unable to determine site URL for paid report generation."
+    };
+  }
+
+  const response = await fetch(`${baseUrl}/.netlify/functions/generate-paid-report-background`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      sessionId: session.id,
+      intake
+    })
+  });
+
+  let data = {};
+  try {
+    data = await response.json();
+  } catch {
+    data = {};
+  }
+
+  if (!response.ok) {
+    return {
+      ok: false,
+      error: data.error || "Unable to queue paid report generation."
+    };
+  }
+
+  return {
+    ok: true,
+    data
+  };
+}
+
+function getBaseUrl(event) {
+  const explicitUrl = String(process.env.URL || "").trim();
+  if (explicitUrl) return explicitUrl.replace(/\/$/, "");
+
+  const protocol = event.headers["x-forwarded-proto"] || "https";
+  const host = event.headers["x-forwarded-host"] || event.headers.host || "";
+  return host ? `${protocol}://${host}` : "";
+}
+
+function renderInternalPaidIntakeEmail({ session, intake, implementationPlanSeed, bookingUrl, reportQueueResult }) {
   const recommendations = implementationPlanSeed.recommendations
     .map((recommendation) => `<li><strong>${escapeHtml(recommendation.title)}</strong> (${escapeHtml(recommendation.priority)})</li>`)
     .join("");
@@ -125,6 +187,7 @@ function renderInternalPaidIntakeEmail({ session, intake, implementationPlanSeed
       <p><strong>Customer Email:</strong> ${escapeHtml(session.customer_details?.email || session.customer_email || "Unknown")}</p>
       <p><strong>Stripe Session:</strong> ${escapeHtml(session.id || "Unknown")}</p>
       <p><strong>Quick Audit Score:</strong> ${escapeHtml(session.metadata?.quickAuditScore || "Unknown")}</p>
+      <p><strong>Report queued:</strong> ${escapeHtml(reportQueueResult?.ok ? "Yes" : "No")}</p>
 
       <div style="margin-top:18px;">
         <p><strong>Primary business goal</strong></p>
@@ -209,15 +272,15 @@ function renderCustomerIntakeReceiptEmail({ session, bookingUrl }) {
     <div style="font-family: Arial, sans-serif; background:#f7f5f2; padding:24px 16px;">
       <div style="max-width:680px; margin:0 auto; background:#ffffff; border:1px solid rgba(23,23,23,0.08); border-radius:24px; padding:32px 28px;">
         <p style="margin:0 0 10px; font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:#777777;">AI Visibility Audit</p>
-        <h2 style="margin:0 0 12px; font-size:34px; line-height:1.05; color:#1a1a1a;">We’ve got your AI Visibility Audit details</h2>
+        <h2 style="margin:0 0 12px; font-size:34px; line-height:1.05; color:#1a1a1a;">Your AI Visibility Audit + Implementation Plan is in production</h2>
         <p style="margin:0 0 16px; font-size:16px; line-height:1.55; color:#555555;">
-          We’ve got your extra details.
+          We’ve got your extra details, and we’re building your full AI Visibility Audit + Implementation Plan now.
         </p>
         <p style="margin:0 0 16px; font-size:16px; line-height:1.55; color:#555555;">
-          Perfect. Damon will use your intake details to shape the deeper report and implementation plan around your site, priorities, and the recommendations most likely to move the needle.
+          Damon will use your intake details to shape the diagnosis, the priority actions, the tactical recommendations, and the 60-day rollout plan around your site, priorities, and the recommendations most likely to move the needle.
         </p>
         <p style="margin:0 0 16px; font-size:16px; line-height:1.55; color:#555555;">
-          Your full AI Visibility Audit + Implementation Plan is now being prepared.
+          This takes longer than the quick audit because it’s designed to be more comprehensive, practical, and tailored to your site.
         </p>
         <p style="margin:0 0 20px; font-size:16px; line-height:1.55; color:#555555;">
           When you’re ready, book your real live human coaching session so you can walk through the report together and decide what to tackle first.
