@@ -1,8 +1,22 @@
 const {
   respond,
-  stripeRequest,
-  withSessionPlaceholder
+  stripeRequest
 } = require("./_paid-utils");
+
+function buildStripeSuccessUrl(url) {
+  const rawUrl = String(url || "").trim();
+  if (!rawUrl) return "";
+
+  const token = "{CHECKOUT_SESSION_ID}";
+  const sessionPattern = /([?&]session_id=)([^&]*)/;
+
+  if (sessionPattern.test(rawUrl)) {
+    return rawUrl.replace(sessionPattern, `$1${token}`);
+  }
+
+  const separator = rawUrl.includes("?") ? "&" : "?";
+  return `${rawUrl}${separator}session_id=${token}`;
+}
 
 exports.handler = async (event) => {
   try {
@@ -21,11 +35,12 @@ exports.handler = async (event) => {
       return respond(500, { error: "Missing Stripe configuration." });
     }
 
-    let normalizedSuccessUrl;
+    let stripeSuccessUrl;
     let normalizedCancelUrl;
 
     try {
-      normalizedSuccessUrl = new URL(withSessionPlaceholder(successUrl)).toString();
+      stripeSuccessUrl = buildStripeSuccessUrl(successUrl);
+      new URL(stripeSuccessUrl.replace("{CHECKOUT_SESSION_ID}", "cs_test_placeholder"));
       normalizedCancelUrl = new URL(cancelUrl).toString();
     } catch (error) {
       return respond(500, {
@@ -49,7 +64,7 @@ exports.handler = async (event) => {
 
     const params = new URLSearchParams();
     params.set("mode", "payment");
-    params.set("success_url", normalizedSuccessUrl);
+    params.set("success_url", stripeSuccessUrl);
     params.set("cancel_url", normalizedCancelUrl);
     params.set("line_items[0][price]", priceId);
     params.set("line_items[0][quantity]", "1");
