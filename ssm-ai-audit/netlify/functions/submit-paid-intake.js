@@ -81,7 +81,7 @@ exports.handler = async (event) => {
           sendResendEmail({
             resendKey,
             to: customerEmail,
-            subject: "We’ve got your AI audit details",
+            subject: "We’ve got your AI Visibility Audit details",
             html: renderCustomerIntakeReceiptEmail({
               session,
               bookingUrl
@@ -179,21 +179,28 @@ function renderCustomerIntakeReceiptEmail({ session, bookingUrl }) {
     <div style="font-family: Arial, sans-serif; background:#f7f5f2; padding:24px 16px;">
       <div style="max-width:680px; margin:0 auto; background:#ffffff; border:1px solid rgba(23,23,23,0.08); border-radius:24px; padding:32px 28px;">
         <p style="margin:0 0 10px; font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:#777777;">AI Visibility Audit</p>
-        <h2 style="margin:0 0 12px; font-size:34px; line-height:1.05; color:#1a1a1a;">We’ve got your extra details.</h2>
+        <h2 style="margin:0 0 12px; font-size:34px; line-height:1.05; color:#1a1a1a;">We’ve got your AI Visibility Audit details</h2>
+        <p style="margin:0 0 16px; font-size:16px; line-height:1.55; color:#555555;">
+          We’ve got your extra details.
+        </p>
         <p style="margin:0 0 16px; font-size:16px; line-height:1.55; color:#555555;">
           Perfect. Damon will use your intake details to shape the deeper report and implementation plan around your site, priorities, and the recommendations most likely to move the needle.
+        </p>
+        <p style="margin:0 0 16px; font-size:16px; line-height:1.55; color:#555555;">
+          Your full AI Visibility Audit + Implementation Plan is now being prepared.
         </p>
         <p style="margin:0 0 20px; font-size:16px; line-height:1.55; color:#555555;">
           When you’re ready, book your real live human coaching session so you can walk through the report together and decide what to tackle first.
         </p>
         <p style="margin:0 0 24px;">
           <a href="${escapeHtml(bookingUrl)}"
-             style="display:inline-block; padding:14px 22px; background:#232323; color:#ffffff; text-decoration:none; border-radius:999px;">
+             style="display:inline-block; padding:14px 22px; background:#232323; color:#ffffff; text-decoration:none; border-radius:999px; font-weight:600; line-height:1; border:1px solid #232323;">
             Book My Coaching Session
           </a>
         </p>
         <p style="margin:0; font-size:16px; line-height:1.5; color:#555555;">
-          We’ll be in touch soon with the full AI Visibility Audit + Implementation Plan for ${escapeHtml(session.metadata?.url || "your site")}.
+          We’ll be in touch soon with your full report for:<br />
+          ${escapeHtml(session.metadata?.url || "your site")}
         </p>
       </div>
     </div>

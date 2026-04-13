@@ -14,6 +14,7 @@ const statePaidIntake = document.getElementById("state-paid-intake");
 const urlForm = document.getElementById("url-form");
 const emailForm = document.getElementById("email-form");
 const paidIntakeForm = document.getElementById("paid-intake-form");
+const paidIntakeHeader = document.getElementById("paid-intake-header");
 
 const urlInput = document.getElementById("url");
 const emailInput = document.getElementById("email");
@@ -407,11 +408,16 @@ function getPaidSessionId() {
 function initializePaidReturnState() {
   const sessionId = getPaidSessionId();
 
+  if (paidIntakeHeader) {
+    paidIntakeHeader.hidden = false;
+  }
+
   if (paidSessionIdInput) {
     paidSessionIdInput.value = sessionId;
   }
 
   if (paidSessionNote) {
+    paidSessionNote.hidden = false;
     paidSessionNote.textContent = sessionId
       ? "Add a few details below so Damon can tailor the implementation plan to your business, priorities, and market."
       : "Your payment looks complete, but we could not find the Stripe session ID in this page URL. If this page was reloaded manually, return from the Stripe success link or contact us and we will match it up.";
@@ -423,6 +429,10 @@ function initializePaidReturnState() {
 
   if (paidIntakeForm) {
     paidIntakeForm.hidden = false;
+  }
+
+  if (paidIntakeMessage) {
+    paidIntakeMessage.hidden = false;
   }
 
   clearMessage(paidIntakeMessage);
@@ -689,14 +699,22 @@ if (paidIntakeForm) {
         throw new Error(data.error || "Intake submission failed.");
       }
 
+      if (paidIntakeHeader) {
+        paidIntakeHeader.hidden = true;
+      }
+
+      if (paidSessionNote) {
+        paidSessionNote.hidden = true;
+      }
+
       paidIntakeForm.hidden = true;
+      paidIntakeMessage.hidden = true;
       setBlockVisibility(paidFinalState, true);
 
       if (paidBookingLink && data.bookingUrl) {
         paidBookingLink.href = data.bookingUrl;
       }
 
-      setMessage(paidIntakeMessage, "Details received.", "success");
       revealNodeAtTop(statePaidIntake);
     } catch (error) {
       setMessage(paidIntakeMessage, error.message || "Intake submission failed.");
