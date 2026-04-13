@@ -582,7 +582,11 @@ paidOfferSubmit.addEventListener("click", async () => {
 
     auditContext.checkoutSessionId = String(checkoutData.sessionId || "").trim();
     persistAuditContext();
-    window.location.assign(checkoutData.url);
+    if (window.top && window.top !== window.self) {
+      window.top.location.href = checkoutData.url;
+    } else {
+      window.location.href = checkoutData.url;
+    }
   } catch (error) {
     setMessage(paidOfferMessage, error.message || "Checkout setup failed.");
     console.error(error);
