@@ -23,13 +23,16 @@ async function generatePaidReport({
   const metadata = session?.metadata || {};
   const url = normalizeSharedUrl(metadata.url || "");
   const businessName = String(metadata.businessName || "").trim() || getSharedHostname(url);
+  const serviceSeed = String(intake.topServices || metadata.service || "").trim();
   const siteIntelligence = await collectSiteIntelligence({
     url,
     businessName,
     industry: metadata.industry || "",
-    service: metadata.service || "",
+    service: serviceSeed,
     competitors: intake.topCompetitors || "",
     targetLocations: intake.targetLocations || "",
+    aiQuestionTargeting: intake.aiQuestionTargeting || "",
+    desiredVisibility: intake.desiredVisibility || "",
     serperKey
   });
   const htmlChecks = siteIntelligence.htmlChecks;
@@ -173,15 +176,27 @@ function buildPaidReportPrompt({
   crawl,
   implementationPlanSeed
 }) {
-  const crawlSnapshot = crawl.pages.slice(0, 10).map((page) => ({
+  const crawlSnapshot = crawl.pages.slice(0, 12).map((page) => ({
+    url: page.url,
+    pageType: page.pageType,
     path: page.path,
     title: page.title,
     metaDescription: page.metaDescription,
     h1: page.headings?.h1?.slice(0, 2) || [],
-    h2Count: page.headings?.h2?.length || 0,
+    h2: page.headings?.h2?.slice(0, 4) || [],
     wordCount: page.wordCount,
+    internalLinkCount: page.internalLinkCount,
     questionCount: page.questionCount,
+    questionStyleHeadings: page.questionStyleHeadings?.slice(0, 4) || [],
     schemaTypes: page.schemaTypes
+  }));
+  const serpSnapshot = (serper?.queries || []).map((query) => ({
+    label: query.label,
+    query: query.query,
+    brandFound: query.brandFound,
+    rankPosition: query.rankPosition,
+    competitorOverlap: query.competitorOverlap,
+    topResults: (query.topResults || []).slice(0, 5)
   }));
 
   return `
@@ -230,6 +245,7 @@ AVAILABLE SIGNALS
 - Search presence: ${serper?.presence || "Unavailable"}
 - Search query checked: ${serper?.query || "Unavailable"}
 - Brand found in search results: ${serper?.brandFound ?? "Unknown"}
+- Best rank found: ${serper?.bestRank ?? "Not found"}
 - Organic result count checked: ${serper?.organicCount ?? 0}
 - People Also Ask count checked: ${serper?.paaCount ?? 0}
 
@@ -240,14 +256,18 @@ SITE CRAWL SUMMARY
 - Pages with strong heading structure: ${crawl.summary?.pagesWithStrongHeadings ?? 0}
 - Pages with schema: ${crawl.summary?.pagesWithSchema ?? 0}
 - Sitewide schema types: ${(crawl.schema?.schemaTypes || []).join(", ") || "None detected"}
+- Schema missing opportunities: ${(crawl.schema?.missingOpportunities || []).join(" | ") || "No obvious opportunities inferred"}
 - Content depth score: ${crawl.contentDepth?.score ?? 0}/100
 - Content depth read: ${crawl.contentDepth?.summary || "Unavailable"}
+- Question-answer readiness: ${crawl.contentDepth?.questionAnswerReadiness ?? 0}/100
+- Service-page clarity: ${crawl.contentDepth?.servicePageClarity ?? 0}/100
+- Topic cluster maturity: ${crawl.contentDepth?.topicClusterMaturity ?? 0}/100
 
 CRAWLED PAGE SNAPSHOT
 ${JSON.stringify(crawlSnapshot, null, 2)}
 
 SEARCH PRESENCE ACROSS MULTIPLE QUERY TYPES
-${JSON.stringify(serper?.queries || [], null, 2)}
+${JSON.stringify(serpSnapshot, null, 2)}
 
 IMPLEMENTATION PLAN SEED
 ${JSON.stringify(implementationPlanSeed, null, 2)}
@@ -257,6 +277,11 @@ OUTPUT RULES
 - Tailor the report to the intake and the site signals.
 - Be practical, not theoretical.
 - Use the crawl, schema, content-depth, and multi-query search signals to make the report more specific.
+- Reference actual services/products from the intake when making recommendations.
+- Reference specific crawled URLs or page types when recommending fixes.
+- Reference missing schema types or schema opportunities when relevant.
+- Reference actual query patterns, rank gaps, and competitor overlap from the search snapshot when relevant.
+- Reference AI question targeting and desired visibility themes when recommending question-led content.
 - Every recommendation should explain what to change and how to implement it.
 - Use AI-search-native language: entity clarity, answer readiness, citation readiness, trust signals, recommendation likelihood, question-led coverage.
 - Make the 60-day plan realistic for a small business or lean marketing team.
