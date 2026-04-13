@@ -49,7 +49,13 @@ exports.handler = async (event) => {
       cmsPlatform: String(input.cmsPlatform || "").trim(),
       canEditCode: String(input.canEditCode || "").trim(),
       marketingSupport: String(input.marketingSupport || "").trim(),
-      reportQuestions: String(input.reportQuestions || "").trim()
+      reportQuestions: String(input.reportQuestions || "").trim(),
+      aiQuestionTargeting: String(input.aiQuestionTargeting || "").trim(),
+      customerIntent: String(input.customerIntent || "").trim(),
+      desiredVisibility: String(input.desiredVisibility || "").trim(),
+      differentiation: String(input.differentiation || "").trim(),
+      conversionGoal: String(input.conversionGoal || "").trim(),
+      contentMaturity: String(input.contentMaturity || "").trim()
     };
 
     const implementationPlanSeed = createImplementationPlanSeed({
@@ -159,6 +165,30 @@ function renderInternalPaidIntakeEmail({ session, intake, implementationPlanSeed
       <div style="margin-top:18px;">
         <p><strong>Report questions</strong></p>
         <p>${escapeHtml(intake.reportQuestions || "Not provided")}</p>
+      </div>
+      <div style="margin-top:18px;">
+        <p><strong>What questions should AI answer about the business?</strong></p>
+        <p>${escapeHtml(intake.aiQuestionTargeting || "Not provided")}</p>
+      </div>
+      <div style="margin-top:18px;">
+        <p><strong>Customer intent before choosing</strong></p>
+        <p>${escapeHtml(intake.customerIntent || "Not provided")}</p>
+      </div>
+      <div style="margin-top:18px;">
+        <p><strong>Desired AI visibility</strong></p>
+        <p>${escapeHtml(intake.desiredVisibility || "Not provided")}</p>
+      </div>
+      <div style="margin-top:18px;">
+        <p><strong>Differentiation</strong></p>
+        <p>${escapeHtml(intake.differentiation || "Not provided")}</p>
+      </div>
+      <div style="margin-top:18px;">
+        <p><strong>Conversion goal</strong></p>
+        <p>${escapeHtml(intake.conversionGoal || "Not provided")}</p>
+      </div>
+      <div style="margin-top:18px;">
+        <p><strong>Content maturity</strong></p>
+        <p>${escapeHtml(intake.contentMaturity || "Not provided")}</p>
       </div>
 
       <div style="margin-top:18px;">
