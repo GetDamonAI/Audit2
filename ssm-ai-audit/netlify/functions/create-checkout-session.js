@@ -11,9 +11,27 @@ exports.handler = async (event) => {
     const priceId = process.env.STRIPE_PRICE_ID || "price_1TLHXdDsECZ5fUW1CUp1KCn7";
     const successUrl = process.env.STRIPE_SUCCESS_URL;
     const cancelUrl = process.env.STRIPE_CANCEL_URL;
+    const stripeMode = String(secretKey || "").startsWith("sk_live_")
+      ? "live"
+      : String(secretKey || "").startsWith("sk_test_")
+        ? "test"
+        : "unknown";
 
     if (!secretKey || !priceId || !successUrl || !cancelUrl) {
       return respond(500, { error: "Missing Stripe configuration." });
+    }
+
+    let normalizedSuccessUrl;
+    let normalizedCancelUrl;
+
+    try {
+      normalizedSuccessUrl = new URL(withSessionPlaceholder(successUrl)).toString();
+      normalizedCancelUrl = new URL(cancelUrl).toString();
+    } catch (error) {
+      return respond(500, {
+        error: "Stripe success or cancel URL is not a fully qualified absolute URL.",
+        details: error.message
+      });
     }
 
     const url = String(input.url || "").trim();
@@ -31,8 +49,8 @@ exports.handler = async (event) => {
 
     const params = new URLSearchParams();
     params.set("mode", "payment");
-    params.set("success_url", withSessionPlaceholder(successUrl));
-    params.set("cancel_url", cancelUrl);
+    params.set("success_url", normalizedSuccessUrl);
+    params.set("cancel_url", normalizedCancelUrl);
     params.set("line_items[0][price]", priceId);
     params.set("line_items[0][quantity]", "1");
     params.set("metadata[url]", url);
@@ -56,17 +74,57 @@ exports.handler = async (event) => {
       body: params
     });
 
+    const debugPayloadBase = {
+      priceId: process.env.STRIPE_PRICE_ID || "price_1TLHXdDsECZ5fUW1CUp1KCn7",
+      successUrl: process.env.STRIPE_SUCCESS_URL,
+      cancelUrl: process.env.STRIPE_CANCEL_URL,
+      stripeMode
+    };
+
     if (!stripeResponse.ok) {
+      console.log(
+        JSON.stringify({
+          type: "stripe-checkout-session-error",
+          ...debugPayloadBase,
+          mode: "payment",
+          stripeError: stripeResponse.json?.error || stripeResponse.json
+        })
+      );
+
       return respond(500, {
         error: stripeResponse.json?.error?.message || "Stripe checkout session creation failed.",
         stripe: stripeResponse.json
       });
     }
 
+    const sessionId = stripeResponse.json.id;
+    const sessionUrl = stripeResponse.json.url;
+    const sessionMode = stripeResponse.json.mode;
+    const checkoutUrlIsAbsolute = Boolean(sessionUrl && /^https?:\/\//i.test(sessionUrl));
+    const debugPayload = {
+      url: sessionUrl,
+      sessionId,
+      priceId: process.env.STRIPE_PRICE_ID || "price_1TLHXdDsECZ5fUW1CUp1KCn7",
+      successUrl: process.env.STRIPE_SUCCESS_URL,
+      cancelUrl: process.env.STRIPE_CANCEL_URL,
+      stripeMode,
+      livemode: stripeResponse.json.livemode,
+      mode: sessionMode,
+      checkoutUrlIsAbsolute
+    };
+
+    console.log(
+      JSON.stringify({
+        type: "stripe-checkout-session-created",
+        ...debugPayload
+      })
+    );
+
     return respond(200, {
       success: true,
-      url: stripeResponse.json.url,
-      sessionId: stripeResponse.json.id
+      url: sessionUrl,
+      sessionId,
+      debug: debugPayload
     });
   } catch (error) {
     return respond(500, { error: error.message || "Stripe checkout session creation failed." });

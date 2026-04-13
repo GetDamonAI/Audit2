@@ -9,18 +9,23 @@ const landingSections = Array.from(
 
 const stateLoading = document.getElementById("state-loading");
 const statePreview = document.getElementById("state-preview");
+const statePaidIntake = document.getElementById("state-paid-intake");
 
 const urlForm = document.getElementById("url-form");
 const emailForm = document.getElementById("email-form");
+const paidIntakeForm = document.getElementById("paid-intake-form");
 
 const urlInput = document.getElementById("url");
 const emailInput = document.getElementById("email");
+const paidSessionIdInput = document.getElementById("paid-session-id");
 
 const urlSubmit = document.getElementById("url-submit");
 const emailSubmit = document.getElementById("email-submit");
+const paidIntakeSubmit = document.getElementById("paid-intake-submit");
 
 const urlMessage = document.getElementById("url-message");
 const emailMessage = document.getElementById("email-message");
+const paidIntakeMessage = document.getElementById("paid-intake-message");
 
 const loadingDetail = document.getElementById("loading-detail");
 const loadingPhaseLabel = document.getElementById("loading-phase-label");
@@ -41,6 +46,9 @@ const paidOfferMessage = document.getElementById("paid-offer-message");
 const emailGate = document.getElementById("email-gate");
 const deliverySuccess = document.getElementById("delivery-success");
 const resultsCta = document.getElementById("results-cta");
+const paidFinalState = document.getElementById("paid-final-state");
+const paidBookingLink = document.getElementById("paid-booking-link");
+const paidSessionNote = document.getElementById("paid-session-note");
 
 const loadingPhases = [
   {
@@ -190,6 +198,7 @@ function setAppStage(stage) {
 
   stateLoading.hidden = stage !== "loading";
   statePreview.hidden = stage !== "preview" && stage !== "sent";
+  statePaidIntake.hidden = stage !== "paid-intake";
 
   if (stage !== "sent") {
     setBlockVisibility(deliverySuccess, false);
@@ -198,6 +207,7 @@ function setAppStage(stage) {
 
   stateLoading.classList.toggle("audit-panel-active", stage === "loading");
   statePreview.classList.toggle("audit-panel-active", stage === "preview" || stage === "sent");
+  statePaidIntake.classList.toggle("audit-panel-active", stage === "paid-intake");
 
   window.parent.postMessage({ type: "ssm-audit-state-change", stage }, "*");
   queueHeightSync();
@@ -382,6 +392,43 @@ function showEmailFallback() {
   }
 }
 
+function getSearchParams() {
+  return new URLSearchParams(window.location.search);
+}
+
+function isPaidReturn() {
+  return getSearchParams().get("paid") === "1";
+}
+
+function getPaidSessionId() {
+  return String(getSearchParams().get("session_id") || "").trim();
+}
+
+function initializePaidReturnState() {
+  const sessionId = getPaidSessionId();
+
+  if (paidSessionIdInput) {
+    paidSessionIdInput.value = sessionId;
+  }
+
+  if (paidSessionNote) {
+    paidSessionNote.textContent = sessionId
+      ? "Add a few details below so Damon can tailor the implementation plan to your business, priorities, and market."
+      : "Your payment looks complete, but we could not find the Stripe session ID in this page URL. If this page was reloaded manually, return from the Stripe success link or contact us and we will match it up.";
+  }
+
+  if (paidFinalState) {
+    setBlockVisibility(paidFinalState, false);
+  }
+
+  if (paidIntakeForm) {
+    paidIntakeForm.hidden = false;
+  }
+
+  clearMessage(paidIntakeMessage);
+  setAppStage("paid-intake");
+}
+
 async function notifyQuickAuditAdmin() {
   if (!auditContext.url || !auditContext.data) {
     return;
@@ -452,6 +499,10 @@ if (window.visualViewport) {
 }
 
 resetPostAuditState();
+
+if (isPaidReturn()) {
+  initializePaidReturnState();
+}
 
 urlForm.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -595,6 +646,67 @@ paidOfferSubmit.addEventListener("click", async () => {
     queueHeightSync();
   }
 });
+
+if (paidIntakeForm) {
+  paidIntakeForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    clearMessage(paidIntakeMessage);
+
+    const formData = new FormData(paidIntakeForm);
+    const payload = {
+      sessionId: String(formData.get("sessionId") || "").trim(),
+      businessGoal: String(formData.get("businessGoal") || "").trim(),
+      topServices: String(formData.get("topServices") || "").trim(),
+      priorityPages: String(formData.get("priorityPages") || "").trim(),
+      targetLocations: String(formData.get("targetLocations") || "").trim(),
+      topCompetitors: String(formData.get("topCompetitors") || "").trim(),
+      hasBlog: String(formData.get("hasBlog") || "").trim(),
+      cmsPlatform: String(formData.get("cmsPlatform") || "").trim(),
+      canEditCode: String(formData.get("canEditCode") || "").trim(),
+      marketingSupport: String(formData.get("marketingSupport") || "").trim(),
+      reportQuestions: String(formData.get("reportQuestions") || "").trim()
+    };
+
+    if (!payload.sessionId) {
+      setMessage(paidIntakeMessage, "We couldn’t verify your payment session. Return from the Stripe success page or contact us and we’ll help manually.");
+      return;
+    }
+
+    setLoadingButton(paidIntakeSubmit, true);
+
+    try {
+      const response = await fetch("/.netlify/functions/submit-paid-intake", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await readJson(response);
+
+      if (!response.ok || data.success !== true) {
+        throw new Error(data.error || "Intake submission failed.");
+      }
+
+      paidIntakeForm.hidden = true;
+      setBlockVisibility(paidFinalState, true);
+
+      if (paidBookingLink && data.bookingUrl) {
+        paidBookingLink.href = data.bookingUrl;
+      }
+
+      setMessage(paidIntakeMessage, "Details received.", "success");
+      revealNodeAtTop(statePaidIntake);
+    } catch (error) {
+      setMessage(paidIntakeMessage, error.message || "Intake submission failed.");
+      console.error(error);
+    } finally {
+      setLoadingButton(paidIntakeSubmit, false);
+      queueHeightSync();
+    }
+  });
+}
 
 emailForm.addEventListener("submit", async (event) => {
   event.preventDefault();
