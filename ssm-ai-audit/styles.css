@@ -742,9 +742,22 @@ select:focus {
   background: rgba(23, 23, 23, 0.55);
 }
 
+.paid-offer-list-value {
+  margin-bottom: 4px;
+}
+
 .paid-offer-price {
   display: flex;
-  align-items: flex-end;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.paid-offer-price-original {
+  font-size: 18px;
+  line-height: 1;
+  color: #7e776f;
+  text-decoration: line-through;
 }
 
 .paid-offer-price-value {
@@ -753,6 +766,14 @@ select:focus {
   letter-spacing: -0.045em;
   font-weight: 500;
   color: #171717;
+}
+
+.paid-offer-price-note,
+.paid-offer-price-micro {
+  display: block;
+  font-size: 13px;
+  line-height: 1.35;
+  color: #6a635a;
 }
 
 .paid-success-shell {
@@ -857,6 +878,10 @@ select:focus {
   .email-form {
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
+  }
+
+  .paid-offer-price {
+    align-items: flex-end;
   }
 
   .paid-intake-grid {
