@@ -53,24 +53,34 @@ const paidSessionNote = document.getElementById("paid-session-note");
 
 const loadingPhases = [
   {
-    title: "Checking AI answer visibility",
-    detail: "Checking whether your brand is making it into AI answers.",
-    progress: 20
+    title: "Checking site structure",
+    detail: "Checking site structure and the signals AI systems can read first.",
+    progress: 8
   },
   {
-    title: "Reviewing trust and authority signals",
-    detail: "Looking for the kinds of signals answer engines would trust enough to cite.",
-    progress: 42
+    title: "Reviewing search visibility signals",
+    detail: "Reviewing search visibility signals that can shape AI discovery.",
+    progress: 24
   },
   {
-    title: "Looking for structured brand understanding",
-    detail: "Seeing whether the machines can tell what you do at a glance.",
-    progress: 68
+    title: "Evaluating AI interpretation patterns",
+    detail: "Evaluating how answer engines are likely to interpret what your site is about.",
+    progress: 43
   },
   {
-    title: "Evaluating citation readiness",
-    detail: "Pressure-testing whether your brand would make the shortlist.",
-    progress: 90
+    title: "Looking for missing trust and authority signals",
+    detail: "Looking for missing trust and authority signals that affect whether you get cited.",
+    progress: 62
+  },
+  {
+    title: "Pulling together your visibility findings",
+    detail: "Pulling together your visibility findings into a quick read of what matters most.",
+    progress: 81
+  },
+  {
+    title: "Building your quick audit result",
+    detail: "Building your quick audit result so you can see where visibility is breaking down.",
+    progress: 94
   }
 ];
 
@@ -214,14 +224,64 @@ function setAppStage(stage) {
   queueHeightSync();
 }
 
-function setActiveLoadingStep(index) {
-  const phase = loadingPhases[index] || loadingPhases[loadingPhases.length - 1];
-  const phaseNumber = Math.min(index + 1, loadingPhases.length);
+function setLoadingProgress(progress) {
+  const safeProgress = Math.max(0, Math.min(100, progress));
+  const phaseIndex = loadingPhases.reduce((activeIndex, phase, index) => {
+    return safeProgress >= phase.progress ? index : activeIndex;
+  }, 0);
+  const phase = loadingPhases[phaseIndex] || loadingPhases[loadingPhases.length - 1];
 
   loadingDetail.textContent = phase.detail;
-  loadingPhaseLabel.textContent = `Phase ${phaseNumber} of ${loadingPhases.length}`;
-  loadingProgressValue.textContent = `${phase.progress}%`;
-  loadingProgressBar.style.width = `${phase.progress}%`;
+  loadingPhaseLabel.textContent = `Step ${Math.min(phaseIndex + 1, loadingPhases.length)} of ${loadingPhases.length}`;
+  loadingProgressValue.textContent = `${Math.round(safeProgress)}%`;
+  loadingProgressBar.style.width = `${safeProgress}%`;
+}
+
+function createLoadingRun() {
+  let progress = loadingPhases[0]?.progress || 8;
+  let settled = false;
+
+  setLoadingProgress(progress);
+
+  const interval = window.setInterval(() => {
+    if (settled) return;
+
+    let increment = 0.9;
+    if (progress < 20) increment = 2.6;
+    else if (progress < 38) increment = 1.9;
+    else if (progress < 56) increment = 1.45;
+    else if (progress < 74) increment = 1.05;
+    else if (progress < 88) increment = 0.72;
+    else if (progress < 95) increment = 0.34;
+    else increment = 0.12;
+
+    progress = Math.min(96, progress + increment);
+    setLoadingProgress(progress);
+  }, 240);
+
+  return {
+    async complete() {
+      settled = true;
+      window.clearInterval(interval);
+
+      const target = 100;
+      while (progress < target) {
+        progress = Math.min(target, progress + 3);
+        setLoadingProgress(progress);
+        if (progress < target) {
+          await delay(45);
+        }
+      }
+    },
+    stop() {
+      settled = true;
+      window.clearInterval(interval);
+    },
+    reset() {
+      progress = loadingPhases[0]?.progress || 8;
+      setLoadingProgress(progress);
+    }
+  };
 }
 
 function delay(ms) {
@@ -537,13 +597,11 @@ urlForm.addEventListener("submit", async (event) => {
   urlInput.blur();
   setLoadingButton(urlSubmit, true);
   setAppStage("loading");
-  setActiveLoadingStep(0);
-
-  let phaseIndex = 0;
-  const loadingInterval = window.setInterval(() => {
-    phaseIndex = (phaseIndex + 1) % loadingPhases.length;
-    setActiveLoadingStep(phaseIndex);
-  }, 1600);
+  setLoadingProgress(loadingPhases[0]?.progress || 8);
+  window.requestAnimationFrame(() => {
+    revealNodeAtTop(stateLoading);
+  });
+  const loadingRun = createLoadingRun();
 
   try {
     const startedAt = Date.now();
@@ -566,13 +624,11 @@ urlForm.addEventListener("submit", async (event) => {
     }
 
     const elapsed = Date.now() - startedAt;
-    if (elapsed < 1700) {
-      await delay(1700 - elapsed);
+    if (elapsed < 1400) {
+      await delay(1400 - elapsed);
     }
 
-    setActiveLoadingStep(loadingPhases.length - 1);
-    loadingProgressValue.textContent = "100%";
-    loadingProgressBar.style.width = "100%";
+    await loadingRun.complete();
 
     auditContext.data = data;
     fillPreview(data);
@@ -580,23 +636,24 @@ urlForm.addEventListener("submit", async (event) => {
     resetPostAuditState();
     notifyQuickAuditAdmin();
 
-    window.clearInterval(loadingInterval);
-    await delay(220);
-
     setAppStage("preview");
+    await delay(80);
+    revealNodeAtTop(statePreview);
 
     const height = getDocumentHeight();
     window.parent.postMessage({ type: "ssm-audit-quick-audit-ready", height }, "*");
     window.parent.postMessage({ type: "ssm-audit-complete", height }, "*");
     queueHeightSync();
   } catch (error) {
-    window.clearInterval(loadingInterval);
+    loadingRun.stop();
     setAppStage("landing");
     setMessage(urlMessage, error.message || "Something went wrong. Please try again.");
     console.error(error);
   } finally {
     setLoadingButton(urlSubmit, false);
-    setActiveLoadingStep(0);
+    if (!auditContext.data) {
+      loadingRun.reset();
+    }
     queueHeightSync();
   }
 });
