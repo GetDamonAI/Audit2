@@ -5,6 +5,11 @@ const {
   getAuditNotificationTo,
   sendResendEmail
 } = require("./_paid-utils");
+const {
+  collectSiteIntelligence,
+  getHostname: getSharedHostname,
+  normalizeUrl: normalizeSharedUrl
+} = require("./_site-intelligence");
 
 const DEFAULT_MODEL = process.env.PAID_REPORT_OPENAI_MODEL || "gpt-4o";
 
@@ -16,13 +21,21 @@ async function generatePaidReport({
   intake
 }) {
   const metadata = session?.metadata || {};
-  const url = normalizeUrl(metadata.url || "");
-  const businessName = String(metadata.businessName || "").trim() || getHostname(url);
-
-  const homepageHtml = await fetchHtml(url);
-  const htmlChecks = getHtmlChecks(homepageHtml);
+  const url = normalizeSharedUrl(metadata.url || "");
+  const businessName = String(metadata.businessName || "").trim() || getSharedHostname(url);
+  const siteIntelligence = await collectSiteIntelligence({
+    url,
+    businessName,
+    industry: metadata.industry || "",
+    service: metadata.service || "",
+    competitors: intake.topCompetitors || "",
+    targetLocations: intake.targetLocations || "",
+    serperKey
+  });
+  const htmlChecks = siteIntelligence.htmlChecks;
   const pageSpeed = pageSpeedKey ? await getPageSpeed(url, pageSpeedKey) : null;
-  const serper = serperKey ? await getSerperSignals(metadata, businessName, url, serperKey) : null;
+  const serper = siteIntelligence.serper;
+  const crawl = siteIntelligence.crawl;
   const implementationPlanSeed = createImplementationPlanSeed({ metadata, intake });
 
   const prompt = buildPaidReportPrompt({
@@ -33,6 +46,7 @@ async function generatePaidReport({
     htmlChecks,
     pageSpeed,
     serper,
+    crawl,
     implementationPlanSeed
   });
 
@@ -89,7 +103,8 @@ async function generatePaidReport({
     implementationPlanSeed,
     htmlChecks,
     pageSpeed,
-    serper
+    serper,
+    crawl
   });
 }
 
@@ -102,7 +117,8 @@ function finalizePaidReport({
   implementationPlanSeed,
   htmlChecks,
   pageSpeed,
-  serper
+  serper,
+  crawl
 }) {
   const report = {
     reportVersion: 1,
@@ -120,11 +136,16 @@ function finalizePaidReport({
         h1: htmlChecks.hasH1,
         canonical: htmlChecks.hasCanonical,
         schema: htmlChecks.hasSchema,
-        noindex: htmlChecks.hasNoindex
+        noindex: htmlChecks.hasNoindex,
+        schemaTypes: htmlChecks.schemaTypes || []
       },
       pageSpeed: pageSpeed?.score ?? null,
       searchPresence: serper?.presence || "Unavailable",
-      searchQuery: serper?.query || ""
+      searchQuery: serper?.query || "",
+      searchQueries: serper?.queries || [],
+      crawlSummary: crawl.summary,
+      schemaSummary: crawl.schema,
+      contentDepth: crawl.contentDepth
     },
     executiveSummary: normalizeExecutiveSummary(parsed.executiveSummary),
     aiVisibilityDiagnosis: normalizeDiagnosis(parsed.aiVisibilityDiagnosis),
@@ -149,8 +170,20 @@ function buildPaidReportPrompt({
   htmlChecks,
   pageSpeed,
   serper,
+  crawl,
   implementationPlanSeed
 }) {
+  const crawlSnapshot = crawl.pages.slice(0, 10).map((page) => ({
+    path: page.path,
+    title: page.title,
+    metaDescription: page.metaDescription,
+    h1: page.headings?.h1?.slice(0, 2) || [],
+    h2Count: page.headings?.h2?.length || 0,
+    wordCount: page.wordCount,
+    questionCount: page.questionCount,
+    schemaTypes: page.schemaTypes
+  }));
+
   return `
 You are creating a premium paid deliverable:
 "AI Visibility Audit + Implementation Plan"
@@ -190,6 +223,7 @@ AVAILABLE SIGNALS
 - Has meta description: ${htmlChecks.hasMetaDescription}
 - Has H1: ${htmlChecks.hasH1}
 - Has schema: ${htmlChecks.hasSchema}
+- Homepage schema types: ${(htmlChecks.schemaTypes || []).join(", ") || "None detected"}
 - Has canonical: ${htmlChecks.hasCanonical}
 - Has noindex: ${htmlChecks.hasNoindex}
 - PageSpeed mobile score: ${pageSpeed?.score ?? "Unknown"}
@@ -199,6 +233,22 @@ AVAILABLE SIGNALS
 - Organic result count checked: ${serper?.organicCount ?? 0}
 - People Also Ask count checked: ${serper?.paaCount ?? 0}
 
+SITE CRAWL SUMMARY
+- Pages crawled: ${crawl.summary?.pagesCrawled ?? 0}
+- Average word count: ${crawl.summary?.averageWordCount ?? 0}
+- Pages with question signals: ${crawl.summary?.pagesWithQuestions ?? 0}
+- Pages with strong heading structure: ${crawl.summary?.pagesWithStrongHeadings ?? 0}
+- Pages with schema: ${crawl.summary?.pagesWithSchema ?? 0}
+- Sitewide schema types: ${(crawl.schema?.schemaTypes || []).join(", ") || "None detected"}
+- Content depth score: ${crawl.contentDepth?.score ?? 0}/100
+- Content depth read: ${crawl.contentDepth?.summary || "Unavailable"}
+
+CRAWLED PAGE SNAPSHOT
+${JSON.stringify(crawlSnapshot, null, 2)}
+
+SEARCH PRESENCE ACROSS MULTIPLE QUERY TYPES
+${JSON.stringify(serper?.queries || [], null, 2)}
+
 IMPLEMENTATION PLAN SEED
 ${JSON.stringify(implementationPlanSeed, null, 2)}
 
@@ -206,6 +256,7 @@ OUTPUT RULES
 - Return valid JSON only.
 - Tailor the report to the intake and the site signals.
 - Be practical, not theoretical.
+- Use the crawl, schema, content-depth, and multi-query search signals to make the report more specific.
 - Every recommendation should explain what to change and how to implement it.
 - Use AI-search-native language: entity clarity, answer readiness, citation readiness, trust signals, recommendation likelihood, question-led coverage.
 - Make the 60-day plan realistic for a small business or lean marketing team.

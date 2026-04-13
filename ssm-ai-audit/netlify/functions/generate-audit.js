@@ -1,3 +1,9 @@
+const {
+  collectSiteIntelligence,
+  getHostname: getSharedHostname,
+  normalizeUrl: normalizeSharedUrl
+} = require("./_site-intelligence");
+
 exports.handler = async (event) => {
   try {
     const input = JSON.parse(event.body || "{}");
@@ -10,26 +16,49 @@ exports.handler = async (event) => {
       return json(500, { error: "Missing OPENAI_API_KEY" });
     }
 
-    const url = normalizeUrl(input.url);
-    const hostname = getHostname(url);
+    const url = normalizeSharedUrl(input.url);
+    const hostname = getSharedHostname(url);
     const businessName = String(input.businessName || "").trim() || hostname;
-
-    const homepageHtml = await fetchHtml(url);
-    const htmlChecks = getHtmlChecks(homepageHtml);
+    const siteIntelligence = await collectSiteIntelligence({
+      url,
+      businessName,
+      industry: input.industry || "",
+      service: input.service || "",
+      competitors: input.topCompetitors || "",
+      targetLocations: input.targetLocations || "",
+      serperKey
+    });
+    const htmlChecks = siteIntelligence.htmlChecks;
     const pageSpeed = pageSpeedKey ? await getPageSpeed(url, pageSpeedKey) : null;
-    const serper = serperKey ? await getSerperSignals(input, hostname, serperKey) : null;
+    const serper = siteIntelligence.serper;
+    const crawl = siteIntelligence.crawl;
 
     const tech = {
       speed: pageSpeed?.speedText || "Unavailable",
       mobile: pageSpeed?.mobileText || "Unknown",
       meta: htmlChecks.metaText,
-      indexability: htmlChecks.indexabilityText
+      indexability: htmlChecks.indexabilityText,
+      schemaTypes: htmlChecks.schemaTypes || [],
+      contentDepthScore: crawl.contentDepth?.score ?? 0,
+      pagesCrawled: crawl.summary?.pagesCrawled ?? 0
     };
 
     const serp = {
       presence: serper?.presence || "Unknown",
-      query: serper?.query || ""
+      query: serper?.query || "",
+      queries: serper?.queries || []
     };
+
+    const crawlSnapshot = crawl.pages.slice(0, 8).map((page) => ({
+      path: page.path,
+      title: page.title,
+      metaDescription: page.metaDescription,
+      h1: page.headings?.h1?.slice(0, 2) || [],
+      h2Count: page.headings?.h2?.length || 0,
+      wordCount: page.wordCount,
+      questionCount: page.questionCount,
+      schemaTypes: page.schemaTypes
+    }));
 
     const prompt = `
 You are an expert in AI search visibility, semantic search, and how LLMs like ChatGPT, Gemini, and Perplexity discover and recommend brands.
@@ -51,6 +80,7 @@ STRUCTURE
 - Meta description: ${htmlChecks.hasMetaDescription}
 - H1: ${htmlChecks.hasH1}
 - Schema: ${htmlChecks.hasSchema}
+- Schema types on homepage: ${(htmlChecks.schemaTypes || []).join(", ") || "None detected"}
 - Canonical: ${htmlChecks.hasCanonical}
 
 INDEXABILITY
@@ -59,11 +89,21 @@ INDEXABILITY
 PERFORMANCE
 - PageSpeed mobile score: ${pageSpeed?.score ?? "Unknown"}
 
-SEARCH PRESENCE
-- Query used: ${serper?.query || "Unavailable"}
-- Brand appears in organic results: ${serper?.brandFound ?? "Unknown"}
-- Organic result count checked: ${serper?.organicCount ?? 0}
-- People Also Ask count: ${serper?.paaCount ?? 0}
+SITE CRAWL SUMMARY
+- Pages crawled: ${crawl.summary?.pagesCrawled ?? 0}
+- Average word count: ${crawl.summary?.averageWordCount ?? 0}
+- Pages with question signals: ${crawl.summary?.pagesWithQuestions ?? 0}
+- Pages with strong heading structure: ${crawl.summary?.pagesWithStrongHeadings ?? 0}
+- Pages with schema: ${crawl.summary?.pagesWithSchema ?? 0}
+- Sitewide schema types: ${(crawl.schema?.schemaTypes || []).join(", ") || "None detected"}
+- Content depth score: ${crawl.contentDepth?.score ?? 0}/100
+- Content depth read: ${crawl.contentDepth?.summary || "Unavailable"}
+
+CRAWLED PAGE SNAPSHOT
+${JSON.stringify(crawlSnapshot, null, 2)}
+
+SEARCH PRESENCE ACROSS MULTIPLE QUERY TYPES
+${JSON.stringify(serper?.queries || [], null, 2)}
 
 Evaluate this through an AI visibility lens:
 
@@ -116,6 +156,7 @@ Return valid JSON ONLY with this exact shape:
 RULES:
 - DO NOT lead with generic SEO advice
 - Lead with AI discoverability issues first
+- Use the crawl and multi-query data, not just the homepage, when judging topic coverage, entity clarity, answer readiness, and authority signals
 - Use AI-first language like:
   - visibility in AI-generated answers
   - answer-engine understanding
@@ -184,6 +225,12 @@ RULES:
 
     parsed.tech = tech;
     parsed.serp = serp;
+    parsed.crawl = {
+      summary: crawl.summary,
+      schema: crawl.schema,
+      contentDepth: crawl.contentDepth,
+      pages: crawlSnapshot
+    };
     parsed.recommendation = parsed.recommendation || {
       likelihood: serper?.brandFound ? "Possible" : "Unlikely",
       reason: "Based on available search and site signals."
