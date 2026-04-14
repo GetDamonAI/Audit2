@@ -5,6 +5,165 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI Visibility Audit</title>
   <link rel="stylesheet" href="styles.css" />
+  <script>
+    (function () {
+      const analyticsState = {
+        gaId: "",
+        pixelId: "",
+        initialized: false,
+        pendingPageView: false,
+        queue: []
+      };
+
+      const metaCustomEventMap = {
+        url_field_focus: "URLFieldFocus",
+        scan_clicked: "ScanClicked",
+        audit_started: "AuditStarted",
+        audit_completed: "AuditCompleted",
+        paid_cta_clicked: "PaidCTAClicked"
+      };
+
+      function loadScript(src) {
+        const script = document.createElement("script");
+        script.async = true;
+        script.src = src;
+        document.head.appendChild(script);
+      }
+
+      function initGa(gaId) {
+        if (!gaId) return;
+        loadScript("https://www.googletagmanager.com/gtag/js?id=" + encodeURIComponent(gaId));
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = window.gtag || function () {
+          window.dataLayer.push(arguments);
+        };
+        window.gtag("js", new Date());
+        window.gtag("config", gaId, { send_page_view: false });
+      }
+
+      function initMeta(pixelId) {
+        if (!pixelId) return;
+        if (!window.fbq) {
+          window.fbq = function () {
+            if (window.fbq.callMethod) {
+              window.fbq.callMethod.apply(window.fbq, arguments);
+            } else {
+              window.fbq.queue.push(arguments);
+            }
+          };
+          if (!window._fbq) {
+            window._fbq = window.fbq;
+          }
+          window.fbq.push = window.fbq;
+          window.fbq.loaded = true;
+          window.fbq.version = "2.0";
+          window.fbq.queue = [];
+          loadScript("https://connect.facebook.net/en_US/fbevents.js");
+        }
+
+        window.fbq("init", pixelId);
+      }
+
+      function sendGaEvent(name, params) {
+        if (!analyticsState.gaId || typeof window.gtag !== "function") return;
+        window.gtag("event", name, params || {});
+      }
+
+      function sendMetaEvent(name, params) {
+        if (!analyticsState.pixelId || typeof window.fbq !== "function") return;
+
+        if (name === "page_view") {
+          window.fbq("track", "PageView");
+          return;
+        }
+
+        if (name === "free_lead_submitted") {
+          window.fbq("track", "Lead", params || {});
+          return;
+        }
+
+        if (name === "purchase_success") {
+          window.fbq("track", "Purchase", {
+            value: Number(params?.value || 0),
+            currency: params?.currency || "USD"
+          });
+          return;
+        }
+
+        const customEvent = metaCustomEventMap[name];
+        if (customEvent) {
+          window.fbq("trackCustom", customEvent, params || {});
+        }
+      }
+
+      function flushQueue() {
+        if (!analyticsState.initialized) return;
+
+        const queued = analyticsState.queue.splice(0, analyticsState.queue.length);
+        queued.forEach((item) => {
+          sendGaEvent(item.name, item.params);
+          sendMetaEvent(item.name, item.params);
+        });
+
+        if (analyticsState.pendingPageView) {
+          analyticsState.pendingPageView = false;
+          window.trackAuditPageView();
+        }
+      }
+
+      window.trackAuditEvent = function (name, params) {
+        if (!analyticsState.initialized) {
+          analyticsState.queue.push({ name: name, params: params || {} });
+          return;
+        }
+
+        sendGaEvent(name, params || {});
+        sendMetaEvent(name, params || {});
+      };
+
+      window.trackAuditPageView = function () {
+        if (!analyticsState.initialized) {
+          analyticsState.pendingPageView = true;
+          return;
+        }
+
+        sendGaEvent("page_view", {
+          page_title: document.title,
+          page_location: window.location.href,
+          page_path: window.location.pathname + window.location.search
+        });
+        sendMetaEvent("page_view");
+      };
+
+      fetch("/.netlify/functions/tracking-config")
+        .then(function (response) {
+          return response.ok ? response.json() : {};
+        })
+        .then(function (config) {
+          analyticsState.gaId = String(config?.gaMeasurementId || "").trim();
+          analyticsState.pixelId = String(config?.metaPixelId || "").trim();
+
+          if (analyticsState.gaId) {
+            initGa(analyticsState.gaId);
+          }
+
+          if (analyticsState.pixelId) {
+            initMeta(analyticsState.pixelId);
+          }
+
+          analyticsState.initialized = true;
+          flushQueue();
+        })
+        .catch(function () {
+          analyticsState.initialized = true;
+          flushQueue();
+        });
+
+      window.addEventListener("load", function () {
+        window.trackAuditPageView();
+      }, { once: true });
+    })();
+  </script>
 </head>
 <body>
   <main class="audit-shell" data-stage="landing">

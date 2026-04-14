@@ -50,6 +50,7 @@ const resultsCta = document.getElementById("results-cta");
 const paidFinalState = document.getElementById("paid-final-state");
 const paidBookingLink = document.getElementById("paid-booking-link");
 const paidSessionNote = document.getElementById("paid-session-note");
+const PAID_PLAN_VALUE = 149;
 
 const loadingPhases = [
   {
@@ -93,6 +94,31 @@ let auditContext = {
   service: "",
   checkoutSessionId: ""
 };
+
+function trackEvent(name, params = {}) {
+  if (typeof window.trackAuditEvent === "function") {
+    window.trackAuditEvent(name, params);
+  }
+}
+
+function trackPurchaseSuccess(sessionId) {
+  const key = `ssm-audit-purchase-tracked:${sessionId || "unknown"}`;
+
+  try {
+    if (window.sessionStorage.getItem(key)) {
+      return;
+    }
+    window.sessionStorage.setItem(key, "1");
+  } catch {
+    // Session storage is optional in embed contexts.
+  }
+
+  trackEvent("purchase_success", {
+    value: PAID_PLAN_VALUE,
+    currency: "USD",
+    session_id: sessionId || ""
+  });
+}
 
 function normalizeUrl(value) {
   const trimmed = String(value || "").trim();
@@ -497,6 +523,7 @@ function initializePaidReturnState() {
 
   clearMessage(paidIntakeMessage);
   setAppStage("paid-intake");
+  trackPurchaseSuccess(sessionId);
 }
 
 async function notifyQuickAuditAdmin() {
@@ -574,6 +601,26 @@ if (isPaidReturn()) {
   initializePaidReturnState();
 }
 
+if (urlInput) {
+  urlInput.addEventListener(
+    "focus",
+    () => {
+      trackEvent("url_field_focus", {
+        location: "hero_url_input"
+      });
+    },
+    { once: true }
+  );
+}
+
+if (urlSubmit) {
+  urlSubmit.addEventListener("click", () => {
+    trackEvent("scan_clicked", {
+      cta: "Scan My Site"
+    });
+  });
+}
+
 urlForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   clearMessage(urlMessage);
@@ -595,6 +642,9 @@ urlForm.addEventListener("submit", async (event) => {
   };
 
   urlInput.blur();
+  trackEvent("audit_started", {
+    url: auditContext.url
+  });
   setLoadingButton(urlSubmit, true);
   setAppStage("loading");
   setLoadingProgress(loadingPhases[0]?.progress || 8);
@@ -635,6 +685,11 @@ urlForm.addEventListener("submit", async (event) => {
     persistAuditContext();
     resetPostAuditState();
     notifyQuickAuditAdmin();
+    trackEvent("audit_completed", {
+      url: auditContext.url,
+      score: Number(data.score ?? 0),
+      ai_verdict: data.aiVerdict || ""
+    });
 
     setAppStage("preview");
     await delay(80);
@@ -671,6 +726,11 @@ paidOfferSubmit.addEventListener("click", async () => {
   }
 
   setLoadingButton(paidOfferSubmit, true);
+  trackEvent("paid_cta_clicked", {
+    url: auditContext.url,
+    score: Number(auditContext.data.score ?? 0),
+    offer: "Full AI Visibility Audit + Implementation Plan"
+  });
 
   try {
     persistAuditContext();
@@ -840,6 +900,11 @@ emailForm.addEventListener("submit", async (event) => {
       throw new Error(emailData.error || "Email send failed.");
     }
 
+    trackEvent("free_lead_submitted", {
+      url: auditContext.url,
+      email_domain: email.split("@")[1] || "",
+      score: Number(auditContext.data.score ?? 0)
+    });
     setAppStage("sent");
     showSentState();
 
