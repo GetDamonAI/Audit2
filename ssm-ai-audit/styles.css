@@ -167,7 +167,7 @@ select {
   overflow: hidden;
   display: grid;
   gap: 7px;
-  height: 180px;
+  height: 220px;
   padding: 16px;
   border-radius: 22px;
   border: 1px solid rgba(23, 23, 23, 0.07);
@@ -229,12 +229,16 @@ select {
 
 .sample-result-concealed {
   position: relative;
+  margin-top: 4px;
+  min-height: 116px;
+  overflow: hidden;
+}
+
+.sample-result-concealed-content {
   display: grid;
   gap: 10px;
-  margin-top: 4px;
-  min-height: 88px;
-  opacity: 0.5;
-  filter: blur(4px);
+  opacity: 0.75;
+  filter: blur(3px);
   transform: translateZ(0);
 }
 
@@ -255,38 +259,34 @@ select {
   background: #1a1a1a;
 }
 
-.sample-result-hidden {
-  display: grid;
-  gap: 8px;
-  padding-top: 8px;
+.sample-result-metric-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #e9e3db;
 }
 
-.sample-result-hidden-line {
-  display: block;
-  height: 8px;
-  border-radius: 999px;
-  background: #eee9e2;
+.sample-result-metric-label,
+.sample-result-metric-value {
+  font-size: 12px;
+  line-height: 1.35;
+  color: #544d45;
 }
 
-.sample-result-hidden-line-one {
-  width: 88%;
+.sample-result-metric-label {
+  font-weight: 500;
 }
 
-.sample-result-hidden-line-two {
-  width: 72%;
-}
-
-.sample-result-hidden-line-three {
-  width: 81%;
+.sample-result-metric-value {
+  white-space: nowrap;
 }
 
 .sample-result-fade {
   position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: 60%;
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.82) 48%, #ffffff 100%);
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 20%, #ffffff 85%);
   pointer-events: none;
 }
 
