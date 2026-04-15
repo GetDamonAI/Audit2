@@ -167,10 +167,11 @@ select {
   overflow: hidden;
   display: grid;
   gap: 7px;
-  padding: 16px 16px 28px;
+  height: 180px;
+  padding: 16px;
   border-radius: 22px;
   border: 1px solid rgba(23, 23, 23, 0.07);
-  background: rgba(255, 255, 255, 0.95);
+  background: #ffffff;
   box-shadow: 0 14px 34px rgba(23, 23, 23, 0.04);
 }
 
@@ -227,10 +228,14 @@ select {
 }
 
 .sample-result-concealed {
+  position: relative;
   display: grid;
   gap: 10px;
-  padding-top: 6px;
-  padding-bottom: 32px;
+  margin-top: 4px;
+  min-height: 88px;
+  opacity: 0.5;
+  filter: blur(4px);
+  transform: translateZ(0);
 }
 
 .sample-result-bar-track {
@@ -275,26 +280,13 @@ select {
   width: 81%;
 }
 
-.sample-result-hidden-line-four {
-  width: 67%;
-}
-
-.sample-result-hidden-line-five {
-  width: 78%;
-}
-
-.sample-result-blur {
+.sample-result-fade {
   position: absolute;
   right: 0;
   bottom: 0;
   left: 0;
-  height: 64%;
-  min-height: 156px;
-  background:
-    linear-gradient(to bottom, rgba(247, 245, 242, 0) 0%, rgba(247, 245, 242, 0.76) 28%, rgba(247, 245, 242, 0.95) 52%, rgba(247, 245, 242, 1) 72%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(247, 245, 242, 0.42) 100%);
-  backdrop-filter: blur(9px);
-  -webkit-backdrop-filter: blur(9px);
+  height: 60%;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.82) 48%, #ffffff 100%);
   pointer-events: none;
 }
 
@@ -1052,11 +1044,7 @@ select:focus {
   }
 
   .sample-result-card {
-    padding: 18px 18px 30px;
-  }
-
-  .sample-result-blur {
-    min-height: 170px;
+    padding: 18px;
   }
 
   .url-form,
