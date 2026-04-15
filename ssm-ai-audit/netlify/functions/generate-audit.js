@@ -31,12 +31,15 @@ exports.handler = async (event) => {
       service: input.service || "",
       competitors: input.topCompetitors || "",
       targetLocations: input.targetLocations || "",
-      serperKey
+      serperKey,
+      maxPages: 6,
+      maxSerperQueries: 4,
+      fetchTimeoutMs: 3000
     });
 
     const htmlChecks = siteIntelligence.htmlChecks;
     statusPath = "collecting-pagespeed";
-    const pageSpeed = pageSpeedKey ? await getPageSpeed(url, pageSpeedKey) : null;
+    const pageSpeed = pageSpeedKey ? await getPageSpeed(url, pageSpeedKey, 3500) : null;
     const serper = siteIntelligence.serper;
     const crawl = siteIntelligence.crawl;
 
@@ -442,7 +445,10 @@ function escapeHtml(str) {
     .replace(/'/g, "&#039;");
 }
 
-async function getPageSpeed(url, apiKey) {
+async function getPageSpeed(url, apiKey, timeoutMs = 5000) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
   try {
     const params = new URLSearchParams({
       url,
@@ -452,7 +458,8 @@ async function getPageSpeed(url, apiKey) {
     });
 
     const response = await fetch(
-      `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?${params.toString()}`
+      `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?${params.toString()}`,
+      { signal: controller.signal }
     );
     const json = await response.json();
 
@@ -473,5 +480,7 @@ async function getPageSpeed(url, apiKey) {
     };
   } catch {
     return null;
+  } finally {
+    clearTimeout(timeout);
   }
 }

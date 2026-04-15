@@ -1,4 +1,6 @@
 const DEFAULT_MAX_PAGES = 20;
+const DEFAULT_FETCH_TIMEOUT_MS = 8000;
+const DEFAULT_MAX_SERPER_QUERIES = 8;
 const KNOWN_SCHEMA_TYPES = [
   "Organization",
   "LocalBusiness",
@@ -20,14 +22,17 @@ async function collectSiteIntelligence({
   aiQuestionTargeting = "",
   desiredVisibility = "",
   serperKey = "",
-  maxPages = DEFAULT_MAX_PAGES
+  maxPages = DEFAULT_MAX_PAGES,
+  maxSerperQueries = DEFAULT_MAX_SERPER_QUERIES,
+  fetchTimeoutMs = DEFAULT_FETCH_TIMEOUT_MS
 }) {
   const normalizedUrl = normalizeUrl(url);
   const hostname = getHostname(normalizedUrl);
   const crawl = await crawlSite({
     startUrl: normalizedUrl,
     maxPages,
-    hostname
+    hostname,
+    fetchTimeoutMs
   });
 
   const homepage = crawl.pages[0] || createEmptyPageSummary(normalizedUrl);
@@ -47,7 +52,8 @@ async function collectSiteIntelligence({
         targetLocations,
         aiQuestionTargeting,
         desiredVisibility,
-        serperKey
+        serperKey,
+        maxQueries: maxSerperQueries
       })
     : createEmptySerperSignals();
 
@@ -61,7 +67,12 @@ async function collectSiteIntelligence({
   };
 }
 
-async function crawlSite({ startUrl, maxPages = DEFAULT_MAX_PAGES, hostname }) {
+async function crawlSite({
+  startUrl,
+  maxPages = DEFAULT_MAX_PAGES,
+  hostname,
+  fetchTimeoutMs = DEFAULT_FETCH_TIMEOUT_MS
+}) {
   const queue = [startUrl];
   const visited = new Set();
   const pages = [];
@@ -71,7 +82,7 @@ async function crawlSite({ startUrl, maxPages = DEFAULT_MAX_PAGES, hostname }) {
     if (!currentUrl || visited.has(currentUrl)) continue;
     visited.add(currentUrl);
 
-    const html = await fetchHtml(currentUrl);
+    const html = await fetchHtml(currentUrl, fetchTimeoutMs);
     const page = summarizePage(currentUrl, html);
     pages.push(page);
 
@@ -309,7 +320,8 @@ async function getExpandedSerperSignals({
   targetLocations,
   aiQuestionTargeting,
   desiredVisibility,
-  serperKey
+  serperKey,
+  maxQueries = DEFAULT_MAX_SERPER_QUERIES
 }) {
   const queries = buildSerperQueries({
     hostname,
@@ -322,8 +334,9 @@ async function getExpandedSerperSignals({
     desiredVisibility
   });
 
+  const limitedQueries = queries.slice(0, Math.max(1, maxQueries));
   const results = [];
-  for (const queryConfig of queries) {
+  for (const queryConfig of limitedQueries) {
     results.push(await runSerperQuery({ queryConfig, hostname, businessName, competitors, serperKey }));
   }
 
@@ -398,6 +411,8 @@ async function runSerperQuery({ queryConfig, hostname, businessName, competitors
   const label = String(queryConfig?.label || "").trim();
   const query = String(queryConfig?.query || "").trim();
   const competitorTerms = splitValues(competitors).map((item) => item.toLowerCase());
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 4500);
 
   try {
     const response = await fetch("https://google.serper.dev/search", {
@@ -406,9 +421,10 @@ async function runSerperQuery({ queryConfig, hostname, businessName, competitors
         "X-API-KEY": serperKey,
         "Content-Type": "application/json"
       },
+      signal: controller.signal,
       body: JSON.stringify({
         q: query,
-        num: 10
+        num: 8
       })
     });
 
@@ -451,6 +467,8 @@ async function runSerperQuery({ queryConfig, hostname, businessName, competitors
       competitorOverlap: [],
       topResults: []
     };
+  } finally {
+    clearTimeout(timeout);
   }
 }
 
@@ -688,9 +706,9 @@ function getHtmlChecks(html) {
   };
 }
 
-async function fetchHtml(url) {
+async function fetchHtml(url, timeoutMs = DEFAULT_FETCH_TIMEOUT_MS) {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 8000);
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     const response = await fetch(url, {
