@@ -132,6 +132,14 @@ select {
   min-width: 0;
 }
 
+.hero-title-emphasis {
+  display: inline;
+  font-family: "Instrument Serif", Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  color: #c0392b;
+}
+
 .hero-subhead,
 .section-copy,
 .loading-detail,
