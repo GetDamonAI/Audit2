@@ -166,8 +166,8 @@ select {
   position: relative;
   overflow: hidden;
   display: grid;
-  gap: 6px;
-  padding: 16px 16px 18px;
+  gap: 7px;
+  padding: 16px 16px 20px;
   border-radius: 22px;
   border: 1px solid rgba(23, 23, 23, 0.07);
   background: rgba(255, 255, 255, 0.95);
@@ -243,13 +243,39 @@ select {
   background: #1a1a1a;
 }
 
+.sample-result-hidden {
+  display: grid;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.sample-result-hidden-line {
+  display: block;
+  height: 8px;
+  border-radius: 999px;
+  background: #eee9e2;
+}
+
+.sample-result-hidden-line-one {
+  width: 88%;
+}
+
+.sample-result-hidden-line-two {
+  width: 72%;
+}
+
+.sample-result-hidden-line-three {
+  width: 81%;
+}
+
 .sample-result-blur {
   position: absolute;
   right: 0;
   bottom: 0;
   left: 0;
-  height: 58px;
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.96));
+  height: 42%;
+  min-height: 96px;
+  background: linear-gradient(to bottom, rgba(247, 245, 242, 0), rgba(247, 245, 242, 0.88) 45%, rgba(247, 245, 242, 1) 100%);
   pointer-events: none;
 }
 
@@ -260,13 +286,22 @@ select {
 }
 
 .sample-result-tease {
-  margin-top: -4px;
+  margin-top: -8px;
+  margin-bottom: -2px;
   color: #8b3e2f;
+}
+
+.hero-proof {
+  font-size: 14px;
 }
 
 .hero-proof strong {
   color: #1a1a1a;
   font-weight: 500;
+}
+
+.hero-proof span {
+  color: #777;
 }
 
 .hero-friction {
@@ -354,6 +389,14 @@ select {
   font-size: 16px;
   outline: none;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#url {
+  min-height: 54px;
+  border-width: 1px;
+  border-color: #d8d2ca;
+  border-radius: 14px;
+  background: #fff;
 }
 
 textarea {
@@ -991,6 +1034,10 @@ select:focus {
 
   .sample-result-card {
     padding: 18px 18px 20px;
+  }
+
+  .sample-result-blur {
+    min-height: 108px;
   }
 
   .url-form,

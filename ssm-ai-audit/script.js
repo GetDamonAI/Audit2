@@ -616,7 +616,7 @@ if (urlInput) {
 if (urlSubmit) {
   urlSubmit.addEventListener("click", () => {
     trackEvent("scan_clicked", {
-      cta: "Show me how I rank in AI"
+      cta: "Show me how I rank in AI →"
     });
   });
 }
