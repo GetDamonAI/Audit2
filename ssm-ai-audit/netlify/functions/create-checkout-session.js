@@ -61,6 +61,8 @@ exports.handler = async (event) => {
     const aiVerdict = String(input.aiVerdict || "").trim();
     const summary = String(input.summary || "").trim();
     const email = String(input.email || "").trim();
+    const partner = String(input.partner || "").trim();
+    const sourcePage = String(input.sourcePage || "").trim();
 
     const params = new URLSearchParams();
     params.set("mode", "payment");
@@ -75,6 +77,8 @@ exports.handler = async (event) => {
     params.set("metadata[quickAuditScore]", quickAuditScore);
     params.set("metadata[aiVerdict]", aiVerdict);
     params.set("metadata[summary]", summary);
+    params.set("metadata[partner]", partner);
+    params.set("metadata[sourcePage]", sourcePage);
     if (email) {
       params.set("customer_email", email);
       params.set("metadata[email]", email);
