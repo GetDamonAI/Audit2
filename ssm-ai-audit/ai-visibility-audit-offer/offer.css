@@ -115,6 +115,14 @@ a {
   color: var(--muted);
 }
 
+.offer-section-eyebrow {
+  margin: 2px 0 0;
+  font-size: 1rem;
+  line-height: 1.45;
+  font-weight: 500;
+  color: var(--text);
+}
+
 .offer-price-block {
   display: grid;
   gap: 8px;
@@ -265,6 +273,30 @@ a {
   gap: 18px;
 }
 
+.offer-damon-section {
+  display: grid;
+  gap: 18px;
+}
+
+.offer-damon-photo-slot {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 240px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(192, 57, 43, 0.1), rgba(23, 23, 23, 0.05));
+  border: 1px solid rgba(23, 23, 23, 0.06);
+  color: var(--accent);
+  font-family: "Instrument Serif", Georgia, serif;
+  font-size: 1.6rem;
+  font-style: italic;
+}
+
+.offer-damon-copy {
+  display: grid;
+  gap: 12px;
+}
+
 .offer-coach-placeholder {
   display: grid;
   place-items: center;
@@ -291,7 +323,7 @@ a {
 }
 
 .offer-process-step h3 {
-  margin: 10px 0 8px;
+  margin: 10px 0 0;
   font-size: 1.05rem;
 }
 
@@ -341,6 +373,11 @@ a {
   .offer-coaching-section {
     grid-template-columns: auto minmax(0, 1fr);
     align-items: start;
+  }
+
+  .offer-damon-section {
+    grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+    align-items: center;
   }
 
   .offer-process-grid {

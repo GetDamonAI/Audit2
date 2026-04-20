@@ -6,7 +6,13 @@
       logoPath: "/partner-logos/telus.svg",
       eyebrowText: "In partnership with TELUS",
       subhead: "",
-      offerEyebrowText: "Exclusive Offer for TELUS Business Clients",
+      offerSubhead: ""
+    },
+    bctech: {
+      name: "BC Tech",
+      logoPath: "",
+      eyebrowText: "In partnership with BC Tech",
+      subhead: "",
       offerSubhead: ""
     }
   };
@@ -75,8 +81,13 @@
     }
 
     if (eyebrowElement) {
-      eyebrowElement.textContent = partner[eyebrowKey] || "";
-      eyebrowElement.hidden = !partner[eyebrowKey];
+      const defaultOfferEyebrow =
+        eyebrowKey === "offerEyebrowText" && partner.name
+          ? `Exclusive Offer for ${partner.name}`
+          : "";
+      const eyebrowText = partner[eyebrowKey] || defaultOfferEyebrow;
+      eyebrowElement.textContent = eyebrowText;
+      eyebrowElement.hidden = !eyebrowText;
     }
 
     if (subheadElement) {
