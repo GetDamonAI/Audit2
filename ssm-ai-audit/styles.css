@@ -101,6 +101,12 @@ select {
   min-width: 0;
 }
 
+#partner-logo {
+  width: auto;
+  max-width: min(220px, 56vw);
+  object-fit: contain;
+}
+
 .hero-kicker,
 .section-kicker,
 .preview-label,

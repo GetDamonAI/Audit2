@@ -3,6 +3,9 @@ const landingView = document.getElementById("landing-view");
 const auditExperience = document.getElementById("audit-experience");
 const heroCopy = document.querySelector(".hero-copy");
 const heroTool = document.querySelector(".hero-tool");
+const partnerLogo = document.getElementById("partner-logo");
+const partnerEyebrow = document.getElementById("partner-eyebrow");
+const heroSubhead = document.getElementById("hero-subhead");
 const landingSections = Array.from(
   document.querySelectorAll(".platform-band, .insight-section, .checks-section")
 );
@@ -51,6 +54,16 @@ const paidFinalState = document.getElementById("paid-final-state");
 const paidBookingLink = document.getElementById("paid-booking-link");
 const paidSessionNote = document.getElementById("paid-session-note");
 const PAID_PLAN_VALUE = 149;
+const DEFAULT_HERO_SUBHEAD = heroSubhead?.textContent?.trim() || "";
+const PARTNER_HOST_SUFFIX = "semanticsearchmarketing.com";
+const PARTNER_CONFIG = {
+  telus: {
+    name: "TELUS",
+    logoPath: "/partner-logos/telus.svg",
+    eyebrowText: "In partnership with TELUS",
+    subhead: ""
+  }
+};
 
 const loadingPhases = [
   {
@@ -94,6 +107,78 @@ let auditContext = {
   service: "",
   checkoutSessionId: ""
 };
+
+function getPartnerKeyFromLocation() {
+  const params = new URLSearchParams(window.location.search);
+  const queryPartner = (params.get("partner") || "").trim().toLowerCase();
+  if (queryPartner) {
+    return queryPartner;
+  }
+
+  const hostname = window.location.hostname.toLowerCase();
+  if (
+    hostname.endsWith(`.${PARTNER_HOST_SUFFIX}`) &&
+    hostname !== PARTNER_HOST_SUFFIX
+  ) {
+    const subdomain = hostname.slice(
+      0,
+      -1 * (`.${PARTNER_HOST_SUFFIX}`).length
+    );
+    return subdomain.split(".").filter(Boolean)[0] || "";
+  }
+
+  return "";
+}
+
+function hidePartnerBranding() {
+  if (partnerLogo) {
+    partnerLogo.style.display = "none";
+    partnerLogo.removeAttribute("src");
+    partnerLogo.alt = "";
+  }
+
+  if (partnerEyebrow) {
+    partnerEyebrow.hidden = true;
+    partnerEyebrow.textContent = "";
+  }
+
+  if (heroSubhead) {
+    heroSubhead.textContent = DEFAULT_HERO_SUBHEAD;
+  }
+}
+
+function applyPartnerBranding() {
+  const partnerKey = getPartnerKeyFromLocation();
+  const partner = PARTNER_CONFIG[partnerKey];
+
+  if (!partner) {
+    hidePartnerBranding();
+    return;
+  }
+
+  if (partnerEyebrow) {
+    partnerEyebrow.textContent = partner.eyebrowText || "";
+    partnerEyebrow.hidden = !partner.eyebrowText;
+  }
+
+  if (heroSubhead) {
+    heroSubhead.textContent = partner.subhead || DEFAULT_HERO_SUBHEAD;
+  }
+
+  if (partnerLogo && partner.logoPath) {
+    partnerLogo.onload = () => {
+      partnerLogo.style.display = "block";
+      queueHeightSync();
+    };
+    partnerLogo.onerror = () => {
+      partnerLogo.style.display = "none";
+    };
+    partnerLogo.src = partner.logoPath;
+    partnerLogo.alt = partner.name ? `${partner.name} logo` : "Partner logo";
+  } else if (partnerLogo) {
+    partnerLogo.style.display = "none";
+  }
+}
 
 function trackEvent(name, params = {}) {
   if (typeof window.trackAuditEvent === "function") {
@@ -596,6 +681,7 @@ if (window.visualViewport) {
 }
 
 resetPostAuditState();
+applyPartnerBranding();
 
 if (isPaidReturn()) {
   initializePaidReturnState();
