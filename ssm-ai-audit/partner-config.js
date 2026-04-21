@@ -4,22 +4,38 @@
     telus: {
       name: "TELUS",
       logoPath: "/partners/telus.png",
-      eyebrowText: "In partnership with TELUS",
-      audienceLine: "For TELUS Business Customers",
-      benefitLine: "Special preferred pricing through TELUS",
+      eyebrowText: "Exclusive Offer for TELUS",
+      audienceLine: "For TELUS Business customers",
+      benefitLine: "Exclusive pricing for TELUS Business customers",
       subhead: "",
       offerPriceLabel: "Exclusive TELUS Business Customer Offer",
-      offerSubhead: ""
+      offerSubhead: "",
+      accentColor: "#7556b6",
+      accentSoft: "rgba(117, 86, 182, 0.08)"
     },
     bctech: {
       name: "BC Tech",
       logoPath: "/partners/bctech.png",
-      eyebrowText: "In partnership with BC Tech",
+      eyebrowText: "Exclusive Offer for BC Tech",
       audienceLine: "For BC Tech members",
-      benefitLine: "Exclusive member offer through BC Tech",
+      benefitLine: "Exclusive pricing for BC Tech members",
       subhead: "",
       offerPriceLabel: "Exclusive BC Tech Member Offer",
-      offerSubhead: ""
+      offerSubhead: "",
+      accentColor: "#a78a3b",
+      accentSoft: "rgba(167, 138, 59, 0.08)"
+    },
+    smallbusinessbc: {
+      name: "Small Business BC",
+      logoPath: "/partners/smallbusiness.png",
+      eyebrowText: "Exclusive Offer for Small Business BC",
+      audienceLine: "For Small Business BC members",
+      benefitLine: "Exclusive pricing for Small Business BC members",
+      subhead: "",
+      offerPriceLabel: "Exclusive Small Business BC Member Offer",
+      offerSubhead: "",
+      accentColor: "#4d8b84",
+      accentSoft: "rgba(77, 139, 132, 0.08)"
     }
   };
 

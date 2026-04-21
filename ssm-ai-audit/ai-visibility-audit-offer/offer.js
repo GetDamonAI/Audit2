@@ -20,6 +20,8 @@ const CHECKOUT_PLACEHOLDER_URL = "https://pending-site.example";
 const DEFAULT_OFFER_SUBHEAD = offerSubhead?.textContent?.trim() || "";
 const DEFAULT_OFFER_PRICE_LABEL = offerPriceLabel?.textContent?.trim() || "";
 const DEFAULT_HERO_PRICE_LABEL = "Exclusive member pricing";
+const DEFAULT_ACCENT_COLOR = "#8b3e2f";
+const DEFAULT_ACCENT_SOFT = "rgba(139, 62, 47, 0.07)";
 
 const offerContext = {
   url: ""
@@ -82,6 +84,8 @@ function readJsonSafely(response) {
 
 function applyPartnerBranding() {
   if (!partnerHelpers || typeof partnerHelpers.applyPartnerBranding !== "function") {
+    document.documentElement.style.setProperty("--offer-accent", DEFAULT_ACCENT_COLOR);
+    document.documentElement.style.setProperty("--offer-accent-soft", DEFAULT_ACCENT_SOFT);
     if (offerBrandLockup) {
       offerBrandLockup.hidden = true;
     }
@@ -112,6 +116,15 @@ function applyPartnerBranding() {
     offerPriceLabel.textContent = partner ? DEFAULT_HERO_PRICE_LABEL : DEFAULT_OFFER_PRICE_LABEL;
   }
 
+  document.documentElement.style.setProperty(
+    "--offer-accent",
+    partner?.accentColor || DEFAULT_ACCENT_COLOR
+  );
+  document.documentElement.style.setProperty(
+    "--offer-accent-soft",
+    partner?.accentSoft || DEFAULT_ACCENT_SOFT
+  );
+
   if (offerFinalKicker) {
     offerFinalKicker.textContent = partner?.offerPriceLabel || DEFAULT_OFFER_PRICE_LABEL;
   }
@@ -131,7 +144,7 @@ function applyPartnerBranding() {
 
   if (partnerEyebrow) {
     if (partner?.name) {
-      partnerEyebrow.textContent = `Exclusive Offer for ${partner.name}`;
+      partnerEyebrow.textContent = `Exclusive Offer for ${partner.name.toUpperCase()}`;
       partnerEyebrow.hidden = false;
     } else {
       partnerEyebrow.hidden = true;
