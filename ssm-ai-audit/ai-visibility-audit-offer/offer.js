@@ -20,6 +20,9 @@ const DEFAULT_OFFER_PRICE_LABEL = offerPriceLabel?.textContent?.trim() || "";
 const DEFAULT_HERO_PRICE_LABEL = "Exclusive member pricing";
 const DEFAULT_ACCENT_COLOR = "#8b3e2f";
 const DEFAULT_ACCENT_SOFT = "rgba(139, 62, 47, 0.07)";
+const DEFAULT_LOGO_HEIGHT = "82px";
+const DEFAULT_LOGO_HEIGHT_TABLET = "90px";
+const DEFAULT_LOGO_HEIGHT_DESKTOP = "96px";
 
 const offerContext = {
   url: ""
@@ -113,6 +116,18 @@ function applyPartnerBranding() {
   document.documentElement.style.setProperty(
     "--offer-accent-soft",
     partner?.accentSoft || DEFAULT_ACCENT_SOFT
+  );
+  document.documentElement.style.setProperty(
+    "--partner-logo-height",
+    partner?.logoHeight || DEFAULT_LOGO_HEIGHT
+  );
+  document.documentElement.style.setProperty(
+    "--partner-logo-height-tablet",
+    partner?.logoHeightTablet || DEFAULT_LOGO_HEIGHT_TABLET
+  );
+  document.documentElement.style.setProperty(
+    "--partner-logo-height-desktop",
+    partner?.logoHeightDesktop || DEFAULT_LOGO_HEIGHT_DESKTOP
   );
 
   if (offerFinalKicker) {
