@@ -23,6 +23,10 @@ const DEFAULT_ACCENT_SOFT = "rgba(139, 62, 47, 0.07)";
 const DEFAULT_LOGO_HEIGHT = "82px";
 const DEFAULT_LOGO_HEIGHT_TABLET = "90px";
 const DEFAULT_LOGO_HEIGHT_DESKTOP = "96px";
+const DEFAULT_LOGO_SCALE = "1";
+const DEFAULT_LOGO_SCALE_TABLET = "1";
+const DEFAULT_LOGO_SCALE_DESKTOP = "1";
+const DEFAULT_LOGO_GAP_AFTER = "0px";
 
 const offerContext = {
   url: ""
@@ -128,6 +132,22 @@ function applyPartnerBranding() {
   document.documentElement.style.setProperty(
     "--partner-logo-height-desktop",
     partner?.logoHeightDesktop || DEFAULT_LOGO_HEIGHT_DESKTOP
+  );
+  document.documentElement.style.setProperty(
+    "--partner-logo-scale",
+    String(partner?.logoScale || DEFAULT_LOGO_SCALE)
+  );
+  document.documentElement.style.setProperty(
+    "--partner-logo-scale-tablet",
+    String(partner?.logoScaleTablet || DEFAULT_LOGO_SCALE_TABLET)
+  );
+  document.documentElement.style.setProperty(
+    "--partner-logo-scale-desktop",
+    String(partner?.logoScaleDesktop || DEFAULT_LOGO_SCALE_DESKTOP)
+  );
+  document.documentElement.style.setProperty(
+    "--partner-logo-gap-after",
+    partner?.logoGapAfter || DEFAULT_LOGO_GAP_AFTER
   );
 
   if (offerFinalKicker) {

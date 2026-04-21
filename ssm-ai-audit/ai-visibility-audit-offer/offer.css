@@ -16,6 +16,10 @@
   --partner-logo-height: 82px;
   --partner-logo-height-tablet: 90px;
   --partner-logo-height-desktop: 96px;
+  --partner-logo-scale: 1;
+  --partner-logo-scale-tablet: 1;
+  --partner-logo-scale-desktop: 1;
+  --partner-logo-gap-after: 0px;
 }
 
 *,
@@ -95,7 +99,7 @@ svg {
 }
 
 .offer-hero-main {
-  gap: 2px;
+  gap: 6px;
 }
 
 .offer-kicker {
@@ -115,9 +119,9 @@ svg {
 
 .offer-brand-lockup {
   display: grid;
-  gap: 2px;
+  gap: 4px;
   justify-items: start;
-  padding: 0 0 3px;
+  padding: 0 0 8px;
   border-bottom: 1px solid color-mix(in srgb, var(--offer-accent) 14%, transparent);
 }
 
@@ -125,10 +129,13 @@ svg {
   display: block;
   width: auto;
   height: var(--partner-logo-height);
-  max-width: min(560px, 94vw);
+  max-width: min(620px, 96vw);
   object-fit: contain;
   justify-self: start;
   margin: 0;
+  transform-origin: left top;
+  transform: scale(var(--partner-logo-scale));
+  margin-bottom: var(--partner-logo-gap-after);
 }
 
 .offer-co-brand-stack {
@@ -193,7 +200,7 @@ svg {
   gap: 0;
   max-width: 10ch;
   font-size: clamp(2.7rem, 10.4vw, 4.95rem);
-  line-height: 1.04;
+  line-height: 1.09;
   font-weight: 500;
   text-wrap: pretty;
 }
@@ -216,7 +223,7 @@ svg {
 
 .offer-subhead {
   max-width: 34rem;
-  margin-top: 4px;
+  margin-top: 14px;
   font-size: 0.98rem;
   line-height: 1.56;
 }
@@ -224,7 +231,7 @@ svg {
 .offer-anchor-inline {
   display: grid;
   max-width: 27rem;
-  margin-top: 8px;
+  margin-top: 14px;
 }
 
 .offer-anchor-title,
@@ -734,7 +741,8 @@ svg {
 
   #partner-logo {
     height: var(--partner-logo-height-tablet);
-    max-width: 500px;
+    max-width: 560px;
+    transform: scale(var(--partner-logo-scale-tablet));
   }
 
   .offer-title {
@@ -770,7 +778,8 @@ svg {
 
   #partner-logo {
     height: var(--partner-logo-height-desktop);
-    max-width: 540px;
+    max-width: 620px;
+    transform: scale(var(--partner-logo-scale-desktop));
   }
 
   .offer-title {
