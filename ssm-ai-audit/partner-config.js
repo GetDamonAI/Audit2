@@ -3,10 +3,9 @@
   const PARTNER_CONFIG = {
     telus: {
       name: "TELUS",
-      logoPath: "/partners/telus.png",
-      eyebrowText: "Exclusive Offer for TELUS",
-      audienceLine: "For TELUS Business customers",
-      benefitLine: "Exclusive pricing for TELUS Business customers",
+      logo: "/partners/telus.png",
+      eyebrow: "Exclusive Offer For TELUS Business Customers",
+      lockupName: "TELUS",
       subhead: "",
       offerPriceLabel: "Exclusive TELUS Business Customer Offer",
       offerSubhead: "",
@@ -15,10 +14,9 @@
     },
     bctech: {
       name: "BC Tech",
-      logoPath: "/partners/bctech.png",
-      eyebrowText: "Exclusive Offer for BC Tech",
-      audienceLine: "For BC Tech members",
-      benefitLine: "Exclusive pricing for BC Tech members",
+      logo: "/partners/bctech.png",
+      eyebrow: "Exclusive Offer For BC Tech Members",
+      lockupName: "BC Tech",
       subhead: "",
       offerPriceLabel: "Exclusive BC Tech Member Offer",
       offerSubhead: "",
@@ -27,10 +25,9 @@
     },
     smallbusinessbc: {
       name: "Small Business BC",
-      logoPath: "/partners/smallbusiness.png",
-      eyebrowText: "Exclusive Offer for Small Business BC",
-      audienceLine: "For Small Business BC members",
-      benefitLine: "Exclusive pricing for Small Business BC members",
+      logo: "/partners/smallbusiness.png",
+      eyebrow: "Exclusive Offer For Small Business BC Members",
+      lockupName: "Small Business BC",
       subhead: "",
       offerPriceLabel: "Exclusive Small Business BC Member Offer",
       offerSubhead: "",
@@ -80,7 +77,7 @@
     const eyebrowElement = options.eyebrowElement || null;
     const subheadElement = options.subheadElement || null;
     const defaultSubhead = options.defaultSubhead || "";
-    const eyebrowKey = options.eyebrowKey || "eyebrowText";
+    const eyebrowKey = options.eyebrowKey || "eyebrow";
     const subheadKey = options.subheadKey || "subhead";
 
     if (!partner) {
@@ -103,10 +100,7 @@
     }
 
     if (eyebrowElement) {
-      const defaultOfferEyebrow =
-        eyebrowKey === "offerEyebrowText" && partner.name
-          ? `Exclusive Offer for ${partner.name}`
-          : "";
+      const defaultOfferEyebrow = partner.eyebrow || "";
       const eyebrowText = partner[eyebrowKey] || defaultOfferEyebrow;
       eyebrowElement.textContent = eyebrowText;
       eyebrowElement.hidden = !eyebrowText;
@@ -116,7 +110,7 @@
       subheadElement.textContent = partner[subheadKey] || defaultSubhead;
     }
 
-    if (logoElement && partner.logoPath) {
+    if (logoElement && (partner.logo || partner.logoPath)) {
       logoElement.onload = () => {
         logoElement.style.display = "block";
         if (typeof options.onUpdate === "function") {
@@ -128,7 +122,7 @@
         logoElement.removeAttribute("src");
         logoElement.alt = "";
       };
-      logoElement.src = partner.logoPath;
+      logoElement.src = partner.logo || partner.logoPath;
       logoElement.alt = partner.name ? `${partner.name} logo` : "Partner logo";
     } else if (logoElement) {
       logoElement.style.display = "none";

@@ -3,8 +3,6 @@ const partnerLogo = document.getElementById("partner-logo");
 const offerBrandLockup = document.getElementById("offer-brand-lockup");
 const offerCoBrandStack = document.getElementById("offer-co-brand-stack");
 const offerCoBrandPartner = document.getElementById("offer-co-brand-partner");
-const offerPartnerAudience = document.getElementById("offer-partner-audience");
-const offerPartnerBenefit = document.getElementById("offer-partner-benefit");
 const partnerEyebrow = document.getElementById("partner-eyebrow");
 const offerSubhead = document.getElementById("offer-subhead");
 const offerPriceLabel = document.getElementById("offer-price-label");
@@ -92,14 +90,6 @@ function applyPartnerBranding() {
     if (offerCoBrandStack) {
       offerCoBrandStack.hidden = true;
     }
-    if (offerPartnerAudience) {
-      offerPartnerAudience.hidden = true;
-      offerPartnerAudience.textContent = "";
-    }
-    if (offerPartnerBenefit) {
-      offerPartnerBenefit.hidden = true;
-      offerPartnerBenefit.textContent = "";
-    }
     return null;
   }
 
@@ -108,7 +98,7 @@ function applyPartnerBranding() {
     eyebrowElement: partnerEyebrow,
     subheadElement: offerSubhead,
     defaultSubhead: DEFAULT_OFFER_SUBHEAD,
-    eyebrowKey: "eyebrowText",
+    eyebrowKey: "eyebrow",
     subheadKey: "offerSubhead"
   });
 
@@ -138,28 +128,18 @@ function applyPartnerBranding() {
   }
 
   if (offerCoBrandStack && offerCoBrandPartner) {
-    offerCoBrandPartner.textContent = partner?.name || "";
+    offerCoBrandPartner.textContent = partner?.lockupName || partner?.name || "";
     offerCoBrandStack.hidden = !partner?.name;
   }
 
   if (partnerEyebrow) {
-    if (partner?.name) {
-      partnerEyebrow.textContent = `Exclusive Offer for ${partner.name.toUpperCase()}`;
+    if (partner?.eyebrow) {
+      partnerEyebrow.textContent = partner.eyebrow;
       partnerEyebrow.hidden = false;
     } else {
       partnerEyebrow.hidden = true;
       partnerEyebrow.textContent = "";
     }
-  }
-
-  if (offerPartnerAudience) {
-    offerPartnerAudience.textContent = partner?.audienceLine || "";
-    offerPartnerAudience.hidden = !partner?.audienceLine;
-  }
-
-  if (offerPartnerBenefit) {
-    offerPartnerBenefit.textContent = partner?.benefitLine || "";
-    offerPartnerBenefit.hidden = !partner?.benefitLine;
   }
 
   return partner;
