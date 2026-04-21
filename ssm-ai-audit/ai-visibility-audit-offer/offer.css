@@ -125,17 +125,22 @@ svg {
   border-bottom: 1px solid color-mix(in srgb, var(--offer-accent) 14%, transparent);
 }
 
-#partner-logo {
+.offer-partner-logo {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  max-width: 260px;
+  margin-bottom: 16px;
+}
+
+.offer-partner-logo > #partner-logo {
   display: block;
   width: auto;
-  height: var(--partner-logo-height);
-  max-width: min(620px, 96vw);
+  height: 56px;
+  max-height: 56px;
+  max-width: 260px;
   object-fit: contain;
-  justify-self: start;
   margin: 0;
-  transform-origin: left top;
-  transform: scale(var(--partner-logo-scale));
-  margin-bottom: var(--partner-logo-gap-after);
 }
 
 .offer-co-brand-stack {
@@ -739,12 +744,6 @@ svg {
     column-gap: 40px;
   }
 
-  #partner-logo {
-    height: var(--partner-logo-height-tablet);
-    max-width: 560px;
-    transform: scale(var(--partner-logo-scale-tablet));
-  }
-
   .offer-title {
     max-width: 8.9ch;
   }
@@ -774,12 +773,6 @@ svg {
 
   .offer-hero-main {
     gap: 2px;
-  }
-
-  #partner-logo {
-    height: var(--partner-logo-height-desktop);
-    max-width: 620px;
-    transform: scale(var(--partner-logo-scale-desktop));
   }
 
   .offer-title {
