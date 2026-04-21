@@ -185,7 +185,7 @@ a {
   gap: 2px;
   max-width: 12ch;
   font-size: clamp(2.45rem, 10vw, 4.75rem);
-  line-height: 1.03;
+  line-height: 1.12;
   font-weight: 500;
   text-wrap: balance;
   margin-top: 0;
@@ -606,6 +606,7 @@ a {
     max-width: 11ch;
     font-size: clamp(3rem, 4.8vw, 4.6rem);
     gap: 1px;
+    line-height: 1.1;
   }
 
   .offer-hero-sidebar {

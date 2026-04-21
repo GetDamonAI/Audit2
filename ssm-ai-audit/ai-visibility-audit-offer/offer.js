@@ -99,7 +99,7 @@ function applyPartnerBranding() {
     eyebrowElement: partnerEyebrow,
     subheadElement: offerSubhead,
     defaultSubhead: DEFAULT_OFFER_SUBHEAD,
-    eyebrowKey: "offerEyebrowText",
+    eyebrowKey: "eyebrowText",
     subheadKey: "offerSubhead"
   });
 
@@ -117,8 +117,13 @@ function applyPartnerBranding() {
   }
 
   if (partnerEyebrow) {
-    partnerEyebrow.hidden = true;
-    partnerEyebrow.textContent = "";
+    if (partner?.name) {
+      partnerEyebrow.textContent = `Exclusive offer for ${partner.name}`;
+      partnerEyebrow.hidden = false;
+    } else {
+      partnerEyebrow.hidden = true;
+      partnerEyebrow.textContent = "";
+    }
   }
 
   if (offerPartnerAudience) {
