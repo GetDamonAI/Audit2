@@ -45,7 +45,7 @@ a {
   margin: 0 auto;
   padding: 20px 16px 72px;
   display: grid;
-  gap: 20px;
+  gap: 22px;
 }
 
 .offer-hero,
@@ -57,11 +57,11 @@ a {
 }
 
 .offer-hero {
-  padding: 28px 18px;
+  padding: 30px 18px;
 }
 
 .offer-section {
-  padding: 28px 18px;
+  padding: 30px 18px;
 }
 
 .offer-hero-layout,
@@ -69,7 +69,7 @@ a {
 .offer-hero-sidebar,
 .offer-damon-copy {
   display: grid;
-  gap: 16px;
+  gap: 18px;
   min-width: 0;
 }
 
@@ -105,10 +105,10 @@ a {
 
 .offer-title {
   display: grid;
-  gap: 8px;
-  max-width: 10.5ch;
+  gap: 5px;
+  max-width: 11.2ch;
   font-size: clamp(2.45rem, 10vw, 4.75rem);
-  line-height: 1.01;
+  line-height: 1;
   font-weight: 500;
   text-wrap: balance;
 }
@@ -123,6 +123,7 @@ a {
   font-weight: 400;
   color: var(--accent);
   letter-spacing: -0.035em;
+  padding-top: 1px;
 }
 
 .offer-section-title,
@@ -265,7 +266,7 @@ a {
 
 .offer-hero-sidebar {
   gap: 16px;
-  padding: 22px;
+  padding: 24px;
   border-color: var(--line-strong);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(248, 243, 239, 0.94));
 }
@@ -277,7 +278,7 @@ a {
   padding-left: 0;
   list-style: none;
   display: grid;
-  gap: 14px;
+  gap: 16px;
 }
 
 .offer-check-list li,
@@ -303,26 +304,26 @@ a {
 }
 
 .offer-check-list {
-  gap: 13px;
+  gap: 14px;
 }
 
 .offer-grid-list {
   grid-template-columns: 1fr;
-  column-gap: 24px;
-  row-gap: 16px;
+  column-gap: 28px;
+  row-gap: 18px;
 }
 
 .offer-damon-section {
   display: grid;
-  gap: 22px;
+  gap: 24px;
 }
 
 .offer-damon-photo-slot {
   position: relative;
-  display: grid;
-  place-items: center;
+  display: block;
   width: 100%;
-  min-height: 240px;
+  aspect-ratio: 4 / 5;
+  min-height: 0;
   overflow: hidden;
   border-radius: 24px;
   background: linear-gradient(135deg, rgba(139, 62, 47, 0.12), rgba(23, 23, 23, 0.05));
@@ -334,8 +335,11 @@ a {
 }
 
 .offer-damon-photo {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
+  display: block;
   object-fit: cover;
 }
 
@@ -356,11 +360,11 @@ a {
 
 .offer-process-grid {
   display: grid;
-  gap: 16px;
+  gap: 18px;
 }
 
 .offer-process-step {
-  padding: 18px;
+  padding: 20px;
   background: rgba(255, 255, 255, 0.72);
 }
 
@@ -390,31 +394,31 @@ a {
 }
 
 .offer-final-support {
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
 .offer-kicker + .offer-section-title,
 .offer-kicker + .offer-side-title,
 .offer-kicker + .offer-anchor-title {
-  margin-top: 8px;
+  margin-top: 10px;
 }
 
 .offer-section-title + .offer-grid-list,
 .offer-section-title + .offer-bullet-list,
 .offer-section-title + .offer-section-copy,
 .offer-side-title + .offer-check-list {
-  margin-top: 18px;
+  margin-top: 22px;
 }
 
 .offer-section-copy + .offer-bullet-list,
 .offer-section-copy + .offer-grid-list {
-  margin-top: 18px;
+  margin-top: 20px;
 }
 
 @media (min-width: 720px) {
   .offer-shell {
-    gap: 24px;
-    padding: 30px 22px 84px;
+    gap: 26px;
+    padding: 32px 22px 88px;
   }
 
   .offer-hero,
@@ -423,23 +427,23 @@ a {
   }
 
   .offer-hero {
-    padding: 36px 28px;
+    padding: 38px 30px;
   }
 
   .offer-section {
-    padding: 32px 26px;
+    padding: 34px 28px;
   }
 
   .offer-grid-list,
   .offer-process-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 34px;
+    column-gap: 40px;
   }
 
   .offer-damon-section {
     grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
     align-items: center;
-    column-gap: 28px;
+    column-gap: 32px;
   }
 }
 
@@ -449,17 +453,17 @@ a {
   }
 
   .offer-hero {
-    padding: 42px 36px;
+    padding: 44px 38px;
   }
 
   .offer-hero-layout {
     grid-template-columns: minmax(0, 1.04fr) minmax(320px, 0.76fr);
-    gap: 40px;
+    gap: 44px;
     align-items: start;
   }
 
   .offer-title {
-    max-width: 9.3ch;
+    max-width: 10.1ch;
     font-size: clamp(3.15rem, 5.2vw, 4.75rem);
   }
 

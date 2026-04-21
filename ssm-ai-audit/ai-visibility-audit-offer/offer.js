@@ -8,6 +8,7 @@ const offerPrimaryCta = document.getElementById("offer-cta");
 const offerFinalCta = document.getElementById("offer-final-cta");
 const damonPhoto = document.querySelector(".offer-damon-photo");
 const damonPhotoSlot = document.querySelector(".offer-damon-photo-slot");
+const CHECKOUT_PLACEHOLDER_URL = "https://pending-site.example";
 
 const DEFAULT_OFFER_SUBHEAD = offerSubhead?.textContent?.trim() || "";
 const DEFAULT_OFFER_PRICE_LABEL = offerPriceLabel?.textContent?.trim() || "";
@@ -71,16 +72,6 @@ function readJsonSafely(response) {
   });
 }
 
-function requestWebsiteUrl() {
-  const suggested = offerContext.url || "yourwebsite.com";
-  const rawValue = window.prompt("What website should we audit?", suggested);
-  if (rawValue === null) {
-    return "";
-  }
-
-  return normalizeUrl(rawValue);
-}
-
 function applyPartnerBranding() {
   if (!partnerHelpers || typeof partnerHelpers.applyPartnerBranding !== "function") {
     return null;
@@ -117,18 +108,15 @@ function setupDamonPhoto() {
 
   if (damonPhoto.complete && damonPhoto.naturalWidth > 0) {
     damonPhotoSlot.classList.add("has-image");
+  } else if (damonPhoto.complete && damonPhoto.naturalWidth === 0) {
+    damonPhoto.classList.add("is-missing");
+    damonPhotoSlot.classList.remove("has-image");
   }
 }
 
 async function beginCheckout() {
   setMessage("");
-
-  const url = requestWebsiteUrl();
-  if (!url || !isValidUrl(url)) {
-    setMessage("Enter a valid website to continue.");
-    return;
-  }
-
+  const url = CHECKOUT_PLACEHOLDER_URL;
   offerContext.url = url;
   setLoadingState(true);
 
@@ -141,7 +129,7 @@ async function beginCheckout() {
       },
       body: JSON.stringify({
         url,
-        businessName: hostnameToName(url),
+        businessName: "",
         partner: partner?.key || "",
         sourcePage: "ai-visibility-audit-offer"
       })
