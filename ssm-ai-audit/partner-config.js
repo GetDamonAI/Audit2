@@ -6,6 +6,7 @@
       logoPath: "/partner-logos/telus.svg",
       eyebrowText: "In partnership with TELUS",
       subhead: "",
+      offerPriceLabel: "Limited Partner Offer",
       offerSubhead: ""
     },
     bctech: {
@@ -13,6 +14,7 @@
       logoPath: "",
       eyebrowText: "In partnership with BC Tech",
       subhead: "",
+      offerPriceLabel: "Limited Partner Offer",
       offerSubhead: ""
     }
   };

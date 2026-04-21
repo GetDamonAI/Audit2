@@ -2,11 +2,13 @@ const partnerHelpers = window.SSMAuditPartners || null;
 const partnerLogo = document.getElementById("partner-logo");
 const partnerEyebrow = document.getElementById("partner-eyebrow");
 const offerSubhead = document.getElementById("offer-subhead");
+const offerPriceLabel = document.getElementById("offer-price-label");
 const offerUrlInput = document.getElementById("offer-url");
 const offerMessage = document.getElementById("offer-message");
 const offerPrimaryCta = document.getElementById("offer-cta");
 const offerFinalCta = document.getElementById("offer-final-cta");
 const DEFAULT_OFFER_SUBHEAD = offerSubhead?.textContent?.trim() || "";
+const DEFAULT_OFFER_PRICE_LABEL = offerPriceLabel?.textContent?.trim() || "";
 
 const offerContext = {
   url: ""
@@ -72,7 +74,7 @@ function applyPartnerBranding() {
     return null;
   }
 
-  return partnerHelpers.applyPartnerBranding({
+  const partner = partnerHelpers.applyPartnerBranding({
     logoElement: partnerLogo,
     eyebrowElement: partnerEyebrow,
     subheadElement: offerSubhead,
@@ -80,6 +82,12 @@ function applyPartnerBranding() {
     eyebrowKey: "offerEyebrowText",
     subheadKey: "offerSubhead"
   });
+
+  if (offerPriceLabel) {
+    offerPriceLabel.textContent = partner?.offerPriceLabel || DEFAULT_OFFER_PRICE_LABEL;
+  }
+
+  return partner;
 }
 
 async function beginCheckout() {
