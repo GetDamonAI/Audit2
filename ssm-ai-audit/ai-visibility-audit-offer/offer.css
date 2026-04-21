@@ -83,18 +83,19 @@ a {
 }
 
 #partner-logo {
-  height: 28px;
+  height: 42px;
   width: auto;
-  max-width: min(180px, 52vw);
-  max-height: 28px !important;
+  max-width: min(240px, 68vw);
+  max-height: 42px !important;
   object-fit: contain;
-  margin-bottom: 4px !important;
+  justify-self: start;
+  margin-bottom: 2px !important;
 }
 
 .offer-co-brand-stack {
   display: grid;
-  gap: 3px;
-  margin-bottom: 4px;
+  gap: 2px;
+  margin-bottom: 2px;
 }
 
 .brand-primary,
@@ -118,10 +119,29 @@ a {
 }
 
 .brand-partner {
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.2;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text);
+}
+
+.offer-partner-audience,
+.offer-partner-benefit {
+  margin: 0;
+  max-width: 34rem;
+}
+
+.offer-partner-audience {
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.offer-partner-benefit {
+  font-size: 0.84rem;
+  line-height: 1.45;
+  color: var(--muted);
 }
 
 .offer-kicker {
@@ -214,6 +234,16 @@ a {
   padding: 22px;
   border-color: var(--line-strong);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(248, 243, 239, 0.94));
+}
+
+.offer-price-block-final {
+  width: 100%;
+  max-width: 30rem;
+  padding: 22px 22px 20px;
+}
+
+.offer-price-row-final {
+  gap: 12px;
 }
 
 .offer-price-label {
@@ -438,8 +468,17 @@ a {
   text-align: left;
 }
 
+.offer-final-cta {
+  display: grid;
+  gap: 18px;
+  align-items: start;
+  padding-top: 34px;
+  padding-bottom: 34px;
+}
+
 .offer-final-support {
-  margin-top: 14px;
+  margin-top: 0;
+  max-width: 32rem;
 }
 
 .offer-kicker + .offer-section-title,
@@ -501,6 +540,12 @@ a {
   .offer-hero-main {
     gap: 16px;
   }
+
+  #partner-logo {
+    height: 48px;
+    max-width: min(280px, 44vw);
+    max-height: 48px !important;
+  }
 }
 
 @media (min-width: 1024px) {
@@ -531,5 +576,15 @@ a {
   .offer-primary-button {
     width: auto;
     min-width: 300px;
+  }
+
+  #partner-logo {
+    height: 54px;
+    max-width: 300px;
+    max-height: 54px !important;
+  }
+
+  .offer-final-cta {
+    padding: 40px 36px;
   }
 }

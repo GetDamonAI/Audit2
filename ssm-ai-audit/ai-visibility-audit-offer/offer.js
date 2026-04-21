@@ -2,9 +2,12 @@ const partnerHelpers = window.SSMAuditPartners || null;
 const partnerLogo = document.getElementById("partner-logo");
 const offerCoBrandStack = document.getElementById("offer-co-brand-stack");
 const offerCoBrandPartner = document.getElementById("offer-co-brand-partner");
+const offerPartnerAudience = document.getElementById("offer-partner-audience");
+const offerPartnerBenefit = document.getElementById("offer-partner-benefit");
 const partnerEyebrow = document.getElementById("partner-eyebrow");
 const offerSubhead = document.getElementById("offer-subhead");
 const offerPriceLabel = document.getElementById("offer-price-label");
+const offerFinalPriceLabel = document.getElementById("offer-final-price-label");
 const offerMessage = document.getElementById("offer-message");
 const offerPrimaryCta = document.getElementById("offer-cta");
 const offerFinalCta = document.getElementById("offer-final-cta");
@@ -79,6 +82,14 @@ function applyPartnerBranding() {
     if (offerCoBrandStack) {
       offerCoBrandStack.hidden = true;
     }
+    if (offerPartnerAudience) {
+      offerPartnerAudience.hidden = true;
+      offerPartnerAudience.textContent = "";
+    }
+    if (offerPartnerBenefit) {
+      offerPartnerBenefit.hidden = true;
+      offerPartnerBenefit.textContent = "";
+    }
     return null;
   }
 
@@ -95,9 +106,23 @@ function applyPartnerBranding() {
     offerPriceLabel.textContent = partner?.offerPriceLabel || DEFAULT_OFFER_PRICE_LABEL;
   }
 
+  if (offerFinalPriceLabel) {
+    offerFinalPriceLabel.textContent = partner?.offerPriceLabel || DEFAULT_OFFER_PRICE_LABEL;
+  }
+
   if (offerCoBrandStack && offerCoBrandPartner) {
     offerCoBrandPartner.textContent = partner?.name || "";
     offerCoBrandStack.hidden = !partner?.name;
+  }
+
+  if (offerPartnerAudience) {
+    offerPartnerAudience.textContent = partner?.audienceLine || "";
+    offerPartnerAudience.hidden = !partner?.audienceLine;
+  }
+
+  if (offerPartnerBenefit) {
+    offerPartnerBenefit.textContent = partner?.benefitLine || "";
+    offerPartnerBenefit.hidden = !partner?.benefitLine;
   }
 
   return partner;

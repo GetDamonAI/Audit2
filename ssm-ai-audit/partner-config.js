@@ -5,16 +5,20 @@
       name: "TELUS",
       logoPath: "/partners/telus.png",
       eyebrowText: "In partnership with TELUS",
+      audienceLine: "For TELUS Business Customers",
+      benefitLine: "Special preferred pricing through TELUS",
       subhead: "",
-      offerPriceLabel: "Limited Partner Offer",
+      offerPriceLabel: "Exclusive TELUS Business Customer Offer",
       offerSubhead: ""
     },
     bctech: {
       name: "BC Tech",
       logoPath: "/partners/bctech.png",
       eyebrowText: "In partnership with BC Tech",
+      audienceLine: "For BC Tech members",
+      benefitLine: "Exclusive member offer through BC Tech",
       subhead: "",
-      offerPriceLabel: "Limited Partner Offer",
+      offerPriceLabel: "Exclusive BC Tech Member Offer",
       offerSubhead: ""
     }
   };
