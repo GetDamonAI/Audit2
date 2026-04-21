@@ -1,5 +1,6 @@
 const partnerHelpers = window.SSMAuditPartners || null;
 const partnerLogo = document.getElementById("partner-logo");
+const offerBrandLockup = document.getElementById("offer-brand-lockup");
 const offerCoBrandStack = document.getElementById("offer-co-brand-stack");
 const offerCoBrandPartner = document.getElementById("offer-co-brand-partner");
 const offerPartnerAudience = document.getElementById("offer-partner-audience");
@@ -7,6 +8,7 @@ const offerPartnerBenefit = document.getElementById("offer-partner-benefit");
 const partnerEyebrow = document.getElementById("partner-eyebrow");
 const offerSubhead = document.getElementById("offer-subhead");
 const offerPriceLabel = document.getElementById("offer-price-label");
+const offerFinalKicker = document.getElementById("offer-final-kicker");
 const offerFinalPriceLabel = document.getElementById("offer-final-price-label");
 const offerMessage = document.getElementById("offer-message");
 const offerPrimaryCta = document.getElementById("offer-cta");
@@ -80,6 +82,9 @@ function readJsonSafely(response) {
 
 function applyPartnerBranding() {
   if (!partnerHelpers || typeof partnerHelpers.applyPartnerBranding !== "function") {
+    if (offerBrandLockup) {
+      offerBrandLockup.hidden = true;
+    }
     if (offerCoBrandStack) {
       offerCoBrandStack.hidden = true;
     }
@@ -107,8 +112,16 @@ function applyPartnerBranding() {
     offerPriceLabel.textContent = partner ? DEFAULT_HERO_PRICE_LABEL : DEFAULT_OFFER_PRICE_LABEL;
   }
 
+  if (offerFinalKicker) {
+    offerFinalKicker.textContent = partner?.offerPriceLabel || DEFAULT_OFFER_PRICE_LABEL;
+  }
+
   if (offerFinalPriceLabel) {
     offerFinalPriceLabel.textContent = partner?.offerPriceLabel || DEFAULT_OFFER_PRICE_LABEL;
+  }
+
+  if (offerBrandLockup) {
+    offerBrandLockup.hidden = !partner?.name;
   }
 
   if (offerCoBrandStack && offerCoBrandPartner) {
@@ -118,7 +131,7 @@ function applyPartnerBranding() {
 
   if (partnerEyebrow) {
     if (partner?.name) {
-      partnerEyebrow.textContent = `Exclusive offer for ${partner.name}`;
+      partnerEyebrow.textContent = `Exclusive Offer for ${partner.name}`;
       partnerEyebrow.hidden = false;
     } else {
       partnerEyebrow.hidden = true;
