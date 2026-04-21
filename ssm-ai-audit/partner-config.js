@@ -54,6 +54,24 @@
       offerSubhead: "",
       accentColor: "#4f8782",
       accentSoft: "rgba(79, 135, 130, 0.08)"
+    },
+    elearningu: {
+      name: "eLearningU",
+      logo: "/partners/elearningu.png",
+      eyebrow: "Exclusive Offer For eLearningU Members",
+      lockupName: "eLearningU",
+      logoHeight: "118px",
+      logoHeightTablet: "126px",
+      logoHeightDesktop: "134px",
+      logoScale: 1.12,
+      logoScaleTablet: 1.16,
+      logoScaleDesktop: 1.2,
+      logoGapAfter: "10px",
+      subhead: "",
+      offerPriceLabel: "Exclusive eLearningU Member Offer",
+      offerSubhead: "",
+      accentColor: "#4d4b8f",
+      accentSoft: "rgba(77, 75, 143, 0.08)"
     }
   };
 
