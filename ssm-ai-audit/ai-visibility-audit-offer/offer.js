@@ -1,5 +1,7 @@
 const partnerHelpers = window.SSMAuditPartners || null;
 const partnerLogo = document.getElementById("partner-logo");
+const offerCoBrandStack = document.getElementById("offer-co-brand-stack");
+const offerCoBrandPartner = document.getElementById("offer-co-brand-partner");
 const partnerEyebrow = document.getElementById("partner-eyebrow");
 const offerSubhead = document.getElementById("offer-subhead");
 const offerPriceLabel = document.getElementById("offer-price-label");
@@ -74,6 +76,9 @@ function readJsonSafely(response) {
 
 function applyPartnerBranding() {
   if (!partnerHelpers || typeof partnerHelpers.applyPartnerBranding !== "function") {
+    if (offerCoBrandStack) {
+      offerCoBrandStack.hidden = true;
+    }
     return null;
   }
 
@@ -88,6 +93,11 @@ function applyPartnerBranding() {
 
   if (offerPriceLabel) {
     offerPriceLabel.textContent = partner?.offerPriceLabel || DEFAULT_OFFER_PRICE_LABEL;
+  }
+
+  if (offerCoBrandStack && offerCoBrandPartner) {
+    offerCoBrandPartner.textContent = partner?.name || "";
+    offerCoBrandStack.hidden = !partner?.name;
   }
 
   return partner;

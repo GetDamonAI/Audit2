@@ -36,6 +36,10 @@ img {
   display: block;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 a {
   color: inherit;
 }
@@ -74,9 +78,45 @@ a {
 }
 
 #partner-logo {
+  height: 28px;
   width: auto;
-  max-width: min(220px, 56vw);
+  max-width: min(180px, 52vw);
+  max-height: 28px !important;
   object-fit: contain;
+  margin-bottom: 8px !important;
+}
+
+.offer-co-brand-stack {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.brand-primary,
+.brand-separator,
+.brand-partner {
+  margin: 0;
+}
+
+.brand-primary {
+  font-size: 11px;
+  line-height: 1.2;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(26, 26, 26, 0.62);
+}
+
+.brand-separator {
+  font-size: 12px;
+  line-height: 1;
+  color: rgba(26, 26, 26, 0.46);
+}
+
+.brand-partner {
+  font-size: 15px;
+  line-height: 1.2;
+  font-weight: 500;
+  color: var(--text);
 }
 
 .offer-kicker {
