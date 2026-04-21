@@ -17,6 +17,7 @@ const CHECKOUT_PLACEHOLDER_URL = "https://pending-site.example";
 
 const DEFAULT_OFFER_SUBHEAD = offerSubhead?.textContent?.trim() || "";
 const DEFAULT_OFFER_PRICE_LABEL = offerPriceLabel?.textContent?.trim() || "";
+const DEFAULT_HERO_PRICE_LABEL = "Exclusive member pricing";
 
 const offerContext = {
   url: ""
@@ -103,7 +104,7 @@ function applyPartnerBranding() {
   });
 
   if (offerPriceLabel) {
-    offerPriceLabel.textContent = partner?.offerPriceLabel || DEFAULT_OFFER_PRICE_LABEL;
+    offerPriceLabel.textContent = partner ? DEFAULT_HERO_PRICE_LABEL : DEFAULT_OFFER_PRICE_LABEL;
   }
 
   if (offerFinalPriceLabel) {
@@ -113,6 +114,11 @@ function applyPartnerBranding() {
   if (offerCoBrandStack && offerCoBrandPartner) {
     offerCoBrandPartner.textContent = partner?.name || "";
     offerCoBrandStack.hidden = !partner?.name;
+  }
+
+  if (partnerEyebrow) {
+    partnerEyebrow.hidden = true;
+    partnerEyebrow.textContent = "";
   }
 
   if (offerPartnerAudience) {
