@@ -3,10 +3,12 @@ const partnerLogo = document.getElementById("partner-logo");
 const partnerEyebrow = document.getElementById("partner-eyebrow");
 const offerSubhead = document.getElementById("offer-subhead");
 const offerPriceLabel = document.getElementById("offer-price-label");
-const offerUrlInput = document.getElementById("offer-url");
 const offerMessage = document.getElementById("offer-message");
 const offerPrimaryCta = document.getElementById("offer-cta");
 const offerFinalCta = document.getElementById("offer-final-cta");
+const damonPhoto = document.querySelector(".offer-damon-photo");
+const damonPhotoSlot = document.querySelector(".offer-damon-photo-slot");
+
 const DEFAULT_OFFER_SUBHEAD = offerSubhead?.textContent?.trim() || "";
 const DEFAULT_OFFER_PRICE_LABEL = offerPriceLabel?.textContent?.trim() || "";
 
@@ -69,6 +71,16 @@ function readJsonSafely(response) {
   });
 }
 
+function requestWebsiteUrl() {
+  const suggested = offerContext.url || "yourwebsite.com";
+  const rawValue = window.prompt("What website should we audit?", suggested);
+  if (rawValue === null) {
+    return "";
+  }
+
+  return normalizeUrl(rawValue);
+}
+
 function applyPartnerBranding() {
   if (!partnerHelpers || typeof partnerHelpers.applyPartnerBranding !== "function") {
     return null;
@@ -90,14 +102,30 @@ function applyPartnerBranding() {
   return partner;
 }
 
+function setupDamonPhoto() {
+  if (!damonPhoto || !damonPhotoSlot) return;
+
+  damonPhoto.addEventListener("load", () => {
+    damonPhoto.classList.remove("is-missing");
+    damonPhotoSlot.classList.add("has-image");
+  });
+
+  damonPhoto.addEventListener("error", () => {
+    damonPhoto.classList.add("is-missing");
+    damonPhotoSlot.classList.remove("has-image");
+  });
+
+  if (damonPhoto.complete && damonPhoto.naturalWidth > 0) {
+    damonPhotoSlot.classList.add("has-image");
+  }
+}
+
 async function beginCheckout() {
   setMessage("");
 
-  const url = normalizeUrl(offerUrlInput?.value || offerContext.url);
+  const url = requestWebsiteUrl();
   if (!url || !isValidUrl(url)) {
-    setMessage("Enter your website to continue.");
-    offerUrlInput?.scrollIntoView({ behavior: "smooth", block: "center" });
-    offerUrlInput?.focus();
+    setMessage("Enter a valid website to continue.");
     return;
   }
 
@@ -141,5 +169,6 @@ function attachCta(button) {
 }
 
 applyPartnerBranding();
+setupDamonPhoto();
 attachCta(offerPrimaryCta);
 attachCta(offerFinalCta);
