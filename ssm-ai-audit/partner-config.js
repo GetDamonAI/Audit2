@@ -3,7 +3,7 @@
   const PARTNER_CONFIG = {
     telus: {
       name: "TELUS",
-      logoPath: "/partner-logos/telus.svg",
+      logoPath: "/partners/telus.png",
       eyebrowText: "In partnership with TELUS",
       subhead: "",
       offerPriceLabel: "Limited Partner Offer",
@@ -11,7 +11,7 @@
     },
     bctech: {
       name: "BC Tech",
-      logoPath: "",
+      logoPath: "/partners/bctech.png",
       eyebrowText: "In partnership with BC Tech",
       subhead: "",
       offerPriceLabel: "Limited Partner Offer",
@@ -105,11 +105,15 @@
       };
       logoElement.onerror = () => {
         logoElement.style.display = "none";
+        logoElement.removeAttribute("src");
+        logoElement.alt = "";
       };
       logoElement.src = partner.logoPath;
       logoElement.alt = partner.name ? `${partner.name} logo` : "Partner logo";
     } else if (logoElement) {
       logoElement.style.display = "none";
+      logoElement.removeAttribute("src");
+      logoElement.alt = "";
     }
 
     return partner;

@@ -59,8 +59,14 @@ const PARTNER_HOST_SUFFIX = "semanticsearchmarketing.com";
 const PARTNER_CONFIG = {
   telus: {
     name: "TELUS",
-    logoPath: "/partner-logos/telus.svg",
+    logoPath: "/partners/telus.png",
     eyebrowText: "In partnership with TELUS",
+    subhead: ""
+  },
+  bctech: {
+    name: "BC Tech",
+    logoPath: "/partners/bctech.png",
+    eyebrowText: "In partnership with BC Tech",
     subhead: ""
   }
 };
@@ -172,11 +178,15 @@ function applyPartnerBranding() {
     };
     partnerLogo.onerror = () => {
       partnerLogo.style.display = "none";
+      partnerLogo.removeAttribute("src");
+      partnerLogo.alt = "";
     };
     partnerLogo.src = partner.logoPath;
     partnerLogo.alt = partner.name ? `${partner.name} logo` : "Partner logo";
   } else if (partnerLogo) {
     partnerLogo.style.display = "none";
+    partnerLogo.removeAttribute("src");
+    partnerLogo.alt = "";
   }
 }
 
