@@ -57,7 +57,7 @@ svg {
 .offer-shell {
   width: min(100%, var(--hero-width));
   margin: 0 auto;
-  padding: 14px 16px 92px;
+  padding: 12px 16px 92px;
   display: grid;
   gap: 28px;
 }
@@ -71,7 +71,7 @@ svg {
 }
 
 .offer-hero {
-  padding: 20px 18px 24px;
+  padding: 18px 18px 22px;
 }
 
 .offer-section {
@@ -80,7 +80,7 @@ svg {
 
 .offer-hero-layout {
   display: grid;
-  gap: 16px;
+  gap: 14px;
   align-items: start;
 }
 
@@ -95,7 +95,7 @@ svg {
 }
 
 .offer-hero-main {
-  gap: 4px;
+  gap: 2px;
 }
 
 .offer-kicker {
@@ -117,18 +117,18 @@ svg {
   display: grid;
   gap: 2px;
   justify-items: start;
-  padding: 0 0 4px;
+  padding: 0 0 3px;
   border-bottom: 1px solid color-mix(in srgb, var(--offer-accent) 14%, transparent);
 }
 
 #partner-logo {
+  display: block;
   width: auto;
   height: var(--partner-logo-height);
-  max-width: min(520px, 92vw);
+  max-width: min(560px, 94vw);
   object-fit: contain;
   justify-self: start;
-  margin-top: -14px;
-  margin-bottom: -18px;
+  margin: 0;
 }
 
 .offer-co-brand-stack {
@@ -224,7 +224,7 @@ svg {
 .offer-anchor-inline {
   display: grid;
   max-width: 27rem;
-  margin-top: 10px;
+  margin-top: 8px;
 }
 
 .offer-anchor-title,
@@ -247,7 +247,7 @@ svg {
   display: grid;
   gap: 16px;
   padding: 24px;
-  margin-top: 12px;
+  margin-top: 10px;
 }
 
 .offer-price-block-final {
@@ -354,7 +354,7 @@ svg {
 .offer-cta-group {
   display: grid;
   gap: 12px;
-  margin-top: 2px;
+  margin-top: 0;
   align-items: start;
 }
 
@@ -429,8 +429,8 @@ svg {
 }
 
 .offer-hero-sidebar {
-  gap: 4px;
-  padding: 16px 20px 18px;
+  gap: 2px;
+  padding: 14px 18px 16px;
   border-radius: 28px;
   border: 1px solid color-mix(in srgb, var(--offer-accent) 14%, transparent);
   background:
@@ -514,7 +514,7 @@ svg {
 
 .offer-side-meta {
   display: grid;
-  gap: 8px;
+  gap: 7px;
 }
 
 .offer-trust-row {
@@ -674,14 +674,14 @@ svg {
 .offer-kicker + .offer-section-title,
 .offer-kicker + .offer-side-title,
 .offer-kicker + .offer-anchor-title {
-  margin-top: 4px;
+  margin-top: 3px;
 }
 
 .offer-section-title + .offer-grid-list,
 .offer-section-title + .offer-bullet-list,
 .offer-section-title + .offer-section-copy,
 .offer-side-title + .offer-check-list {
-  margin-top: 8px;
+  margin-top: 6px;
 }
 
 .offer-section-copy + .offer-bullet-list,
@@ -698,7 +698,7 @@ svg {
 @media (min-width: 720px) {
   .offer-shell {
     gap: 30px;
-    padding: 20px 24px 98px;
+    padding: 14px 24px 98px;
   }
 
   .offer-hero,
@@ -707,7 +707,7 @@ svg {
   }
 
   .offer-hero {
-    padding: 24px 28px 30px;
+    padding: 18px 26px 24px;
   }
 
   .offer-section {
@@ -716,7 +716,7 @@ svg {
 
   .offer-hero-layout {
     grid-template-columns: minmax(0, 1fr) minmax(320px, 0.8fr);
-    gap: 26px;
+    gap: 22px;
   }
 
   .offer-grid-list,
@@ -735,8 +735,6 @@ svg {
   #partner-logo {
     height: var(--partner-logo-height-tablet);
     max-width: 500px;
-    margin-top: -16px;
-    margin-bottom: -22px;
   }
 
   .offer-title {
@@ -753,28 +751,26 @@ svg {
 @media (min-width: 1024px) {
   .offer-shell {
     gap: 34px;
-    padding-top: 18px;
+    padding-top: 10px;
   }
 
   .offer-hero {
-    padding: 22px 34px 28px;
+    padding: 16px 30px 22px;
   }
 
   .offer-hero-layout {
     grid-template-columns: minmax(0, 1fr) minmax(360px, 0.82fr);
-    gap: 32px;
+    gap: 24px;
     align-items: stretch;
   }
 
   .offer-hero-main {
-    gap: 4px;
+    gap: 2px;
   }
 
   #partner-logo {
     height: var(--partner-logo-height-desktop);
     max-width: 540px;
-    margin-top: -20px;
-    margin-bottom: -28px;
   }
 
   .offer-title {
@@ -791,7 +787,7 @@ svg {
   }
 
   .offer-price-block {
-    padding: 24px;
+    padding: 22px;
   }
 
   .offer-price-grid {
@@ -809,7 +805,7 @@ svg {
   }
 
   .offer-hero-sidebar {
-    padding: 16px 22px 18px;
+    padding: 14px 20px 16px;
   }
 
   .offer-final-cta {
