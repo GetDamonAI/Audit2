@@ -17,18 +17,16 @@
           <p id="partner-eyebrow" class="offer-kicker offer-kicker-accent" hidden></p>
 
           <div id="offer-brand-lockup" class="offer-brand-lockup" hidden>
-            <img
-              id="partner-logo"
-              alt=""
-              style="display:none; max-height:40px; margin-bottom:10px;"
-            />
-            <div id="offer-co-brand-stack" class="offer-co-brand-stack" hidden>
-              <span class="brand-primary">Semantic Search Marketing</span>
-              <span class="brand-separator">&times;</span>
-              <span id="offer-co-brand-partner" class="brand-partner"></span>
+            <img id="partner-logo" alt="" />
+            <div class="offer-brand-copy">
+              <div id="offer-co-brand-stack" class="offer-co-brand-stack" hidden>
+                <span class="brand-primary">Semantic Search Marketing</span>
+                <span class="brand-separator">&times;</span>
+                <span id="offer-co-brand-partner" class="brand-partner"></span>
+              </div>
+              <p id="offer-partner-audience" class="offer-partner-audience" hidden></p>
+              <p id="offer-partner-benefit" class="offer-partner-benefit" hidden></p>
             </div>
-            <p id="offer-partner-audience" class="offer-partner-audience" hidden></p>
-            <p id="offer-partner-benefit" class="offer-partner-benefit" hidden></p>
           </div>
 
           <div class="offer-hero-copy">
@@ -38,7 +36,7 @@
             </h1>
 
             <p id="offer-subhead" class="offer-subhead">
-              A full AI visibility audit, implementation plan, and live coaching to help your business get discovered in ChatGPT and AI search.
+              A full AI visibility audit, implementation plan, and live coaching to help your business get discovered in ChatGPT, Google AI, and beyond.
             </p>
 
             <div class="offer-anchor-inline">
@@ -47,21 +45,22 @@
           </div>
 
           <div class="offer-price-block offer-price-block-hero" aria-label="Pricing">
-            <div class="offer-price-meta">
+            <div class="offer-price-header">
               <p id="offer-price-label" class="offer-price-label">Limited Introductory Offer</p>
               <div class="offer-price-chip-row">
                 <span class="offer-price-chip">Save $300</span>
                 <span class="offer-price-chip">60% Off</span>
               </div>
             </div>
-            <div class="offer-price-compare" aria-label="Price comparison">
-              <div class="offer-price-tier offer-price-tier-regular">
+            <div class="offer-price-grid" aria-label="Price comparison">
+              <div class="offer-price-segment offer-price-segment-regular">
+                <span class="offer-price-segment-label">Regular Price</span>
                 <span class="offer-price-original">$499</span>
-                <span class="offer-price-caption">Regular Price</span>
               </div>
-              <div class="offer-price-tier offer-price-tier-member">
+              <span class="offer-price-divider" aria-hidden="true"></span>
+              <div class="offer-price-segment offer-price-segment-member">
+                <span class="offer-price-segment-label">Member Price</span>
                 <span class="offer-price-active">$199</span>
-                <span class="offer-price-caption">Member Price</span>
               </div>
             </div>
             <p class="offer-trust">Includes full report, implementation plan, and live walkthrough</p>
@@ -93,11 +92,56 @@
             <li>Schema guidance</li>
             <li>Live coaching included</li>
           </ul>
+          <div class="offer-side-divider" aria-hidden="true"></div>
           <div class="offer-side-meta" aria-label="Offer support points">
-            <p>Secure checkout</p>
-            <p>Delivered in 5 business days</p>
-            <p>Live coaching included</p>
-            <p>Clear implementation roadmap</p>
+            <article class="offer-trust-row">
+              <span class="offer-trust-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none">
+                  <path d="M10 5.5V10L13 11.8" />
+                  <circle cx="10" cy="10" r="5.75" />
+                </svg>
+              </span>
+              <div class="offer-trust-copy">
+                <h3>Delivered in 5 business days</h3>
+                <p>Your full audit + plan, on time.</p>
+              </div>
+            </article>
+            <article class="offer-trust-row">
+              <span class="offer-trust-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none">
+                  <path d="M5.25 7.25H14.75C15.7165 7.25 16.5 8.0335 16.5 9V13.25C16.5 14.2165 15.7165 15 14.75 15H9.5L6 17V15H5.25C4.2835 15 3.5 14.2165 3.5 13.25V9C3.5 8.0335 4.2835 7.25 5.25 7.25Z" />
+                  <path d="M7 10H13" />
+                </svg>
+              </span>
+              <div class="offer-trust-copy">
+                <h3>Live walkthrough included</h3>
+                <p>We walk through it together.</p>
+              </div>
+            </article>
+            <article class="offer-trust-row">
+              <span class="offer-trust-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none">
+                  <path d="M6.25 8.25V6.75C6.25 4.67893 7.92893 3 10 3C12.0711 3 13.75 4.67893 13.75 6.75V8.25" />
+                  <rect x="4.5" y="8.25" width="11" height="8.25" rx="2" />
+                </svg>
+              </span>
+              <div class="offer-trust-copy">
+                <h3>Secure checkout</h3>
+                <p>Your data is safe and protected.</p>
+              </div>
+            </article>
+            <article class="offer-trust-row">
+              <span class="offer-trust-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none">
+                  <path d="M4 14.5L8 10.5L10.75 13.25L16 8" />
+                  <path d="M12.75 8H16V11.25" />
+                </svg>
+              </span>
+              <div class="offer-trust-copy">
+                <h3>Clear implementation roadmap</h3>
+                <p>Exactly what to do, step by step.</p>
+              </div>
+            </article>
           </div>
         </aside>
       </div>
@@ -201,23 +245,25 @@
       </div>
       <div class="offer-final-actions">
         <div class="offer-price-block offer-price-block-final" aria-label="Final pricing">
-          <div class="offer-price-meta">
+          <div class="offer-price-header">
             <p id="offer-final-price-label" class="offer-price-label">Limited Introductory Offer</p>
             <div class="offer-price-chip-row">
               <span class="offer-price-chip">Save $300</span>
               <span class="offer-price-chip">60% Off</span>
             </div>
           </div>
-          <div class="offer-price-compare" aria-label="Final price comparison">
-            <div class="offer-price-tier offer-price-tier-regular">
+          <div class="offer-price-grid" aria-label="Final price comparison">
+            <div class="offer-price-segment offer-price-segment-regular">
+              <span class="offer-price-segment-label">Regular Price</span>
               <span class="offer-price-original">$499</span>
-              <span class="offer-price-caption">Regular Price</span>
             </div>
-            <div class="offer-price-tier offer-price-tier-member">
+            <span class="offer-price-divider" aria-hidden="true"></span>
+            <div class="offer-price-segment offer-price-segment-member">
+              <span class="offer-price-segment-label">Member Price</span>
               <span class="offer-price-active">$199</span>
-              <span class="offer-price-caption">Member Price</span>
             </div>
           </div>
+          <p class="offer-trust">Includes full report, implementation plan, and live walkthrough</p>
         </div>
         <button id="offer-final-cta" class="offer-primary-button" type="button">
           Get My Full Audit + Plan — $199

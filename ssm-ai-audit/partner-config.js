@@ -10,8 +10,8 @@
       subhead: "",
       offerPriceLabel: "Exclusive TELUS Business Customer Offer",
       offerSubhead: "",
-      accentColor: "#7556b6",
-      accentSoft: "rgba(117, 86, 182, 0.08)"
+      accentColor: "#7966a6",
+      accentSoft: "rgba(121, 102, 166, 0.08)"
     },
     bctech: {
       name: "BC Tech",
@@ -22,8 +22,8 @@
       subhead: "",
       offerPriceLabel: "Exclusive BC Tech Member Offer",
       offerSubhead: "",
-      accentColor: "#a78a3b",
-      accentSoft: "rgba(167, 138, 59, 0.08)"
+      accentColor: "#9c8450",
+      accentSoft: "rgba(156, 132, 80, 0.08)"
     },
     smallbusinessbc: {
       name: "Small Business BC",
@@ -34,8 +34,8 @@
       subhead: "",
       offerPriceLabel: "Exclusive Small Business BC Member Offer",
       offerSubhead: "",
-      accentColor: "#4d8b84",
-      accentSoft: "rgba(77, 139, 132, 0.08)"
+      accentColor: "#4f8782",
+      accentSoft: "rgba(79, 135, 130, 0.08)"
     }
   };
 
