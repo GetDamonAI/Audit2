@@ -130,7 +130,8 @@ svg {
   align-items: center;
   overflow: hidden;
   max-width: 260px;
-  margin-bottom: 16px;
+  margin-top: 6px;
+  margin-bottom: 12px;
 }
 
 .offer-partner-logo > #partner-logo {
