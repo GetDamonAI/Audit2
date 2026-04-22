@@ -152,6 +152,7 @@ function finalizePaidReport({
     },
     executiveSummary: normalizeExecutiveSummary(parsed.executiveSummary),
     aiVisibilityDiagnosis: normalizeDiagnosis(parsed.aiVisibilityDiagnosis),
+    opportunityMap: normalizeOpportunityMap(parsed.opportunityMap),
     priorityActions: normalizePriorityActions(parsed.priorityActions),
     tacticalRecommendations: normalizeRecommendations(
       parsed.tacticalRecommendations,
@@ -159,6 +160,9 @@ function finalizePaidReport({
     ),
     workstreams: normalizeWorkstreams(parsed.workstreams, implementationPlanSeed.recommendations),
     sixtyDayCalendar: normalizeCalendar(parsed.sixtyDayCalendar),
+    implementationChecklist: normalizeChecklist(parsed.implementationChecklist),
+    quickWins: normalizeStringArray(parsed.quickWins, 8),
+    coachingNotes: normalizeCoachingNotes(parsed.coachingNotes),
     implementationPlanSeed
   };
 
@@ -203,8 +207,8 @@ function buildPaidReportPrompt({
 You are creating a premium paid deliverable:
 "AI Visibility Audit + Implementation Plan"
 
-This is for a real paying client, so the output should feel thoughtful, practical, prioritized, and tailored.
-Do not write generic SEO filler. Focus on AI search visibility, answer-engine recommendation readiness, and implementation clarity.
+This is for a real paying client, so the output should feel like a strategist wrote it: thoughtful, practical, prioritized, and tailored.
+Do not write generic SEO filler. Focus on AI search visibility, answer-engine recommendation readiness, implementation clarity, and commercial usefulness.
 
 BUSINESS
 - Website: ${url}
@@ -216,17 +220,19 @@ BUSINESS
 - Quick audit summary: ${metadata.summary || ""}
 
 INTAKE CONTEXT
-- Primary business goal: ${intake.businessGoal || ""}
+- What they are trying to sell or inform people about: ${intake.businessGoal || ""}
+- Ideal customer: ${intake.idealCustomer || ""}
 - Top services or products: ${intake.topServices || ""}
-- Top priority pages: ${intake.priorityPages || ""}
+- Key pages or services to drive traffic to: ${intake.priorityPages || ""}
 - Target locations: ${intake.targetLocations || ""}
-- Top competitors: ${intake.topCompetitors || ""}
+- Main competitors: ${intake.topCompetitors || ""}
 - Blog/resources section: ${intake.hasBlog || ""}
 - CMS/platform: ${intake.cmsPlatform || ""}
 - Can edit code/schema: ${intake.canEditCode || ""}
 - Internal marketing support: ${intake.marketingSupport || ""}
-- Specific report questions: ${intake.reportQuestions || ""}
-- AI question targeting: ${intake.aiQuestionTargeting || ""}
+- Questions they want to show up for in AI: ${intake.aiQuestionTargeting || ""}
+- Current marketing focus: ${intake.currentMarketingFocus || ""}
+- Biggest challenge right now: ${intake.biggestChallenge || ""}
 - Customer intent before choosing: ${intake.customerIntent || ""}
 - Desired AI visibility: ${intake.desiredVisibility || ""}
 - Differentiation: ${intake.differentiation || ""}
@@ -276,6 +282,7 @@ OUTPUT RULES
 - Return valid JSON only.
 - Tailor the report to the intake and the site signals.
 - Be practical, not theoretical.
+- Make the report feel premium, strategic, and actionable enough to justify a paid engagement.
 - Use the crawl, schema, content-depth, and multi-query search signals to make the report more specific.
 - Reference actual services/products from the intake when making recommendations.
 - Reference specific crawled URLs or page types when recommending fixes.
@@ -285,6 +292,9 @@ OUTPUT RULES
 - Every recommendation should explain what to change and how to implement it.
 - Use AI-search-native language: entity clarity, answer readiness, citation readiness, trust signals, recommendation likelihood, question-led coverage.
 - Make the 60-day plan realistic for a small business or lean marketing team.
+- Include 5-10 high-value AI-search queries in the opportunity map that are grounded in the intake and business context.
+- Prioritize clarity, ranked action, and scannable insight over long paragraphs.
+- Avoid vague advice like "improve SEO" unless you explain exactly what to do and why it matters for AI search.
 - Priority actions should be ranked from highest leverage to lowest.
 - Tactical recommendations should be specific enough that Damon could walk the client through them.
 
@@ -304,6 +314,14 @@ RETURN JSON IN THIS EXACT SHAPE:
       "whyItMattersForAiSearch": "string",
       "severity": "High|Medium|Low",
       "whatItMeans": "string"
+    }
+  ],
+  "opportunityMap": [
+    {
+      "query": "string",
+      "whyItMatters": "string",
+      "recommendedIntent": "string",
+      "priority": "High|Medium|Low"
     }
   ],
   "priorityActions": [
@@ -347,6 +365,22 @@ RETURN JSON IN THIS EXACT SHAPE:
         }
       ]
     }
+  ],
+  "implementationChecklist": [
+    {
+      "task": "string",
+      "priority": "High|Medium|Low",
+      "owner": "string"
+    }
+  ],
+  "quickWins": [
+    "string",
+    "string"
+  ],
+  "coachingNotes": {
+    "whatMattersMost": ["string", "string"],
+    "whatToIgnore": ["string", "string"],
+    "whereToFocusFirst": "string"
   ]
 }
 `;
@@ -418,10 +452,14 @@ function renderCustomerPaidReportEmail({ report, bookingUrl }) {
 
         ${renderExecutiveSummarySection(report.executiveSummary)}
         ${renderDiagnosisSection(report.aiVisibilityDiagnosis)}
+        ${renderOpportunityMapSection(report.opportunityMap)}
         ${renderPriorityActionsSection(report.priorityActions)}
         ${renderRecommendationsSection(report.tacticalRecommendations)}
         ${renderWorkstreamsSection(report.workstreams)}
         ${renderCalendarSection(report.sixtyDayCalendar)}
+        ${renderChecklistSection(report.implementationChecklist)}
+        ${renderQuickWinsSection(report.quickWins)}
+        ${renderCoachingNotesSection(report.coachingNotes)}
 
         <div style="margin-top:28px; padding-top:24px; border-top:1px solid rgba(23,23,23,0.08);">
           <p style="margin:0 0 14px; font-size:16px; line-height:1.55; color:#555555;">
@@ -453,7 +491,10 @@ function renderInternalPaidReportEmail({ report, customerEmail, bookingUrl }) {
       <p><strong>Quick Audit Status:</strong> ${escapeHtml(report.quickAuditStatus || "Not available")}</p>
       <p><strong>Booking URL:</strong> <a href="${escapeHtml(bookingUrl)}">${escapeHtml(bookingUrl)}</a></p>
       ${renderExecutiveSummarySection(report.executiveSummary)}
+      ${renderOpportunityMapSection(report.opportunityMap)}
       ${renderPriorityActionsSection(report.priorityActions)}
+      ${renderQuickWinsSection(report.quickWins)}
+      ${renderCoachingNotesSection(report.coachingNotes)}
       ${renderCalendarSection(report.sixtyDayCalendar)}
     </div>
   `;
@@ -503,6 +544,26 @@ function renderPriorityActionsSection(actions) {
     <div style="padding-top:18px; margin-top:18px; border-top:1px solid rgba(23,23,23,0.08);">
       <p style="margin:0 0 10px; font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:#777777;">Priority Actions</p>
       <ol style="margin:0; padding-left:20px; font-size:16px; line-height:1.6; color:#1a1a1a;">${items}</ol>
+    </div>
+  `;
+}
+
+function renderOpportunityMapSection(items) {
+  const values = Array.isArray(items) ? items : [];
+  if (!values.length) return "";
+
+  const rows = values.map((item) => `
+    <li style="margin:0 0 14px;">
+      <strong>${escapeHtml(item.query)}</strong><br />
+      <span style="color:#555555;">${escapeHtml(item.whyItMatters)}</span><br />
+      <span style="color:#777777;">Intent: ${escapeHtml(item.recommendedIntent)} | Priority: ${escapeHtml(item.priority)}</span>
+    </li>
+  `).join("");
+
+  return `
+    <div style="padding-top:18px; margin-top:18px; border-top:1px solid rgba(23,23,23,0.08);">
+      <p style="margin:0 0 10px; font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:#777777;">Opportunity Map</p>
+      <ol style="margin:0; padding-left:20px; font-size:16px; line-height:1.6; color:#1a1a1a;">${rows}</ol>
     </div>
   `;
 }
@@ -568,6 +629,37 @@ function renderCalendarSection(phases) {
     <div style="padding-top:18px; margin-top:18px; border-top:1px solid rgba(23,23,23,0.08);">
       <p style="margin:0 0 10px; font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:#777777;">60-Day Rollout Plan</p>
       ${sections}
+    </div>
+  `;
+}
+
+function renderChecklistSection(items) {
+  const values = Array.isArray(items) ? items : [];
+  if (!values.length) return "";
+
+  return `
+    <div style="padding-top:18px; margin-top:18px; border-top:1px solid rgba(23,23,23,0.08);">
+      <p style="margin:0 0 10px; font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:#777777;">Implementation Checklist</p>
+      <ul style="margin:0; padding-left:20px; font-size:15px; line-height:1.6; color:#555555;">
+        ${values.map((item) => `<li style="margin:0 0 10px;"><strong>${escapeHtml(item.task)}</strong> <span style="color:#777777;">(${escapeHtml(item.priority)} · ${escapeHtml(item.owner)})</span></li>`).join("")}
+      </ul>
+    </div>
+  `;
+}
+
+function renderQuickWinsSection(items) {
+  return renderBullets("Quick Wins", items);
+}
+
+function renderCoachingNotesSection(notes) {
+  if (!notes) return "";
+
+  return `
+    <div style="padding-top:18px; margin-top:18px; border-top:1px solid rgba(23,23,23,0.08);">
+      <p style="margin:0 0 10px; font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:#777777;">Coaching Notes</p>
+      ${renderBullets("What matters most", notes.whatMattersMost)}
+      ${renderBullets("What to ignore", notes.whatToIgnore)}
+      <p style="margin:14px 0 0; font-size:16px; line-height:1.6; color:#1a1a1a;"><strong>Where to focus first:</strong> ${escapeHtml(notes.whereToFocusFirst || "")}</p>
     </div>
   `;
 }
@@ -652,6 +744,27 @@ function normalizePriorityActions(items) {
     expectedImpact: String(item?.expectedImpact || "Improved discoverability and recommendation likelihood.").trim(),
     difficulty: normalizeDifficulty(item?.difficulty),
     recommendedOwner: String(item?.recommendedOwner || "Marketing lead").trim()
+  }));
+}
+
+function normalizeOpportunityMap(items) {
+  const values = Array.isArray(items) ? items : [];
+  if (!values.length) {
+    return [
+      {
+        query: "Best-fit AI search query opportunity",
+        whyItMatters: "This represents a high-intent prompt the business should be easier to discover for.",
+        recommendedIntent: "Commercial investigation",
+        priority: "High"
+      }
+    ];
+  }
+
+  return values.slice(0, 10).map((item) => ({
+    query: String(item?.query || "AI search opportunity").trim(),
+    whyItMatters: String(item?.whyItMatters || "This query maps closely to a valuable discovery moment.").trim(),
+    recommendedIntent: String(item?.recommendedIntent || "Commercial investigation").trim(),
+    priority: normalizeSeverity(item?.priority)
   }));
 }
 
@@ -746,6 +859,23 @@ function normalizeCalendar(items) {
   return normalized
     .filter((phase) => phase.items.length)
     .slice(0, 4);
+}
+
+function normalizeChecklist(items) {
+  const values = Array.isArray(items) ? items : [];
+  return values.slice(0, 12).map((item) => ({
+    task: String(item?.task || "Implementation task").trim(),
+    priority: normalizeSeverity(item?.priority),
+    owner: String(item?.owner || "Marketing lead").trim()
+  }));
+}
+
+function normalizeCoachingNotes(notes) {
+  return {
+    whatMattersMost: normalizeStringArray(notes?.whatMattersMost, 4),
+    whatToIgnore: normalizeStringArray(notes?.whatToIgnore, 4),
+    whereToFocusFirst: String(notes?.whereToFocusFirst || "Focus first on the fixes that improve entity clarity, answer readiness, and the priority commercial pages.").trim()
+  };
 }
 
 function normalizeStringArray(items, max) {

@@ -75,7 +75,7 @@ You are an expert in AI search visibility, semantic search, and how LLMs like Ch
 
 This is NOT a traditional SEO audit.
 
-Your job is to evaluate whether this business is understandable, trustworthy, and recommendable by AI systems.
+Your job is to think like a strategist and evaluate whether this business is understandable, trustworthy, and recommendable by AI systems.
 
 BUSINESS
 Website: ${url}
@@ -166,6 +166,7 @@ Return valid JSON ONLY with this exact shape:
 RULES:
 - DO NOT lead with generic SEO advice
 - Lead with AI discoverability issues first
+- Keep the analysis concise, specific, and commercially useful
 - Use the crawl and multi-query data, not just the homepage, when judging topic coverage, entity clarity, answer readiness, and authority signals
 - Use AI-first language like:
   - visibility in AI-generated answers
@@ -180,7 +181,8 @@ RULES:
 - topAiQueries should be realistic natural-language prompts a prospect might ask AI
 - competitorAdvantage should explain why a stronger competitor would be surfaced first
 - Avoid generic phrases like "improve SEO" or "optimize rankings" unless explicitly tied to AI answers
-- Keep tone concise, strategic, and modern
+- Avoid long-winded filler or vague advice
+- Keep tone concise, strategic, modern, and scannable
 - Do not use markdown fences
 `;
 
@@ -198,7 +200,7 @@ RULES:
           {
             role: "system",
             content:
-              "You are an expert in AI search visibility, semantic SEO, and technical site readiness. Return only valid JSON."
+              "You are an expert in AI search visibility, semantic SEO, and technical site readiness. Write like a strategist, not a generic SEO tool. Return only valid JSON."
           },
           {
             role: "user",

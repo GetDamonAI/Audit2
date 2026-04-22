@@ -41,6 +41,7 @@ exports.handler = async (event) => {
 
     const intake = {
       businessGoal: String(input.businessGoal || "").trim(),
+      idealCustomer: String(input.idealCustomer || "").trim(),
       topServices: String(input.topServices || "").trim(),
       priorityPages: String(input.priorityPages || "").trim(),
       targetLocations: String(input.targetLocations || "").trim(),
@@ -49,8 +50,9 @@ exports.handler = async (event) => {
       cmsPlatform: String(input.cmsPlatform || "").trim(),
       canEditCode: String(input.canEditCode || "").trim(),
       marketingSupport: String(input.marketingSupport || "").trim(),
-      reportQuestions: String(input.reportQuestions || "").trim(),
       aiQuestionTargeting: String(input.aiQuestionTargeting || "").trim(),
+      currentMarketingFocus: String(input.currentMarketingFocus || "").trim(),
+      biggestChallenge: String(input.biggestChallenge || "").trim(),
       customerIntent: String(input.customerIntent || "").trim(),
       desiredVisibility: String(input.desiredVisibility || "").trim(),
       differentiation: String(input.differentiation || "").trim(),
@@ -190,15 +192,19 @@ function renderInternalPaidIntakeEmail({ session, intake, implementationPlanSeed
       <p><strong>Report queued:</strong> ${escapeHtml(reportQueueResult?.ok ? "Yes" : "No")}</p>
 
       <div style="margin-top:18px;">
-        <p><strong>Primary business goal</strong></p>
+        <p><strong>What are you trying to sell or inform people about?</strong></p>
         <p>${escapeHtml(intake.businessGoal || "Not provided")}</p>
+      </div>
+      <div style="margin-top:18px;">
+        <p><strong>Ideal customer</strong></p>
+        <p>${escapeHtml(intake.idealCustomer || "Not provided")}</p>
       </div>
       <div style="margin-top:18px;">
         <p><strong>Top services or products</strong></p>
         <p>${escapeHtml(intake.topServices || "Not provided")}</p>
       </div>
       <div style="margin-top:18px;">
-        <p><strong>Top priority pages</strong></p>
+        <p><strong>Key pages or services to drive traffic to</strong></p>
         <p>${escapeHtml(intake.priorityPages || "Not provided")}</p>
       </div>
       <div style="margin-top:18px;">
@@ -206,7 +212,7 @@ function renderInternalPaidIntakeEmail({ session, intake, implementationPlanSeed
         <p>${escapeHtml(intake.targetLocations || "Not provided")}</p>
       </div>
       <div style="margin-top:18px;">
-        <p><strong>Top competitors</strong></p>
+        <p><strong>Main competitors</strong></p>
         <p>${escapeHtml(intake.topCompetitors || "Not provided")}</p>
       </div>
       <div style="margin-top:18px;">
@@ -226,12 +232,16 @@ function renderInternalPaidIntakeEmail({ session, intake, implementationPlanSeed
         <p>${escapeHtml(intake.marketingSupport || "Not provided")}</p>
       </div>
       <div style="margin-top:18px;">
-        <p><strong>Report questions</strong></p>
-        <p>${escapeHtml(intake.reportQuestions || "Not provided")}</p>
+        <p><strong>Questions they'd like to show up for in AI</strong></p>
+        <p>${escapeHtml(intake.aiQuestionTargeting || "Not provided")}</p>
       </div>
       <div style="margin-top:18px;">
-        <p><strong>What questions should AI answer about the business?</strong></p>
-        <p>${escapeHtml(intake.aiQuestionTargeting || "Not provided")}</p>
+        <p><strong>Current marketing focus</strong></p>
+        <p>${escapeHtml(intake.currentMarketingFocus || "Not provided")}</p>
+      </div>
+      <div style="margin-top:18px;">
+        <p><strong>Biggest challenge right now</strong></p>
+        <p>${escapeHtml(intake.biggestChallenge || "Not provided")}</p>
       </div>
       <div style="margin-top:18px;">
         <p><strong>Customer intent before choosing</strong></p>

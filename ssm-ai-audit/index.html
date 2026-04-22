@@ -416,8 +416,15 @@
 
               <div class="paid-intake-grid">
                 <div class="field-group field-group-full">
-                  <label class="field-label" for="business-goal">Primary business goal</label>
-                  <textarea id="business-goal" name="businessGoal" placeholder="What matters most right now? More leads, more local visibility, better recommendations, stronger authority, or something else?"></textarea>
+                  <label class="field-label" for="business-goal">What are you trying to sell or inform people about?</label>
+                  <p class="field-note">Be specific. This helps us understand what your business needs to be found for.</p>
+                  <textarea id="business-goal" name="businessGoal" placeholder="Describe the offer, service, product, or topic you need people to discover."></textarea>
+                </div>
+
+                <div class="field-group field-group-full">
+                  <label class="field-label" for="ideal-customer">Who is your ideal customer?</label>
+                  <p class="field-note">Describe the type of person or company you want to reach.</p>
+                  <textarea id="ideal-customer" name="idealCustomer" placeholder="Who are you trying to attract, help, or sell to?"></textarea>
                 </div>
 
                 <div class="field-group field-group-full">
@@ -426,8 +433,9 @@
                 </div>
 
                 <div class="field-group field-group-full">
-                  <label class="field-label" for="priority-pages">Top priority pages</label>
-                  <textarea id="priority-pages" name="priorityPages" placeholder="Share the pages you most want AI platforms to understand and recommend."></textarea>
+                  <label class="field-label" for="priority-pages">Key pages or services you want to drive traffic to (optional)</label>
+                  <p class="field-note">Paste links or describe them (homepage, product, service pages, etc.)</p>
+                  <textarea id="priority-pages" name="priorityPages" placeholder="Share the pages or services you most want people to land on."></textarea>
                 </div>
 
                 <div class="field-group">
@@ -436,8 +444,9 @@
                 </div>
 
                 <div class="field-group">
-                  <label class="field-label" for="top-competitors">Top competitors</label>
-                  <input id="top-competitors" name="topCompetitors" type="text" placeholder="Who do you most want to outrank in AI recommendations?" />
+                  <label class="field-label" for="top-competitors">Main competitors (optional)</label>
+                  <p class="field-note">List 2–3 competitors or similar companies</p>
+                  <input id="top-competitors" name="topCompetitors" type="text" placeholder="Competitor 1, Competitor 2, Competitor 3" />
                 </div>
 
                 <div class="field-group">
@@ -452,16 +461,25 @@
 
                 <div class="field-group">
                   <label class="field-label" for="cms-platform">CMS or platform</label>
-                  <input id="cms-platform" name="cmsPlatform" type="text" placeholder="WordPress, Webflow, Shopify, Squarespace, custom, etc." />
+                  <select id="cms-platform" name="cmsPlatform">
+                    <option value="">Select one</option>
+                    <option value="WordPress">WordPress</option>
+                    <option value="Shopify">Shopify</option>
+                    <option value="Webflow">Webflow</option>
+                    <option value="Squarespace">Squarespace</option>
+                    <option value="Custom-built">Custom-built</option>
+                    <option value="Don't know / Other">Don't know / Other</option>
+                  </select>
                 </div>
 
                 <div class="field-group">
                   <label class="field-label" for="can-edit-code">Can you edit code or schema?</label>
                   <select id="can-edit-code" name="canEditCode">
                     <option value="">Select one</option>
-                    <option value="yes">Yes</option>
-                    <option value="limited">Limited access</option>
-                    <option value="no">No</option>
+                    <option value="Yes, I can edit code">Yes, I can edit code</option>
+                    <option value="I have a developer">I have a developer</option>
+                    <option value="No">No</option>
+                    <option value="What is schema?">What is schema?</option>
                   </select>
                 </div>
 
@@ -476,18 +494,32 @@
                 </div>
 
                 <div class="field-group field-group-full">
-                  <label class="field-label" for="report-questions">Any specific questions you want the report to answer?</label>
-                  <textarea id="report-questions" name="reportQuestions" placeholder="If there are specific pages, visibility problems, or AI-search questions you want us to focus on, add them here."></textarea>
-                </div>
-
-                <div class="field-group field-group-full">
                   <p class="section-kicker">AI Visibility Inputs</p>
                 </div>
 
                 <div class="field-group field-group-full">
-                  <label class="field-label" for="ai-question-targeting">What questions would you want AI to answer about your business?</label>
-                  <p class="field-note">Think about how customers actually ask things — not keywords. For example: “What’s the best X near me?”, “How much does X cost?”, “Who should I choose for X?”</p>
-                  <textarea id="ai-question-targeting" name="aiQuestionTargeting" placeholder="List the kinds of real questions you would want AI systems to answer about your business."></textarea>
+                  <label class="field-label" for="ai-question-targeting">Tell us a few questions you'd like to show up for in AI</label>
+                  <p class="field-note">Examples: “Best CRM for small business” • “How to improve restaurant marketing” • “What is the best accounting software for freelancers”</p>
+                  <textarea id="ai-question-targeting" name="aiQuestionTargeting" placeholder="List the questions you want AI systems to connect your business to."></textarea>
+                </div>
+
+                <div class="field-group">
+                  <label class="field-label" for="current-marketing-focus">Current marketing focus</label>
+                  <select id="current-marketing-focus" name="currentMarketingFocus">
+                    <option value="">Select one</option>
+                    <option value="SEO">SEO</option>
+                    <option value="Paid ads">Paid ads</option>
+                    <option value="Social media">Social media</option>
+                    <option value="Referrals">Referrals</option>
+                    <option value="Not actively marketing">Not actively marketing</option>
+                    <option value="Mixed">Mixed</option>
+                  </select>
+                </div>
+
+                <div class="field-group field-group-full">
+                  <label class="field-label" for="biggest-challenge">Biggest challenge right now</label>
+                  <p class="field-note">Example: Not getting traffic, low conversions, not showing up in AI, unclear messaging</p>
+                  <textarea id="biggest-challenge" name="biggestChallenge" placeholder="Describe the biggest obstacle getting in the way right now."></textarea>
                 </div>
 
                 <div class="field-group field-group-full">

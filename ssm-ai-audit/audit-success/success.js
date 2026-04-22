@@ -64,6 +64,7 @@ if (intakeForm) {
     const payload = {
       sessionId: String(formData.get("sessionId") || "").trim(),
       businessGoal: String(formData.get("businessGoal") || "").trim(),
+      idealCustomer: String(formData.get("idealCustomer") || "").trim(),
       topServices: String(formData.get("topServices") || "").trim(),
       priorityPages: String(formData.get("priorityPages") || "").trim(),
       targetLocations: String(formData.get("targetLocations") || "").trim(),
@@ -72,7 +73,14 @@ if (intakeForm) {
       cmsPlatform: String(formData.get("cmsPlatform") || "").trim(),
       canEditCode: String(formData.get("canEditCode") || "").trim(),
       marketingSupport: String(formData.get("marketingSupport") || "").trim(),
-      reportQuestions: String(formData.get("reportQuestions") || "").trim()
+      aiQuestionTargeting: String(formData.get("aiQuestionTargeting") || "").trim(),
+      currentMarketingFocus: String(formData.get("currentMarketingFocus") || "").trim(),
+      biggestChallenge: String(formData.get("biggestChallenge") || "").trim(),
+      customerIntent: String(formData.get("customerIntent") || "").trim(),
+      desiredVisibility: String(formData.get("desiredVisibility") || "").trim(),
+      differentiation: String(formData.get("differentiation") || "").trim(),
+      conversionGoal: String(formData.get("conversionGoal") || "").trim(),
+      contentMaturity: String(formData.get("contentMaturity") || "").trim()
     };
 
     if (!payload.sessionId) {
