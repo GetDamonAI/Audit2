@@ -225,7 +225,7 @@ async function beginCheckout() {
   setMessage("");
   if (isBypassModeActive()) {
     console.log("Bypass mode active: skipping Stripe");
-    window.location.href = "/audit-success/";
+    window.location.href = "/audit-success/?bypass=true";
     return;
   }
 

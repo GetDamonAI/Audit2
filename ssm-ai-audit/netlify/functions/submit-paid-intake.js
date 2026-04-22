@@ -14,30 +14,19 @@ exports.handler = async (event) => {
     const secretKey = process.env.STRIPE_SECRET_KEY;
     const resendKey = process.env.RESEND_API_KEY;
     const sessionId = String(input.sessionId || "").trim();
+    const bypassMode = input.bypass === true || String(input.internal || "").trim() === "1";
 
-    if (!secretKey) {
+    if (!secretKey && !bypassMode) {
       return respond(500, { error: "Missing STRIPE_SECRET_KEY." });
     }
 
-    if (!sessionId) {
+    if (!sessionId && !bypassMode) {
       return respond(400, { error: "Missing checkout session ID." });
     }
 
-    const sessionResponse = await stripeRequest({
-      secretKey,
-      path: `checkout/sessions/${encodeURIComponent(sessionId)}`
-    });
-
-    if (!sessionResponse.ok) {
-      return respond(404, {
-        error: sessionResponse.json?.error?.message || "Unable to find Stripe checkout session."
-      });
-    }
-
-    const session = sessionResponse.json;
-    if (session.payment_status !== "paid") {
-      return respond(400, { error: "Checkout session is not marked as paid." });
-    }
+    const session = bypassMode
+      ? buildBypassSession(input, sessionId)
+      : await fetchPaidSession({ secretKey, sessionId });
 
     const intake = {
       website: String(input.website || input.url || "").trim(),
@@ -70,17 +59,19 @@ exports.handler = async (event) => {
       intake
     });
 
-    const reportQueueResult = await queuePaidReportGeneration({
-      event,
-      session,
-      intake
-    });
+    const reportQueueResult = bypassMode
+      ? { ok: true, data: { bypass: true } }
+      : await queuePaidReportGeneration({
+          event,
+          session,
+          intake
+        });
 
     if (!reportQueueResult.ok) {
       throw new Error(reportQueueResult.error || "Paid report queue failed.");
     }
 
-    if (resendKey) {
+    if (resendKey && !bypassMode) {
       const customerEmail = session.customer_details?.email || session.customer_email || "";
       const bookingUrl = getAuditBookingUrl();
       const internalHtml = renderInternalPaidIntakeEmail({
@@ -125,6 +116,7 @@ exports.handler = async (event) => {
       bookingUrl: getAuditBookingUrl(),
       implementationPlanSeed,
       reportQueued: true,
+      bypassMode,
       reportReady: Boolean(
         reportQueueResult?.data?.driveUrl || reportQueueResult?.data?.downloadUrl
       ),
@@ -133,9 +125,55 @@ exports.handler = async (event) => {
       reportFileName: String(reportQueueResult?.data?.fileName || "").trim()
     });
   } catch (error) {
-    return respond(500, { error: error.message || "Paid intake submission failed." });
+    return respond(error.statusCode || 500, {
+      error: error.message || "Paid intake submission failed."
+    });
   }
 };
+
+async function fetchPaidSession({ secretKey, sessionId }) {
+  const sessionResponse = await stripeRequest({
+    secretKey,
+    path: `checkout/sessions/${encodeURIComponent(sessionId)}`
+  });
+
+  if (!sessionResponse.ok) {
+    const error = new Error(
+      sessionResponse.json?.error?.message || "Unable to find Stripe checkout session."
+    );
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const session = sessionResponse.json;
+  if (session.payment_status !== "paid") {
+    const error = new Error("Checkout session is not marked as paid.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  return session;
+}
+
+function buildBypassSession(input, sessionId) {
+  const website = String(input.website || input.url || "").trim();
+
+  return {
+    id: sessionId || "internal-bypass",
+    payment_status: "paid",
+    customer_details: {
+      email: ""
+    },
+    customer_email: "",
+    metadata: {
+      url: website,
+      businessName: "",
+      quickAuditScore: "",
+      aiVerdict: "Internal bypass mode",
+      summary: "Internal intake test submitted without Stripe session."
+    }
+  };
+}
 
 async function queuePaidReportGeneration({ event, session, intake }) {
   const baseUrl = getBaseUrl(event);

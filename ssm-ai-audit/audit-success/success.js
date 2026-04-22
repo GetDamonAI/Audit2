@@ -9,6 +9,11 @@ const reportViewLink = document.getElementById("paid-report-view-link");
 const reportDownloadLink = document.getElementById("paid-report-download-link");
 const sessionNote = document.getElementById("paid-session-note");
 
+function isBypassMode() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("bypass") === "true" || params.get("internal") === "1";
+}
+
 function setMessage(element, message, type = "error") {
   if (!element) return;
   element.textContent = message;
@@ -79,15 +84,18 @@ async function readJson(response) {
 
 const searchParams = new URLSearchParams(window.location.search);
 const sessionId = String(searchParams.get("session_id") || "").trim();
+const bypassMode = isBypassMode();
 
 if (sessionIdInput) {
-  sessionIdInput.value = sessionId;
+  sessionIdInput.value = sessionId || (bypassMode ? "internal-bypass" : "");
 }
 
 if (sessionNote) {
-  sessionNote.textContent = sessionId
-    ? "Add a few details below so Damon can tailor the implementation plan to your business, priorities, and market."
-    : "Your payment looks complete, but we could not find the Stripe session ID in this page URL. If this page was reloaded manually, return from the Stripe success link or contact us and we will match it up.";
+  sessionNote.textContent = bypassMode
+    ? "Internal Test Mode Enabled"
+    : sessionId
+      ? "Add a few details below so Damon can tailor the implementation plan to your business, priorities, and market."
+      : "Your payment looks complete, but we could not find the Stripe session ID in this page URL. If this page was reloaded manually, return from the Stripe success link or contact us and we will match it up.";
 }
 
 if (intakeForm) {
@@ -98,6 +106,7 @@ if (intakeForm) {
     const formData = new FormData(intakeForm);
     const payload = {
       sessionId: String(formData.get("sessionId") || "").trim(),
+      bypass: bypassMode,
       website: String(formData.get("website") || "").trim(),
       businessGoal: String(formData.get("businessGoal") || "").trim(),
       idealCustomer: String(formData.get("idealCustomer") || "").trim(),
@@ -124,7 +133,7 @@ if (intakeForm) {
       return;
     }
 
-    if (!payload.sessionId) {
+    if (!bypassMode && !payload.sessionId) {
       setMessage(intakeMessage, "We couldn’t verify your payment session. Return from the Stripe success page or contact us and we’ll help manually.");
       return;
     }
