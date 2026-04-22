@@ -26,7 +26,10 @@ const DEFAULT_LOGO_HEIGHT_DESKTOP = "96px";
 const DEFAULT_LOGO_SCALE = "1";
 const DEFAULT_LOGO_SCALE_TABLET = "1";
 const DEFAULT_LOGO_SCALE_DESKTOP = "1";
+const DEFAULT_LOGO_MAX_WIDTH = "260px";
+const DEFAULT_LOGO_GAP_BEFORE = "6px";
 const DEFAULT_LOGO_GAP_AFTER = "0px";
+const DEFAULT_LOGO_OFFSET_Y = "0px";
 
 const offerContext = {
   url: ""
@@ -146,8 +149,20 @@ function applyPartnerBranding() {
     String(partner?.logoScaleDesktop || DEFAULT_LOGO_SCALE_DESKTOP)
   );
   document.documentElement.style.setProperty(
+    "--partner-logo-max-width",
+    partner?.logoMaxWidth || DEFAULT_LOGO_MAX_WIDTH
+  );
+  document.documentElement.style.setProperty(
+    "--partner-logo-gap-before",
+    partner?.logoGapBefore || DEFAULT_LOGO_GAP_BEFORE
+  );
+  document.documentElement.style.setProperty(
     "--partner-logo-gap-after",
     partner?.logoGapAfter || DEFAULT_LOGO_GAP_AFTER
+  );
+  document.documentElement.style.setProperty(
+    "--partner-logo-offset-y",
+    partner?.logoOffsetY || DEFAULT_LOGO_OFFSET_Y
   );
 
   if (offerFinalKicker) {
