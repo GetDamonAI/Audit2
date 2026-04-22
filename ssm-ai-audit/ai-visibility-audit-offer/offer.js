@@ -35,6 +35,11 @@ const offerContext = {
   url: ""
 };
 
+function isBypassModeActive() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("bypass") === "true" || params.get("internal") === "1";
+}
+
 function normalizeUrl(value) {
   const trimmed = String(value || "").trim();
   if (!trimmed) return "";
@@ -218,6 +223,12 @@ function setupDamonPhoto() {
 
 async function beginCheckout() {
   setMessage("");
+  if (isBypassModeActive()) {
+    console.log("Bypass mode active: skipping Stripe");
+    window.location.href = "/audit-success/";
+    return;
+  }
+
   const url = CHECKOUT_PLACEHOLDER_URL;
   offerContext.url = url;
   setLoadingState(true);
@@ -260,5 +271,11 @@ function attachCta(button) {
 
 applyPartnerBranding();
 setupDamonPhoto();
+
+if (isBypassModeActive()) {
+  console.log("Bypass mode active: skipping Stripe");
+  setMessage("Internal Mode Enabled", "success");
+}
+
 attachCta(offerPrimaryCta);
 attachCta(offerFinalCta);
