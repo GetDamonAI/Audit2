@@ -243,8 +243,16 @@ svg {
 .offer-anchor-title,
 .offer-side-title {
   font-size: clamp(1.72rem, 6.2vw, 2.55rem);
-  line-height: 1.02;
+  line-height: 1.04;
   font-weight: 500;
+}
+
+.offer-side-title span {
+  display: block;
+}
+
+.offer-side-title span + span {
+  margin-top: 0.08em;
 }
 
 .offer-price-block,
