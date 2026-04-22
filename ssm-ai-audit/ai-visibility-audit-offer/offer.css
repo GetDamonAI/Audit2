@@ -606,42 +606,32 @@ svg {
   gap: 28px;
 }
 
-.offer-damon-photo-slot {
-  position: relative;
-  display: block;
+.offer-damon-image-wrap {
   width: 100%;
+  max-width: 320px;
   aspect-ratio: 4 / 5;
+  border-radius: 16px;
   overflow: hidden;
-  border-radius: 24px;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--offer-accent) 14%, transparent), rgba(23, 23, 23, 0.05));
-  border: 1px solid rgba(23, 23, 23, 0.06);
-  color: var(--offer-accent);
-  font-family: "Instrument Serif", Georgia, serif;
-  font-size: 1.6rem;
-  font-style: italic;
 }
 
-.offer-damon-photo {
-  position: absolute;
-  inset: 0;
+.offer-damon-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 
-.offer-damon-photo.is-missing {
-  display: none;
+.offer-damon-copy .offer-section-title {
+  margin-bottom: 18px;
 }
 
-.offer-damon-photo-fallback {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
+.offer-damon-copy p {
+  margin: 0 0 14px;
+  line-height: 1.6;
 }
 
-.offer-damon-photo-slot.has-image .offer-damon-photo-fallback {
-  display: none;
+.offer-damon-copy p:last-child {
+  margin-bottom: 0;
 }
 
 .offer-process-grid {
