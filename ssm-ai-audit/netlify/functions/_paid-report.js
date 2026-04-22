@@ -21,7 +21,7 @@ async function generatePaidReport({
   intake
 }) {
   const metadata = session?.metadata || {};
-  const url = normalizeSharedUrl(metadata.url || "");
+  const url = normalizeSharedUrl(intake.website || metadata.url || "");
   const businessName = String(metadata.businessName || "").trim() || getSharedHostname(url);
   const serviceSeed = String(intake.topServices || metadata.service || "").trim();
   const siteIntelligence = await collectSiteIntelligence({

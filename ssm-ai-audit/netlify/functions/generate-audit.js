@@ -19,7 +19,7 @@ exports.handler = async (event) => {
       return json(500, { success: false, error: "Missing OPENAI_API_KEY" });
     }
 
-    const url = normalizeSharedUrl(input.url);
+    const url = normalizeSharedUrl(input.website || input.url);
     const hostname = getSharedHostname(url);
     const businessName = String(input.businessName || "").trim() || hostname;
 

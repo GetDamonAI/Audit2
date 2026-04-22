@@ -40,6 +40,7 @@ exports.handler = async (event) => {
     }
 
     const intake = {
+      website: String(input.website || input.url || "").trim(),
       businessGoal: String(input.businessGoal || "").trim(),
       idealCustomer: String(input.idealCustomer || "").trim(),
       topServices: String(input.topServices || "").trim(),
@@ -59,6 +60,10 @@ exports.handler = async (event) => {
       conversionGoal: String(input.conversionGoal || "").trim(),
       contentMaturity: String(input.contentMaturity || "").trim()
     };
+
+    if (!intake.website) {
+      return respond(400, { error: "Missing website." });
+    }
 
     const implementationPlanSeed = createImplementationPlanSeed({
       metadata: session.metadata || {},
@@ -192,7 +197,7 @@ function renderInternalPaidIntakeEmail({ session, intake, implementationPlanSeed
   return `
     <div style="font-family: Arial, sans-serif; padding: 24px; max-width: 720px; margin: 0 auto;">
       <h2 style="margin:0 0 12px;">Paid Intake Submitted</h2>
-      <p><strong>Website:</strong> ${escapeHtml(session.metadata?.url || "Unknown")}</p>
+      <p><strong>Website:</strong> ${escapeHtml(intake.website || session.metadata?.url || "Unknown")}</p>
       <p><strong>Business:</strong> ${escapeHtml(session.metadata?.businessName || "Unknown")}</p>
       <p><strong>Customer Email:</strong> ${escapeHtml(session.customer_details?.email || session.customer_email || "Unknown")}</p>
       <p><strong>Stripe Session:</strong> ${escapeHtml(session.id || "Unknown")}</p>

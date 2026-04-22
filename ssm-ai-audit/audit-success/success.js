@@ -98,6 +98,7 @@ if (intakeForm) {
     const formData = new FormData(intakeForm);
     const payload = {
       sessionId: String(formData.get("sessionId") || "").trim(),
+      website: String(formData.get("website") || "").trim(),
       businessGoal: String(formData.get("businessGoal") || "").trim(),
       idealCustomer: String(formData.get("idealCustomer") || "").trim(),
       topServices: String(formData.get("topServices") || "").trim(),
@@ -117,6 +118,11 @@ if (intakeForm) {
       conversionGoal: String(formData.get("conversionGoal") || "").trim(),
       contentMaturity: String(formData.get("contentMaturity") || "").trim()
     };
+
+    if (!payload.website) {
+      setMessage(intakeMessage, "Enter your main website URL.");
+      return;
+    }
 
     if (!payload.sessionId) {
       setMessage(intakeMessage, "We couldn’t verify your payment session. Return from the Stripe success page or contact us and we’ll help manually.");

@@ -29,7 +29,10 @@ exports.handler = async (event) => {
 
     const input = JSON.parse(event.body || "{}");
     const sessionId = String(input.sessionId || "").trim();
-    const intake = input.intake || {};
+    const intake = {
+      ...(input.intake || {}),
+      website: String(input.intake?.website || input.website || input.url || "").trim()
+    };
 
     if (!sessionId) {
       throw new Error("Missing checkout session ID.");
