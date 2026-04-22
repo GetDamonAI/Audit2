@@ -1001,6 +1001,16 @@ select:focus {
   margin-top: 14px;
 }
 
+.paid-report-actions {
+  display: grid;
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.paid-report-actions[hidden] {
+  display: none !important;
+}
+
 @keyframes loadingCopyPulse {
   0% {
     opacity: 0.52;
@@ -1033,6 +1043,10 @@ select:focus {
   .audit-shell[data-stage="preview"],
   .audit-shell[data-stage="sent"] {
     padding-bottom: 30px;
+  }
+
+  .paid-report-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .landing-view {

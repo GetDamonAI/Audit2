@@ -52,6 +52,9 @@ const deliverySuccess = document.getElementById("delivery-success");
 const resultsCta = document.getElementById("results-cta");
 const paidFinalState = document.getElementById("paid-final-state");
 const paidBookingLink = document.getElementById("paid-booking-link");
+const paidReportActions = document.getElementById("paid-report-actions");
+const paidReportViewLink = document.getElementById("paid-report-view-link");
+const paidReportDownloadLink = document.getElementById("paid-report-download-link");
 const paidSessionNote = document.getElementById("paid-session-note");
 const PAID_PLAN_VALUE = 149;
 const DEFAULT_HERO_SUBHEAD = heroSubhead?.textContent?.trim() || "";
@@ -307,6 +310,38 @@ function setBlockVisibility(element, visible) {
   if (!element) return;
   element.hidden = !visible;
   element.style.display = visible ? "" : "none";
+}
+
+function applyPaidReportLinks(data) {
+  const driveUrl = String(data?.driveUrl || "").trim();
+  const downloadUrl = String(data?.downloadUrl || "").trim();
+  const hasLinks = Boolean(driveUrl || downloadUrl);
+
+  setBlockVisibility(paidReportActions, hasLinks);
+
+  if (paidReportViewLink) {
+    if (driveUrl) {
+      paidReportViewLink.href = driveUrl;
+      paidReportViewLink.hidden = false;
+      paidReportViewLink.style.display = "";
+    } else {
+      paidReportViewLink.removeAttribute("href");
+      paidReportViewLink.hidden = true;
+      paidReportViewLink.style.display = "none";
+    }
+  }
+
+  if (paidReportDownloadLink) {
+    if (downloadUrl) {
+      paidReportDownloadLink.href = downloadUrl;
+      paidReportDownloadLink.hidden = false;
+      paidReportDownloadLink.style.display = "";
+    } else {
+      paidReportDownloadLink.removeAttribute("href");
+      paidReportDownloadLink.hidden = true;
+      paidReportDownloadLink.style.display = "none";
+    }
+  }
 }
 
 function setLoadingButton(button, isLoading) {
@@ -935,6 +970,8 @@ if (paidIntakeForm) {
       if (paidBookingLink && data.bookingUrl) {
         paidBookingLink.href = data.bookingUrl;
       }
+
+      applyPaidReportLinks(data);
 
       revealNodeAtTop(statePaidIntake);
     } catch (error) {

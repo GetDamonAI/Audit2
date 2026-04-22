@@ -119,7 +119,13 @@ exports.handler = async (event) => {
       success: true,
       bookingUrl: getAuditBookingUrl(),
       implementationPlanSeed,
-      reportQueued: true
+      reportQueued: true,
+      reportReady: Boolean(
+        reportQueueResult?.data?.driveUrl || reportQueueResult?.data?.downloadUrl
+      ),
+      driveUrl: String(reportQueueResult?.data?.driveUrl || "").trim(),
+      downloadUrl: String(reportQueueResult?.data?.downloadUrl || "").trim(),
+      reportFileName: String(reportQueueResult?.data?.fileName || "").trim()
     });
   } catch (error) {
     return respond(500, { error: error.message || "Paid intake submission failed." });
@@ -180,6 +186,8 @@ function renderInternalPaidIntakeEmail({ session, intake, implementationPlanSeed
   const recommendations = implementationPlanSeed.recommendations
     .map((recommendation) => `<li><strong>${escapeHtml(recommendation.title)}</strong> (${escapeHtml(recommendation.priority)})</li>`)
     .join("");
+  const driveUrl = String(reportQueueResult?.data?.driveUrl || "").trim();
+  const downloadUrl = String(reportQueueResult?.data?.downloadUrl || "").trim();
 
   return `
     <div style="font-family: Arial, sans-serif; padding: 24px; max-width: 720px; margin: 0 auto;">
@@ -190,6 +198,8 @@ function renderInternalPaidIntakeEmail({ session, intake, implementationPlanSeed
       <p><strong>Stripe Session:</strong> ${escapeHtml(session.id || "Unknown")}</p>
       <p><strong>Quick Audit Score:</strong> ${escapeHtml(session.metadata?.quickAuditScore || "Unknown")}</p>
       <p><strong>Report queued:</strong> ${escapeHtml(reportQueueResult?.ok ? "Yes" : "No")}</p>
+      ${driveUrl ? `<p><strong>View Report:</strong> <a href="${escapeHtml(driveUrl)}">${escapeHtml(driveUrl)}</a></p>` : ""}
+      ${downloadUrl ? `<p><strong>Download PDF:</strong> <a href="${escapeHtml(downloadUrl)}">${escapeHtml(downloadUrl)}</a></p>` : ""}
 
       <div style="margin-top:18px;">
         <p><strong>What are you trying to sell or inform people about?</strong></p>

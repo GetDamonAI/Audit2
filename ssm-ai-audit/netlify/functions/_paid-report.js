@@ -441,6 +441,9 @@ async function sendPaidReportFailureEmail({ resendKey, session, errorMessage }) 
 }
 
 function renderCustomerPaidReportEmail({ report, bookingUrl }) {
+  const driveUrl = report.assets?.driveUrl || "";
+  const downloadUrl = report.assets?.downloadUrl || "";
+
   return `
     <div style="font-family: Arial, sans-serif; background:#f7f5f2; padding:24px 16px;">
       <div style="max-width:760px; margin:0 auto; background:#ffffff; border:1px solid rgba(23,23,23,0.08); border-radius:24px; padding:32px 28px;">
@@ -449,6 +452,8 @@ function renderCustomerPaidReportEmail({ report, bookingUrl }) {
         <p style="margin:0 0 20px; font-size:16px; line-height:1.6; color:#555555;">
           We’ve finished the deeper report for ${escapeHtml(report.businessName || report.url)}. Below you’ll find the diagnosis, the priority actions, the tactical recommendations, and the 60-day rollout plan.
         </p>
+
+        ${renderReportAccessSection({ driveUrl, downloadUrl })}
 
         ${renderExecutiveSummarySection(report.executiveSummary)}
         ${renderDiagnosisSection(report.aiVisibilityDiagnosis)}
@@ -481,6 +486,9 @@ function renderCustomerPaidReportEmail({ report, bookingUrl }) {
 }
 
 function renderInternalPaidReportEmail({ report, customerEmail, bookingUrl }) {
+  const driveUrl = report.assets?.driveUrl || "";
+  const downloadUrl = report.assets?.downloadUrl || "";
+
   return `
     <div style="font-family: Arial, sans-serif; padding:24px; max-width:760px; margin:0 auto;">
       <h2 style="margin:0 0 12px;">Paid Report Delivered</h2>
@@ -490,12 +498,28 @@ function renderInternalPaidReportEmail({ report, customerEmail, bookingUrl }) {
       <p><strong>Quick Audit Score:</strong> ${escapeHtml(String(report.quickAuditScore || 0))}</p>
       <p><strong>Quick Audit Status:</strong> ${escapeHtml(report.quickAuditStatus || "Not available")}</p>
       <p><strong>Booking URL:</strong> <a href="${escapeHtml(bookingUrl)}">${escapeHtml(bookingUrl)}</a></p>
+      ${driveUrl ? `<p><strong>View Report:</strong> <a href="${escapeHtml(driveUrl)}">${escapeHtml(driveUrl)}</a></p>` : ""}
+      ${downloadUrl ? `<p><strong>Download PDF:</strong> <a href="${escapeHtml(downloadUrl)}">${escapeHtml(downloadUrl)}</a></p>` : ""}
       ${renderExecutiveSummarySection(report.executiveSummary)}
       ${renderOpportunityMapSection(report.opportunityMap)}
       ${renderPriorityActionsSection(report.priorityActions)}
       ${renderQuickWinsSection(report.quickWins)}
       ${renderCoachingNotesSection(report.coachingNotes)}
       ${renderCalendarSection(report.sixtyDayCalendar)}
+    </div>
+  `;
+}
+
+function renderReportAccessSection({ driveUrl, downloadUrl }) {
+  if (!driveUrl && !downloadUrl) return "";
+
+  return `
+    <div style="margin:0 0 24px; padding:18px 20px; border:1px solid rgba(23,23,23,0.08); border-radius:20px; background:rgba(247,245,242,0.72);">
+      <p style="margin:0 0 12px; font-size:14px; line-height:1.55; color:#555555;">Your full AI Visibility Audit is ready. You can view the shareable version online or download the PDF below.</p>
+      <div style="display:flex; gap:12px; flex-wrap:wrap;">
+        ${driveUrl ? `<a href="${escapeHtml(driveUrl)}" style="display:inline-block; padding:12px 18px; background:#232323; color:#ffffff; text-decoration:none; border-radius:999px; font-weight:600;">View Report</a>` : ""}
+        ${downloadUrl ? `<a href="${escapeHtml(downloadUrl)}" style="display:inline-block; padding:12px 18px; background:#f1efeb; color:#171717; text-decoration:none; border-radius:999px; border:1px solid rgba(23,23,23,0.12); font-weight:600;">Download PDF</a>` : ""}
+      </div>
     </div>
   `;
 }

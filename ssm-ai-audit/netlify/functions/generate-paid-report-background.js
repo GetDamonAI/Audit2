@@ -4,6 +4,8 @@ const {
   sendPaidReportEmails,
   sendPaidReportFailureEmail
 } = require("./_paid-report");
+const { generatePdfReport } = require("./generate-pdf");
+const { uploadPdfToDrive } = require("./upload-to-drive");
 
 exports.handler = async (event) => {
   try {
@@ -60,6 +62,21 @@ exports.handler = async (event) => {
       intake
     });
 
+    const pdf = await generatePdfReport({ report });
+    const driveUpload = await uploadPdfToDrive({
+      buffer: pdf.buffer,
+      fileName: pdf.fileName,
+      mimeType: pdf.mimeType
+    });
+
+    report.assets = {
+      fileName: pdf.fileName,
+      filePath: pdf.filePath,
+      fileId: driveUpload.fileId,
+      driveUrl: driveUpload.driveUrl,
+      downloadUrl: driveUpload.downloadUrl
+    };
+
     await sendPaidReportEmails({
       resendKey,
       report,
@@ -73,14 +90,20 @@ exports.handler = async (event) => {
         url: report.url,
         businessName: report.businessName,
         customerEmail: session.customer_details?.email || session.customer_email || "",
-        delayMs
+        delayMs,
+        driveUrl: report.assets.driveUrl,
+        downloadUrl: report.assets.downloadUrl
       })
     );
 
     return respond(200, {
       success: true,
       delivered: true,
-      sessionId: session.id
+      sessionId: session.id,
+      fileName: report.assets.fileName,
+      driveUrl: report.assets.driveUrl,
+      downloadUrl: report.assets.downloadUrl,
+      fileId: report.assets.fileId
     });
   } catch (error) {
     try {

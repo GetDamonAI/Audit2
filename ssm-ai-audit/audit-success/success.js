@@ -4,6 +4,9 @@ const intakeSubmit = document.getElementById("paid-intake-submit");
 const intakeMessage = document.getElementById("paid-intake-message");
 const finalState = document.getElementById("paid-final-state");
 const bookingLink = document.getElementById("paid-booking-link");
+const reportActions = document.getElementById("paid-report-actions");
+const reportViewLink = document.getElementById("paid-report-view-link");
+const reportDownloadLink = document.getElementById("paid-report-download-link");
 const sessionNote = document.getElementById("paid-session-note");
 
 function setMessage(element, message, type = "error") {
@@ -26,6 +29,38 @@ function setBlockVisibility(element, visible) {
   if (!element) return;
   element.hidden = !visible;
   element.style.display = visible ? "" : "none";
+}
+
+function applyReportLinks(data) {
+  const driveUrl = String(data?.driveUrl || "").trim();
+  const downloadUrl = String(data?.downloadUrl || "").trim();
+  const hasLinks = Boolean(driveUrl || downloadUrl);
+
+  setBlockVisibility(reportActions, hasLinks);
+
+  if (reportViewLink) {
+    if (driveUrl) {
+      reportViewLink.href = driveUrl;
+      reportViewLink.hidden = false;
+      reportViewLink.style.display = "";
+    } else {
+      reportViewLink.removeAttribute("href");
+      reportViewLink.hidden = true;
+      reportViewLink.style.display = "none";
+    }
+  }
+
+  if (reportDownloadLink) {
+    if (downloadUrl) {
+      reportDownloadLink.href = downloadUrl;
+      reportDownloadLink.hidden = false;
+      reportDownloadLink.style.display = "";
+    } else {
+      reportDownloadLink.removeAttribute("href");
+      reportDownloadLink.hidden = true;
+      reportDownloadLink.style.display = "none";
+    }
+  }
 }
 
 async function readJson(response) {
@@ -111,6 +146,8 @@ if (intakeForm) {
       if (bookingLink && data.bookingUrl) {
         bookingLink.href = data.bookingUrl;
       }
+
+      applyReportLinks(data);
 
       setMessage(intakeMessage, "Details received.", "success");
       window.scrollTo({ top: 0, behavior: "smooth" });
