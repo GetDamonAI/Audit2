@@ -1,3 +1,5 @@
+console.log("Entered generate-paid-report-background");
+
 const { stripeRequest, respond } = require("./_paid-utils");
 const {
   generatePaidReport,
@@ -8,6 +10,8 @@ const { generatePdfReport } = require("./generate-pdf");
 const { uploadPdfToDrive } = require("./upload-to-drive");
 
 exports.handler = async (event) => {
+  console.log("Entered generate-paid-report-background handler");
+
   try {
     const openAiKey = process.env.OPENAI_API_KEY;
     const pageSpeedKey = process.env.PAGESPEED_API_KEY;

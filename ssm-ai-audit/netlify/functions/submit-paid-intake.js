@@ -121,6 +121,7 @@ exports.handler = async (event) => {
       bookingUrl: getAuditBookingUrl(),
       implementationPlanSeed,
       reportQueued: true,
+      reportQueueDebug: reportQueueResult.debug || null,
       bypassMode,
       reportReady: Boolean(
         reportQueueResult?.data?.driveUrl || reportQueueResult?.data?.downloadUrl
@@ -190,35 +191,87 @@ async function queuePaidReportGeneration({ event, session, intake, bypassMode })
     };
   }
 
-  const response = await fetch(`${baseUrl}/.netlify/functions/generate-paid-report-background`, {
+  const targetUrl = `${baseUrl}/.netlify/functions/generate-paid-report-background`;
+  const payload = {
+    sessionId: session.id,
+    intake,
+    bypass: bypassMode
+  };
+
+  console.log(
+    JSON.stringify({
+      type: "paid-report-queue-request",
+      url: targetUrl,
+      method: "POST",
+      sessionId: session.id,
+      bypassMode,
+      website: intake.website
+    })
+  );
+
+  const response = await fetch(targetUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({
-      sessionId: session.id,
-      intake,
-      bypass: bypassMode
-    })
+    body: JSON.stringify(payload)
   });
 
+  const responseText = await response.text();
+  const contentType = response.headers.get("content-type") || "";
+  const responseBodySnippet = responseText.slice(0, 700);
   let data = {};
   try {
-    data = await response.json();
+    data = responseText ? JSON.parse(responseText) : {};
   } catch {
     data = {};
   }
 
-  if (!response.ok) {
+  console.log(
+    JSON.stringify({
+      type: "paid-report-queue-response",
+      url: targetUrl,
+      status: response.status,
+      ok: response.ok,
+      contentType,
+      accepted:
+        response.status === 202 ||
+        data.success === true ||
+        data.delivered === true,
+      bodySnippet: responseBodySnippet
+    })
+  );
+
+  const accepted =
+    response.status === 202 ||
+    data.success === true ||
+    data.delivered === true;
+  const htmlFallback = /text\/html/i.test(contentType) || /^<!doctype html/i.test(responseText.trim());
+
+  if (!response.ok || !accepted || htmlFallback) {
     return {
       ok: false,
-      error: data.error || "Unable to queue paid report generation."
+      error:
+        data.error ||
+        `Unable to queue paid report generation. Status ${response.status}. Body: ${responseBodySnippet || "Empty response."}`,
+      debug: {
+        targetUrl,
+        status: response.status,
+        contentType,
+        bodySnippet: responseBodySnippet
+      }
     };
   }
 
   return {
     ok: true,
-    data
+    data,
+    debug: {
+      targetUrl,
+      status: response.status,
+      contentType,
+      bodySnippet: responseBodySnippet
+    }
   };
 }
 
