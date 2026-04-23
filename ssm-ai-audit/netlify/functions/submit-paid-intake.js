@@ -7,6 +7,7 @@ const {
   sendResendEmail,
   stripeRequest
 } = require("./_paid-utils");
+const { runPaidReportPipeline } = require("./_paid-report-runner");
 
 exports.handler = async (event) => {
   try {
@@ -63,18 +64,32 @@ exports.handler = async (event) => {
       intake
     });
 
-    const reportQueueResult = await queuePaidReportGeneration({
-      event,
-      session,
-      intake,
-      bypassMode
-    });
+    let reportQueueResult = null;
+    let syncResult = null;
 
-    if (!reportQueueResult.ok) {
-      throw new Error(reportQueueResult.error || "Paid report queue failed.");
+    if (bypassMode) {
+      console.log("Running paid report generation synchronously");
+      syncResult = await runPaidReportPipeline({
+        sessionId: session.id,
+        intake,
+        bypassMode: true,
+        input,
+        logger: console.log
+      });
+    } else {
+      reportQueueResult = await queuePaidReportGeneration({
+        event,
+        session,
+        intake,
+        bypassMode
+      });
+
+      if (!reportQueueResult.ok) {
+        throw new Error(reportQueueResult.error || "Paid report queue failed.");
+      }
+
+      console.log("Paid report job queued successfully");
     }
-
-    console.log("Paid report job queued successfully");
 
     if (resendKey && !bypassMode) {
       const customerEmail = session.customer_details?.email || session.customer_email || "";
@@ -120,18 +135,45 @@ exports.handler = async (event) => {
       success: true,
       bookingUrl: getAuditBookingUrl(),
       implementationPlanSeed,
-      reportQueued: true,
-      reportQueueDebug: reportQueueResult.debug || null,
+      reportQueued: !bypassMode,
+      reportQueueDebug: reportQueueResult?.debug || null,
       bypassMode,
-      reportReady: Boolean(
-        reportQueueResult?.data?.driveUrl || reportQueueResult?.data?.downloadUrl
-      ),
-      driveUrl: String(reportQueueResult?.data?.driveUrl || "").trim(),
-      downloadUrl: String(reportQueueResult?.data?.downloadUrl || "").trim(),
-      reportFileName: String(reportQueueResult?.data?.fileName || "").trim()
+      reportReady: bypassMode
+        ? Boolean(syncResult?.driveUrl || syncResult?.downloadUrl)
+        : Boolean(
+            reportQueueResult?.data?.driveUrl || reportQueueResult?.data?.downloadUrl
+          ),
+      reportGenerated: Boolean(syncResult?.reportGenerated),
+      pdfGenerated: Boolean(syncResult?.pdfGenerated),
+      emailSent: Boolean(syncResult?.emailSent),
+      driveUrl: String(
+        bypassMode
+          ? syncResult?.driveUrl || ""
+          : reportQueueResult?.data?.driveUrl || ""
+      ).trim(),
+      downloadUrl: String(
+        bypassMode
+          ? syncResult?.downloadUrl || ""
+          : reportQueueResult?.data?.downloadUrl || ""
+      ).trim(),
+      reportFileName: String(
+        bypassMode
+          ? syncResult?.fileName || ""
+          : reportQueueResult?.data?.fileName || ""
+      ).trim()
     });
   } catch (error) {
+    const pipelineStatus = error.pipelineStatus || {};
+    if (error.pipelineStep) {
+      console.error(`Paid report pipeline failed at ${error.pipelineStep}`);
+    }
     return respond(error.statusCode || 500, {
+      success: false,
+      reportGenerated: Boolean(pipelineStatus.reportGenerated),
+      pdfGenerated: Boolean(pipelineStatus.pdfGenerated),
+      emailSent: Boolean(pipelineStatus.emailSent),
+      driveUrl: String(pipelineStatus.driveUrl || "").trim(),
+      downloadUrl: String(pipelineStatus.downloadUrl || "").trim(),
       error: error.message || "Paid intake submission failed."
     });
   }
