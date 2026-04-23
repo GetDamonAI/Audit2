@@ -16,6 +16,10 @@ exports.handler = async (event) => {
     const sessionId = String(input.sessionId || "").trim();
     const bypassMode = input.bypass === true || String(input.internal || "").trim() === "1";
 
+    if (bypassMode) {
+      console.log("Bypass mode detected in intake submission");
+    }
+
     if (!secretKey && !bypassMode) {
       return respond(500, { error: "Missing STRIPE_SECRET_KEY." });
     }
@@ -59,17 +63,18 @@ exports.handler = async (event) => {
       intake
     });
 
-    const reportQueueResult = bypassMode
-      ? { ok: true, data: { bypass: true } }
-      : await queuePaidReportGeneration({
-          event,
-          session,
-          intake
-        });
+    const reportQueueResult = await queuePaidReportGeneration({
+      event,
+      session,
+      intake,
+      bypassMode
+    });
 
     if (!reportQueueResult.ok) {
       throw new Error(reportQueueResult.error || "Paid report queue failed.");
     }
+
+    console.log("Paid report job queued successfully");
 
     if (resendKey && !bypassMode) {
       const customerEmail = session.customer_details?.email || session.customer_email || "";
@@ -175,7 +180,7 @@ function buildBypassSession(input, sessionId) {
   };
 }
 
-async function queuePaidReportGeneration({ event, session, intake }) {
+async function queuePaidReportGeneration({ event, session, intake, bypassMode }) {
   const baseUrl = getBaseUrl(event);
 
   if (!baseUrl) {
@@ -192,7 +197,8 @@ async function queuePaidReportGeneration({ event, session, intake }) {
     },
     body: JSON.stringify({
       sessionId: session.id,
-      intake
+      intake,
+      bypass: bypassMode
     })
   });
 
