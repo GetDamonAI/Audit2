@@ -176,7 +176,13 @@ if (intakeForm) {
 
         applyReportLinks(payloadData);
 
-        setMessage(intakeMessage, "Details received.", "success");
+        setMessage(
+          intakeMessage,
+          payloadData.reportQueued
+            ? "Perfect. Your report is being generated and will be emailed shortly."
+            : "Details received.",
+          "success"
+        );
         window.scrollTo({ top: 0, behavior: "smooth" });
       } else {
         console.error("BACKEND ERROR:", data);

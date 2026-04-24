@@ -28,7 +28,6 @@ async function handleSubmitPaidIntake(event) {
     const resendKey = process.env.RESEND_API_KEY;
     const sessionId = String(input.sessionId || "").trim();
     const bypassMode = input.bypass === true || String(input.internal || "").trim() === "1";
-    const { runPaidReportPipeline } = require("./_paid-report-runner");
 
     if (bypassMode) {
       console.log("Bypass mode detected in intake submission");
@@ -48,6 +47,7 @@ async function handleSubmitPaidIntake(event) {
 
     const intake = {
       website: String(input.website || input.url || "").trim(),
+      email: String(input.email || "").trim(),
       businessGoal: String(input.businessGoal || "").trim(),
       idealCustomer: String(input.idealCustomer || "").trim(),
       topServices: String(input.topServices || "").trim(),
@@ -78,16 +78,30 @@ async function handleSubmitPaidIntake(event) {
     });
 
     let reportQueueResult = null;
-    let syncResult = null;
 
     if (bypassMode) {
-      console.log("Running paid report generation synchronously");
-      syncResult = await runPaidReportPipeline({
+      console.log("Bypass intake accepted");
+      reportQueueResult = await triggerBackgroundReportGeneration({
+        event,
         sessionId: session.id,
         intake,
+        bypassMode
+      });
+
+      if (!reportQueueResult.ok) {
+        throw new Error(reportQueueResult.error || "Unable to start report generation.");
+      }
+
+      console.log("Background report generation trigger sent");
+      console.log("Returning intake success immediately");
+
+      return successResponse("Report generation started", {
+        bookingUrl: getAuditBookingUrl(),
+        implementationPlanSeed,
+        reportQueued: true,
+        reportQueueDebug: reportQueueResult.debug || null,
         bypassMode: true,
-        input,
-        logger: console.log
+        reportReady: false
       });
     } else {
       reportQueueResult = await queuePaidReportGeneration({
@@ -150,29 +164,15 @@ async function handleSubmitPaidIntake(event) {
       reportQueued: !bypassMode,
       reportQueueDebug: reportQueueResult?.debug || null,
       bypassMode,
-      reportReady: bypassMode
-        ? Boolean(syncResult?.driveUrl || syncResult?.downloadUrl)
-        : Boolean(
-            reportQueueResult?.data?.driveUrl || reportQueueResult?.data?.downloadUrl
-          ),
-      reportGenerated: Boolean(syncResult?.reportGenerated),
-      pdfGenerated: Boolean(syncResult?.pdfGenerated),
-      emailSent: Boolean(syncResult?.emailSent),
-      driveUrl: String(
-        bypassMode
-          ? syncResult?.driveUrl || ""
-          : reportQueueResult?.data?.driveUrl || ""
-      ).trim(),
-      downloadUrl: String(
-        bypassMode
-          ? syncResult?.downloadUrl || ""
-          : reportQueueResult?.data?.downloadUrl || ""
-      ).trim(),
-      reportFileName: String(
-        bypassMode
-          ? syncResult?.fileName || ""
-          : reportQueueResult?.data?.fileName || ""
-      ).trim()
+      reportReady: Boolean(
+        reportQueueResult?.data?.driveUrl || reportQueueResult?.data?.downloadUrl
+      ),
+      reportGenerated: false,
+      pdfGenerated: false,
+      emailSent: false,
+      driveUrl: String(reportQueueResult?.data?.driveUrl || "").trim(),
+      downloadUrl: String(reportQueueResult?.data?.downloadUrl || "").trim(),
+      reportFileName: String(reportQueueResult?.data?.fileName || "").trim()
     });
   } catch (error) {
     const pipelineStatus = error.pipelineStatus || {};
@@ -271,6 +271,91 @@ function buildBypassSession(input, sessionId) {
       summary: "Internal intake test submitted without Stripe session."
     }
   };
+}
+
+async function triggerBackgroundReportGeneration({ event, sessionId, intake, bypassMode }) {
+  const baseUrl = getBaseUrl(event);
+
+  if (!baseUrl) {
+    return {
+      ok: false,
+      error: "Unable to determine site URL for paid report generation."
+    };
+  }
+
+  const targetUrl = `${baseUrl}/.netlify/functions/generate-paid-report-background`;
+  const payload = {
+    sessionId,
+    intake,
+    bypass: bypassMode,
+    internal: bypassMode ? 1 : 0,
+    email: intake.email || ""
+  };
+
+  console.log(
+    JSON.stringify({
+      type: "paid-report-background-trigger",
+      url: targetUrl,
+      method: "POST",
+      sessionId,
+      bypassMode,
+      website: intake.website
+    })
+  );
+
+  const triggerPromise = fetch(targetUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  })
+    .then(async (response) => {
+      const responseText = await response.text();
+      const contentType = response.headers.get("content-type") || "";
+
+      console.log(
+        JSON.stringify({
+          type: "paid-report-background-trigger-response",
+          url: targetUrl,
+          status: response.status,
+          ok: response.ok,
+          contentType,
+          bodySnippet: responseText.slice(0, 300)
+        })
+      );
+
+      return {
+        ok: response.ok,
+        debug: {
+          targetUrl,
+          status: response.status,
+          contentType,
+          bodySnippet: responseText.slice(0, 300)
+        }
+      };
+    })
+    .catch((error) => {
+      console.error("Background report trigger failed", error);
+      return {
+        ok: false,
+        error: error.message || "Unable to trigger background report generation.",
+        debug: {
+          targetUrl
+        }
+      };
+    });
+
+  return Promise.race([
+    triggerPromise,
+    wait(1200).then(() => ({
+      ok: true,
+      debug: {
+        targetUrl,
+        timeoutSafe: true
+      }
+    }))
+  ]);
 }
 
 async function queuePaidReportGeneration({ event, session, intake, bypassMode }) {
@@ -374,6 +459,10 @@ function getBaseUrl(event) {
   const protocol = event.headers["x-forwarded-proto"] || "https";
   const host = event.headers["x-forwarded-host"] || event.headers.host || "";
   return host ? `${protocol}://${host}` : "";
+}
+
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function renderInternalPaidIntakeEmail({ session, intake, implementationPlanSeed, bookingUrl, reportQueueResult }) {

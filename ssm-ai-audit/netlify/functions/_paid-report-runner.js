@@ -158,14 +158,15 @@ async function fetchPaidSession({ stripeSecretKey, sessionId }) {
 function buildBypassSession({ input, sessionId, intake }) {
   const website = String(intake.website || input.website || input.url || "").trim();
   const businessName = getBusinessNameFromWebsite(website);
+  const email = String(intake.email || input.email || "").trim();
 
   return {
     id: sessionId || "internal-bypass",
     payment_status: "paid",
     customer_details: {
-      email: ""
+      email
     },
-    customer_email: "",
+    customer_email: email,
     metadata: {
       url: website,
       businessName,

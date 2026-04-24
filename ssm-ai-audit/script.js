@@ -996,7 +996,6 @@ if (paidIntakeForm) {
         }
 
         paidIntakeForm.hidden = true;
-        paidIntakeMessage.hidden = true;
         setBlockVisibility(paidFinalState, true);
 
         if (paidBookingLink && payloadData.bookingUrl) {
@@ -1004,6 +1003,13 @@ if (paidIntakeForm) {
         }
 
         applyPaidReportLinks(payloadData);
+        setMessage(
+          paidIntakeMessage,
+          payloadData.reportQueued
+            ? "Perfect. Your report is being generated and will be emailed shortly."
+            : "Details received.",
+          "success"
+        );
 
         revealNodeAtTop(statePaidIntake);
       } else {
