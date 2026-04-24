@@ -7,15 +7,28 @@ const {
   sendResendEmail,
   stripeRequest
 } = require("./_paid-utils");
-const { runPaidReportPipeline } = require("./_paid-report-runner");
 
 exports.handler = async (event) => {
+  try {
+    return await handleSubmitPaidIntake(event);
+  } catch (error) {
+    console.error("submit-paid-intake top-level error", error);
+    return failureResponse("Intake submission failed", error.message || String(error), {
+      reportGenerated: false,
+      pdfGenerated: false,
+      emailSent: false
+    });
+  }
+};
+
+async function handleSubmitPaidIntake(event) {
   try {
     const input = JSON.parse(event.body || "{}");
     const secretKey = process.env.STRIPE_SECRET_KEY;
     const resendKey = process.env.RESEND_API_KEY;
     const sessionId = String(input.sessionId || "").trim();
     const bypassMode = input.bypass === true || String(input.internal || "").trim() === "1";
+    const { runPaidReportPipeline } = require("./_paid-report-runner");
 
     if (bypassMode) {
       console.log("Bypass mode detected in intake submission");
@@ -163,6 +176,7 @@ exports.handler = async (event) => {
     });
   } catch (error) {
     const pipelineStatus = error.pipelineStatus || {};
+    console.error("submit-paid-intake top-level error", error);
     if (error.pipelineStep) {
       console.error(`Paid report pipeline failed at ${error.pipelineStep}`);
     }
@@ -175,7 +189,7 @@ exports.handler = async (event) => {
       reportFileName: String(pipelineStatus.fileName || "").trim()
     });
   }
-};
+}
 
 function successResponse(message, data = {}) {
   return respond(200, {

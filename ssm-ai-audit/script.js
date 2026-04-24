@@ -721,6 +721,7 @@ async function parseIntakeSubmissionResponse(response) {
   try {
     data = JSON.parse(text);
   } catch (error) {
+    console.error("RAW NON-JSON RESPONSE:", text.slice(0, 500));
     console.error("JSON PARSE FAILED:", error);
     throw new Error("Invalid JSON response");
   }
