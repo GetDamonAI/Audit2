@@ -13,6 +13,7 @@ async function runPaidReportPipeline({
   input = {},
   logger = console.log
 }) {
+  logger("RUNNER STARTED");
   const openAiKey = process.env.OPENAI_API_KEY;
   const pageSpeedKey = process.env.PAGESPEED_API_KEY;
   const serperKey = process.env.SERPER_API_KEY;
@@ -20,25 +21,56 @@ async function runPaidReportPipeline({
   const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 
   if (!openAiKey) {
+    logger("ENV ERROR: Missing OPENAI_API_KEY");
     throw createPipelineError("validate-openai", "Missing OPENAI_API_KEY.");
   }
 
   if (!resendKey) {
+    logger("ENV ERROR: Missing RESEND_API_KEY");
     throw createPipelineError("validate-resend", "Missing RESEND_API_KEY.");
   }
 
   if (!stripeSecretKey && !bypassMode) {
+    logger("ENV ERROR: Missing STRIPE_SECRET_KEY");
     throw createPipelineError("validate-stripe", "Missing STRIPE_SECRET_KEY.");
   }
 
   if (!sessionId && !bypassMode) {
+    logger("ENV ERROR: Missing checkout session ID");
     throw createPipelineError("validate-session", "Missing checkout session ID.");
+  }
+
+  if (!process.env.AUDIT_EMAIL_FROM) {
+    logger("ENV NOTICE: AUDIT_EMAIL_FROM missing, using default sender");
+  }
+
+  if (!process.env.AUDIT_NOTIFICATION_TO && !process.env.AUDIT_ALERT_EMAIL) {
+    logger("ENV NOTICE: AUDIT_NOTIFICATION_TO/AUDIT_ALERT_EMAIL missing, using default notification recipient");
+  }
+
+  if (!process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
+    logger("ENV ERROR: Missing GOOGLE_SERVICE_ACCOUNT_JSON");
+    throw createPipelineError("validate-drive-credentials", "Missing GOOGLE_SERVICE_ACCOUNT_JSON.");
+  }
+
+  if (!process.env.GOOGLE_DRIVE_FOLDER_ID) {
+    logger("ENV NOTICE: GOOGLE_DRIVE_FOLDER_ID missing, uploading to Drive root");
   }
 
   const effectiveIntake = {
     ...(intake || {}),
     website: String(intake?.website || input.website || input.url || "").trim()
   };
+
+  logger(
+    JSON.stringify({
+      type: "paid-report-runner-input",
+      sessionId: sessionId || "internal-bypass",
+      bypassMode,
+      website: effectiveIntake.website || "missing",
+      email: String(effectiveIntake.email || input.email || "").trim() || "missing"
+    })
+  );
 
   const status = {
     success: false,
@@ -69,6 +101,7 @@ async function runPaidReportPipeline({
 
     status.sessionId = session.id;
 
+    logger("Starting OpenAI report generation");
     const report = await generatePaidReport({
       openAiKey,
       pageSpeedKey,
@@ -77,13 +110,15 @@ async function runPaidReportPipeline({
       intake: effectiveIntake
     });
     status.reportGenerated = true;
-    logger("Detailed report generated successfully");
+    logger("OpenAI report generation complete");
 
+    logger("Starting PDF generation");
     const pdf = await generatePdfReport({ report });
     status.pdfGenerated = true;
     status.fileName = pdf.fileName;
-    logger("PDF generated successfully");
+    logger("PDF generation complete");
 
+    logger("Starting Drive upload");
     const driveUpload = await uploadPdfToDrive({
       buffer: pdf.buffer,
       fileName: pdf.fileName,
@@ -92,7 +127,7 @@ async function runPaidReportPipeline({
     status.driveUrl = driveUpload.driveUrl || "";
     status.downloadUrl = driveUpload.downloadUrl || "";
     status.fileId = driveUpload.fileId || "";
-    logger("Drive upload completed");
+    logger("Drive upload complete");
 
     report.assets = {
       fileName: pdf.fileName,
@@ -102,13 +137,14 @@ async function runPaidReportPipeline({
       downloadUrl: driveUpload.downloadUrl
     };
 
+    logger("Starting report email send");
     await sendPaidReportEmails({
       resendKey,
       report,
       session
     });
     status.emailSent = true;
-    logger("Report email/send completed");
+    logger("Report email send complete");
 
     logger(
       JSON.stringify({
@@ -129,6 +165,7 @@ async function runPaidReportPipeline({
       delivered: true
     };
   } catch (error) {
+    logger(`RUNNER FAILED: ${error.message || "Unknown error"}`);
     error.pipelineStatus = status;
     throw error;
   }

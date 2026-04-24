@@ -85,7 +85,8 @@ async function handleSubmitPaidIntake(event) {
         event,
         sessionId: session.id,
         intake,
-        bypassMode
+        bypassMode,
+        implementationPlanSeed
       });
 
       if (!reportQueueResult.ok) {
@@ -273,7 +274,13 @@ function buildBypassSession(input, sessionId) {
   };
 }
 
-async function triggerBackgroundReportGeneration({ event, sessionId, intake, bypassMode }) {
+async function triggerBackgroundReportGeneration({
+  event,
+  sessionId,
+  intake,
+  bypassMode,
+  implementationPlanSeed
+}) {
   const baseUrl = getBaseUrl(event);
 
   if (!baseUrl) {
@@ -289,7 +296,9 @@ async function triggerBackgroundReportGeneration({ event, sessionId, intake, byp
     intake,
     bypass: bypassMode,
     internal: bypassMode ? 1 : 0,
-    email: intake.email || ""
+    email: intake.email || "",
+    website: intake.website || "",
+    implementationPlanSeed: implementationPlanSeed || null
   };
 
   console.log(
