@@ -22,11 +22,11 @@ exports.handler = async (event) => {
     }
 
     if (!secretKey && !bypassMode) {
-      return respond(500, { error: "Missing STRIPE_SECRET_KEY." });
+      return failureResponse("Report generation failed", "Missing STRIPE_SECRET_KEY.");
     }
 
     if (!sessionId && !bypassMode) {
-      return respond(400, { error: "Missing checkout session ID." });
+      return failureResponse("Report generation failed", "Missing checkout session ID.");
     }
 
     const session = bypassMode
@@ -56,7 +56,7 @@ exports.handler = async (event) => {
     };
 
     if (!intake.website) {
-      return respond(400, { error: "Missing website." });
+      return failureResponse("Report generation failed", "Missing website.");
     }
 
     const implementationPlanSeed = createImplementationPlanSeed({
@@ -131,8 +131,7 @@ exports.handler = async (event) => {
       }
     }
 
-    return respond(200, {
-      success: true,
+    return successResponse("Report generated successfully", {
       bookingUrl: getAuditBookingUrl(),
       implementationPlanSeed,
       reportQueued: !bypassMode,
@@ -167,17 +166,54 @@ exports.handler = async (event) => {
     if (error.pipelineStep) {
       console.error(`Paid report pipeline failed at ${error.pipelineStep}`);
     }
-    return respond(error.statusCode || 500, {
-      success: false,
+    return failureResponse("Report generation failed", error.message || "Paid intake submission failed.", {
       reportGenerated: Boolean(pipelineStatus.reportGenerated),
       pdfGenerated: Boolean(pipelineStatus.pdfGenerated),
       emailSent: Boolean(pipelineStatus.emailSent),
       driveUrl: String(pipelineStatus.driveUrl || "").trim(),
       downloadUrl: String(pipelineStatus.downloadUrl || "").trim(),
-      error: error.message || "Paid intake submission failed."
+      reportFileName: String(pipelineStatus.fileName || "").trim()
     });
   }
 };
+
+function successResponse(message, data = {}) {
+  return respond(200, {
+    success: true,
+    message,
+    data: {
+      reportGenerated: Boolean(data.reportGenerated),
+      pdfGenerated: Boolean(data.pdfGenerated),
+      emailSent: Boolean(data.emailSent),
+      driveUrl: String(data.driveUrl || "").trim(),
+      downloadUrl: String(data.downloadUrl || "").trim(),
+      reportFileName: String(data.reportFileName || "").trim(),
+      bypassMode: Boolean(data.bypassMode),
+      bookingUrl: String(data.bookingUrl || "").trim(),
+      implementationPlanSeed: data.implementationPlanSeed || null,
+      reportQueued: Boolean(data.reportQueued),
+      reportReady: Boolean(data.reportReady),
+      reportQueueDebug: data.reportQueueDebug || null
+    }
+  });
+}
+
+function failureResponse(message, error, data = {}) {
+  return respond(200, {
+    success: false,
+    message,
+    error: String(error || "Report generation failed."),
+    data: {
+      reportGenerated: Boolean(data.reportGenerated),
+      pdfGenerated: Boolean(data.pdfGenerated),
+      emailSent: Boolean(data.emailSent),
+      driveUrl: String(data.driveUrl || "").trim(),
+      downloadUrl: String(data.downloadUrl || "").trim(),
+      reportFileName: String(data.reportFileName || "").trim(),
+      bypassMode: Boolean(data.bypassMode)
+    }
+  });
+}
 
 async function fetchPaidSession({ secretKey, sessionId }) {
   const sessionResponse = await stripeRequest({

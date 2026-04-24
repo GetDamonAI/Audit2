@@ -82,6 +82,14 @@ async function readJson(response) {
   }
 }
 
+function getIntakeResponsePayload(data) {
+  if (!data || typeof data.success === "undefined") {
+    throw new Error("The intake service returned an invalid response.");
+  }
+
+  return data.data && typeof data.data === "object" ? data.data : {};
+}
+
 const searchParams = new URLSearchParams(window.location.search);
 const sessionId = String(searchParams.get("session_id") || "").trim();
 const bypassMode = isBypassMode();
@@ -150,19 +158,20 @@ if (intakeForm) {
       });
 
       const data = await readJson(response);
+      const payloadData = getIntakeResponsePayload(data);
 
       if (!response.ok || data.success !== true) {
-        throw new Error(data.error || "Intake submission failed.");
+        throw new Error(data.error || data.message || "Intake submission failed.");
       }
 
       intakeForm.hidden = true;
       setBlockVisibility(finalState, true);
 
-      if (bookingLink && data.bookingUrl) {
-        bookingLink.href = data.bookingUrl;
+      if (bookingLink && payloadData.bookingUrl) {
+        bookingLink.href = payloadData.bookingUrl;
       }
 
-      applyReportLinks(data);
+      applyReportLinks(payloadData);
 
       setMessage(intakeMessage, "Details received.", "success");
       window.scrollTo({ top: 0, behavior: "smooth" });

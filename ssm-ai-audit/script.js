@@ -711,6 +711,14 @@ async function readJson(response) {
   }
 }
 
+function getIntakeResponsePayload(data) {
+  if (!data || typeof data.success === "undefined") {
+    throw new Error("The intake service returned an invalid response.");
+  }
+
+  return data.data && typeof data.data === "object" ? data.data : {};
+}
+
 if (window.ResizeObserver && shell) {
   const resizeObserver = new ResizeObserver(() => {
     notifyParentHeight();
@@ -956,9 +964,10 @@ if (paidIntakeForm) {
       });
 
       const data = await readJson(response);
+      const payloadData = getIntakeResponsePayload(data);
 
       if (!response.ok || data.success !== true) {
-        throw new Error(data.error || "Intake submission failed.");
+        throw new Error(data.error || data.message || "Intake submission failed.");
       }
 
       if (paidIntakeHeader) {
@@ -973,11 +982,11 @@ if (paidIntakeForm) {
       paidIntakeMessage.hidden = true;
       setBlockVisibility(paidFinalState, true);
 
-      if (paidBookingLink && data.bookingUrl) {
-        paidBookingLink.href = data.bookingUrl;
+      if (paidBookingLink && payloadData.bookingUrl) {
+        paidBookingLink.href = payloadData.bookingUrl;
       }
 
-      applyPaidReportLinks(data);
+      applyPaidReportLinks(payloadData);
 
       revealNodeAtTop(statePaidIntake);
     } catch (error) {
