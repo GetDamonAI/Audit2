@@ -68,26 +68,28 @@ function applyReportLinks(data) {
   }
 }
 
-async function readJson(response) {
+async function parseIntakeSubmissionResponse(response) {
+  console.log("RAW RESPONSE STATUS:", response.status);
+
   const text = await response.text();
+  console.log("RAW RESPONSE TEXT:", text);
 
-  if (!text) {
-    return {};
-  }
-
+  let data;
   try {
-    return JSON.parse(text);
-  } catch {
-    throw new Error("The intake service returned an invalid response.");
+    data = JSON.parse(text);
+  } catch (error) {
+    console.error("JSON PARSE FAILED:", error);
+    throw new Error("Invalid JSON response");
   }
-}
 
-function getIntakeResponsePayload(data) {
+  console.log("PARSED DATA:", data);
+
   if (!data || typeof data.success === "undefined") {
-    throw new Error("The intake service returned an invalid response.");
+    console.error("INVALID RESPONSE SHAPE:", data);
+    throw new Error("The intake service returned an invalid response");
   }
 
-  return data.data && typeof data.data === "object" ? data.data : {};
+  return data;
 }
 
 const searchParams = new URLSearchParams(window.location.search);
@@ -157,24 +159,28 @@ if (intakeForm) {
         body: JSON.stringify(payload)
       });
 
-      const data = await readJson(response);
-      const payloadData = getIntakeResponsePayload(data);
+      const data = await parseIntakeSubmissionResponse(response);
 
-      if (!response.ok || data.success !== true) {
-        throw new Error(data.error || data.message || "Intake submission failed.");
+      if (data.success) {
+        const payloadData = data.data || {};
+
+        console.log("REPORT RESULT:", payloadData);
+
+        intakeForm.hidden = true;
+        setBlockVisibility(finalState, true);
+
+        if (bookingLink && payloadData.bookingUrl) {
+          bookingLink.href = payloadData.bookingUrl;
+        }
+
+        applyReportLinks(payloadData);
+
+        setMessage(intakeMessage, "Details received.", "success");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } else {
+        console.error("BACKEND ERROR:", data);
+        throw new Error(data.message || data.error || "Report generation failed");
       }
-
-      intakeForm.hidden = true;
-      setBlockVisibility(finalState, true);
-
-      if (bookingLink && payloadData.bookingUrl) {
-        bookingLink.href = payloadData.bookingUrl;
-      }
-
-      applyReportLinks(payloadData);
-
-      setMessage(intakeMessage, "Details received.", "success");
-      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (error) {
       setMessage(intakeMessage, error.message || "Intake submission failed.");
       console.error(error);

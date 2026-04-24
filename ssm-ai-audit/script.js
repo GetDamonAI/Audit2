@@ -711,12 +711,28 @@ async function readJson(response) {
   }
 }
 
-function getIntakeResponsePayload(data) {
-  if (!data || typeof data.success === "undefined") {
-    throw new Error("The intake service returned an invalid response.");
+async function parseIntakeSubmissionResponse(response) {
+  console.log("RAW RESPONSE STATUS:", response.status);
+
+  const text = await response.text();
+  console.log("RAW RESPONSE TEXT:", text);
+
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch (error) {
+    console.error("JSON PARSE FAILED:", error);
+    throw new Error("Invalid JSON response");
   }
 
-  return data.data && typeof data.data === "object" ? data.data : {};
+  console.log("PARSED DATA:", data);
+
+  if (!data || typeof data.success === "undefined") {
+    console.error("INVALID RESPONSE SHAPE:", data);
+    throw new Error("The intake service returned an invalid response");
+  }
+
+  return data;
 }
 
 if (window.ResizeObserver && shell) {
@@ -963,32 +979,36 @@ if (paidIntakeForm) {
         body: JSON.stringify(payload)
       });
 
-      const data = await readJson(response);
-      const payloadData = getIntakeResponsePayload(data);
+      const data = await parseIntakeSubmissionResponse(response);
 
-      if (!response.ok || data.success !== true) {
-        throw new Error(data.error || data.message || "Intake submission failed.");
+      if (data.success) {
+        const payloadData = data.data || {};
+
+        console.log("REPORT RESULT:", payloadData);
+
+        if (paidIntakeHeader) {
+          paidIntakeHeader.hidden = true;
+        }
+
+        if (paidSessionNote) {
+          paidSessionNote.hidden = true;
+        }
+
+        paidIntakeForm.hidden = true;
+        paidIntakeMessage.hidden = true;
+        setBlockVisibility(paidFinalState, true);
+
+        if (paidBookingLink && payloadData.bookingUrl) {
+          paidBookingLink.href = payloadData.bookingUrl;
+        }
+
+        applyPaidReportLinks(payloadData);
+
+        revealNodeAtTop(statePaidIntake);
+      } else {
+        console.error("BACKEND ERROR:", data);
+        throw new Error(data.message || data.error || "Report generation failed");
       }
-
-      if (paidIntakeHeader) {
-        paidIntakeHeader.hidden = true;
-      }
-
-      if (paidSessionNote) {
-        paidSessionNote.hidden = true;
-      }
-
-      paidIntakeForm.hidden = true;
-      paidIntakeMessage.hidden = true;
-      setBlockVisibility(paidFinalState, true);
-
-      if (paidBookingLink && payloadData.bookingUrl) {
-        paidBookingLink.href = payloadData.bookingUrl;
-      }
-
-      applyPaidReportLinks(payloadData);
-
-      revealNodeAtTop(statePaidIntake);
     } catch (error) {
       setMessage(paidIntakeMessage, error.message || "Intake submission failed.");
       console.error(error);
