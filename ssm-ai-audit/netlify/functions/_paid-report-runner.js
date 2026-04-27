@@ -194,7 +194,8 @@ async function fetchPaidSession({ stripeSecretKey, sessionId }) {
 
 function buildBypassSession({ input, sessionId, intake }) {
   const website = String(intake.website || input.website || input.url || "").trim();
-  const businessName = getBusinessNameFromWebsite(website);
+  const businessName = String(intake.businessName || input.businessName || "").trim()
+    || getBusinessNameFromWebsite(website);
   const email = String(intake.email || input.email || "").trim();
 
   return {
