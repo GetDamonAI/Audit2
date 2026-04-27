@@ -19,6 +19,9 @@ async function runPaidReportPipeline({
   const serperKey = process.env.SERPER_API_KEY;
   const resendKey = process.env.RESEND_API_KEY;
   const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+  const googleServiceAccountJson = String(process.env.GOOGLE_SERVICE_ACCOUNT_JSON || "").trim();
+  const googleDriveFolderId = String(process.env.GOOGLE_DRIVE_FOLDER_ID || "").trim();
+  const shouldUploadToDrive = Boolean(googleServiceAccountJson && googleDriveFolderId);
 
   if (!openAiKey) {
     logger("ENV ERROR: Missing OPENAI_API_KEY");
@@ -48,13 +51,8 @@ async function runPaidReportPipeline({
     logger("ENV NOTICE: AUDIT_NOTIFICATION_TO/AUDIT_ALERT_EMAIL missing, using default notification recipient");
   }
 
-  if (!process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
-    logger("ENV ERROR: Missing GOOGLE_SERVICE_ACCOUNT_JSON");
-    throw createPipelineError("validate-drive-credentials", "Missing GOOGLE_SERVICE_ACCOUNT_JSON.");
-  }
-
-  if (!process.env.GOOGLE_DRIVE_FOLDER_ID) {
-    logger("ENV NOTICE: GOOGLE_DRIVE_FOLDER_ID missing, uploading to Drive root");
+  if (!shouldUploadToDrive) {
+    logger("Google Drive upload skipped: missing credentials");
   }
 
   const effectiveIntake = {
@@ -118,16 +116,28 @@ async function runPaidReportPipeline({
     status.fileName = pdf.fileName;
     logger("PDF generation complete");
 
-    logger("Starting Drive upload");
-    const driveUpload = await uploadPdfToDrive({
-      buffer: pdf.buffer,
-      fileName: pdf.fileName,
-      mimeType: pdf.mimeType
-    });
-    status.driveUrl = driveUpload.driveUrl || "";
-    status.downloadUrl = driveUpload.downloadUrl || "";
-    status.fileId = driveUpload.fileId || "";
-    logger("Drive upload complete");
+    let driveUpload = {
+      fileId: "",
+      driveUrl: "",
+      downloadUrl: ""
+    };
+
+    if (shouldUploadToDrive) {
+      logger("Starting Drive upload");
+      driveUpload = await uploadPdfToDrive({
+        buffer: pdf.buffer,
+        fileName: pdf.fileName,
+        mimeType: pdf.mimeType
+      });
+      status.driveUrl = driveUpload.driveUrl || "";
+      status.downloadUrl = driveUpload.downloadUrl || "";
+      status.fileId = driveUpload.fileId || "";
+      logger("Drive upload complete");
+    } else {
+      status.driveUrl = "";
+      status.downloadUrl = "";
+      status.fileId = "";
+    }
 
     report.assets = {
       fileName: pdf.fileName,
