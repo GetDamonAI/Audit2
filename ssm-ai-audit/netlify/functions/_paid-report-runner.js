@@ -137,6 +137,7 @@ async function runPaidReportPipeline({
       status.driveUrl = "";
       status.downloadUrl = "";
       status.fileId = "";
+      logger("Google Drive upload skipped: missing credentials");
     }
 
     report.assets = {
@@ -168,6 +169,7 @@ async function runPaidReportPipeline({
         downloadUrl: report.assets.downloadUrl
       })
     );
+    logger("PIPELINE COMPLETE");
 
     return {
       ...status,
