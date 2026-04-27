@@ -8,7 +8,6 @@
  */
 
 const { respond } = require("./_paid-utils");
-const { runPaidReportPipeline } = require("./_paid-report-runner");
 
 exports.handler = async (event) => {
   try {
@@ -27,7 +26,7 @@ exports.handler = async (event) => {
       return failureResponse("Full report generation failed", "Missing email.");
     }
 
-    console.log("INTERNAL FULL REPORT TRIGGERED");
+    console.log("INTERNAL REPORT REQUEST ACCEPTED");
     console.log(
       JSON.stringify({
         type: "internal-full-report-payload",
@@ -38,50 +37,30 @@ exports.handler = async (event) => {
         hasCompetitors: Boolean(intake.topCompetitors)
       })
     );
-    console.log("Running paid report pipeline");
-
-    const result = await runPaidReportPipeline({
+    const triggerResult = await triggerBackgroundReportGeneration({
+      event,
       sessionId: `internal-${Date.now()}`,
       intake,
-      bypassMode: true,
       input: {
         ...input,
         bypass: true,
         internal: 1,
         website: intake.website,
         email: intake.email,
-        businessName: intake.businessName || "",
-        delayMs: 0
-      },
-      logger: (message) => console.log(String(message || "INTERNAL RUNNER LOG: empty message"))
+        businessName: intake.businessName || ""
+      }
     });
 
-    if (result.reportGenerated) {
-      console.log("Full report generated");
+    if (!triggerResult.ok) {
+      throw new Error(triggerResult.error || "Unable to start internal report generation.");
     }
 
-    if (result.pdfGenerated) {
-      console.log("PDF generated");
-    }
+    console.log("BACKGROUND REPORT TRIGGER SENT");
 
-    if (result.driveUrl || result.downloadUrl) {
-      console.log("Drive upload completed");
-    }
-
-    if (result.emailSent) {
-      console.log("Email sent");
-    }
-
-    return successResponse("Full report generated", {
-      reportGenerated: Boolean(result.reportGenerated),
-      pdfGenerated: Boolean(result.pdfGenerated),
-      emailSent: Boolean(result.emailSent),
-      driveUrl: String(result.driveUrl || "").trim(),
-      downloadUrl: String(result.downloadUrl || "").trim(),
-      reportFileName: String(result.fileName || "").trim()
+    return successResponse("Report generation started", {
+      reportQueued: true
     });
   } catch (error) {
-    const pipelineStatus = error.pipelineStatus || {};
     console.error("Internal report generation failed");
     console.error(error?.stack || error);
 
@@ -89,12 +68,9 @@ exports.handler = async (event) => {
       "Full report generation failed",
       error.message || String(error),
       {
-        reportGenerated: Boolean(pipelineStatus.reportGenerated),
-        pdfGenerated: Boolean(pipelineStatus.pdfGenerated),
-        emailSent: Boolean(pipelineStatus.emailSent),
-        driveUrl: String(pipelineStatus.driveUrl || "").trim(),
-        downloadUrl: String(pipelineStatus.downloadUrl || "").trim(),
-        reportFileName: String(pipelineStatus.fileName || "").trim()
+        reportGenerated: false,
+        pdfGenerated: false,
+        emailSent: false
       }
     );
   }
@@ -133,6 +109,75 @@ function buildInternalIntake(input) {
   };
 }
 
+async function triggerBackgroundReportGeneration({ event, sessionId, intake, input }) {
+  const baseUrl = getBaseUrl(event);
+
+  if (!baseUrl) {
+    return {
+      ok: false,
+      error: "Unable to determine site URL for internal report generation."
+    };
+  }
+
+  const targetUrl = `${baseUrl}/.netlify/functions/generate-paid-report-background`;
+  const payload = {
+    ...input,
+    sessionId,
+    intake,
+    bypass: true,
+    internal: 1,
+    website: intake.website || "",
+    email: intake.email || ""
+  };
+
+  const triggerPromise = fetch(targetUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  })
+    .then(async (response) => {
+      const responseText = await response.text();
+      return {
+        ok: response.ok,
+        debug: {
+          targetUrl,
+          status: response.status,
+          bodySnippet: responseText.slice(0, 300)
+        }
+      };
+    })
+    .catch((error) => ({
+      ok: false,
+      error: error.message || "Unable to trigger internal background report generation."
+    }));
+
+  return Promise.race([
+    triggerPromise,
+    wait(1200).then(() => ({
+      ok: true,
+      debug: {
+        targetUrl,
+        timeoutSafe: true
+      }
+    }))
+  ]);
+}
+
+function getBaseUrl(event) {
+  const explicitUrl = String(process.env.URL || "").trim();
+  if (explicitUrl) return explicitUrl.replace(/\/$/, "");
+
+  const protocol = event.headers?.["x-forwarded-proto"] || "https";
+  const host = event.headers?.["x-forwarded-host"] || event.headers?.host || "";
+  return host ? `${protocol}://${host}` : "";
+}
+
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 function successResponse(message, data = {}) {
   return respond(200, {
     success: true,
@@ -143,7 +188,8 @@ function successResponse(message, data = {}) {
       emailSent: Boolean(data.emailSent),
       driveUrl: String(data.driveUrl || "").trim(),
       downloadUrl: String(data.downloadUrl || "").trim(),
-      reportFileName: String(data.reportFileName || "").trim()
+      reportFileName: String(data.reportFileName || "").trim(),
+      reportQueued: Boolean(data.reportQueued)
     }
   });
 }

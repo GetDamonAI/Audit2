@@ -53,12 +53,8 @@ exports.handler = async (event) => {
       console.log("ENV NOTICE: AUDIT_NOTIFICATION_TO/AUDIT_ALERT_EMAIL missing, using default notification recipient");
     }
 
-    if (!process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
-      throw new Error("Missing GOOGLE_SERVICE_ACCOUNT_JSON.");
-    }
-
-    if (!process.env.GOOGLE_DRIVE_FOLDER_ID) {
-      console.log("ENV NOTICE: GOOGLE_DRIVE_FOLDER_ID missing, uploading to Drive root");
+    if (!process.env.GOOGLE_SERVICE_ACCOUNT_JSON || !process.env.GOOGLE_DRIVE_FOLDER_ID) {
+      console.log("Google Drive upload skipped: missing credentials");
     }
 
     if (bypassMode) {
