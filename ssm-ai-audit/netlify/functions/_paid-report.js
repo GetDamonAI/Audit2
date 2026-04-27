@@ -390,14 +390,20 @@ async function sendPaidReportEmails({ resendKey, report, session }) {
   const customerEmail = session.customer_details?.email || session.customer_email || "";
   const bookingUrl = getAuditBookingUrl();
   const sends = [];
+  const attachments = getPdfAttachments(report);
+  const fallbackMode = !report.assets?.driveUrl || !report.assets?.downloadUrl;
 
   if (customerEmail) {
+    if (fallbackMode) {
+      console.log("Sending fallback report email");
+    }
     sends.push(
       sendResendEmail({
         resendKey,
         to: customerEmail,
         subject: `Your Full AI Visibility Audit + Implementation Plan${report.businessName ? ` - ${report.businessName}` : ""}`,
-        html: renderCustomerPaidReportEmail({ report, bookingUrl })
+        html: renderCustomerPaidReportEmail({ report, bookingUrl }),
+        attachments
       })
     );
   }
@@ -407,13 +413,32 @@ async function sendPaidReportEmails({ resendKey, report, session }) {
       resendKey,
       to: getAuditNotificationTo(),
       subject: `Paid Report Delivered - ${report.businessName || report.url}`,
-      html: renderInternalPaidReportEmail({ report, customerEmail, bookingUrl })
+      html: renderInternalPaidReportEmail({ report, customerEmail, bookingUrl }),
+      attachments
     })
   );
 
   const results = await Promise.all(sends);
   if (results.some((result) => !result.ok)) {
-    throw new Error("Paid report email delivery failed.");
+    const details = results
+      .filter((result) => !result.ok)
+      .map((result) => {
+        const providerError =
+          result.result?.error?.message ||
+          result.result?.message ||
+          result.result?.raw ||
+          JSON.stringify(result.result || {});
+        return `status ${result.status || "unknown"}: ${providerError}`;
+      })
+      .join(" | ");
+    console.error(`Email failed with exact provider response: ${details}`);
+    const error = new Error(`Paid report email delivery failed: ${details}`);
+    error.providerResults = results;
+    throw error;
+  }
+
+  if (fallbackMode) {
+    console.log("Fallback report email sent");
   }
 
   return {
@@ -443,6 +468,7 @@ async function sendPaidReportFailureEmail({ resendKey, session, errorMessage }) 
 function renderCustomerPaidReportEmail({ report, bookingUrl }) {
   const driveUrl = report.assets?.driveUrl || "";
   const downloadUrl = report.assets?.downloadUrl || "";
+  const deliveryNote = renderDeliveryAvailabilityNote(report);
 
   return `
     <div style="font-family: Arial, sans-serif; background:#f7f5f2; padding:24px 16px;">
@@ -454,6 +480,7 @@ function renderCustomerPaidReportEmail({ report, bookingUrl }) {
         </p>
 
         ${renderReportAccessSection({ driveUrl, downloadUrl })}
+        ${deliveryNote}
 
         ${renderExecutiveSummarySection(report.executiveSummary)}
         ${renderDiagnosisSection(report.aiVisibilityDiagnosis)}
@@ -488,6 +515,7 @@ function renderCustomerPaidReportEmail({ report, bookingUrl }) {
 function renderInternalPaidReportEmail({ report, customerEmail, bookingUrl }) {
   const driveUrl = report.assets?.driveUrl || "";
   const downloadUrl = report.assets?.downloadUrl || "";
+  const deliveryNote = renderDeliveryAvailabilityNote(report);
 
   return `
     <div style="font-family: Arial, sans-serif; padding:24px; max-width:760px; margin:0 auto;">
@@ -500,6 +528,7 @@ function renderInternalPaidReportEmail({ report, customerEmail, bookingUrl }) {
       <p><strong>Booking URL:</strong> <a href="${escapeHtml(bookingUrl)}">${escapeHtml(bookingUrl)}</a></p>
       ${driveUrl ? `<p><strong>View Report:</strong> <a href="${escapeHtml(driveUrl)}">${escapeHtml(driveUrl)}</a></p>` : ""}
       ${downloadUrl ? `<p><strong>Download PDF:</strong> <a href="${escapeHtml(downloadUrl)}">${escapeHtml(downloadUrl)}</a></p>` : ""}
+      ${deliveryNote}
       ${renderExecutiveSummarySection(report.executiveSummary)}
       ${renderOpportunityMapSection(report.opportunityMap)}
       ${renderPriorityActionsSection(report.priorityActions)}
@@ -522,6 +551,40 @@ function renderReportAccessSection({ driveUrl, downloadUrl }) {
       </div>
     </div>
   `;
+}
+
+function renderDeliveryAvailabilityNote(report) {
+  const notes = [];
+
+  if (report.assets?.pdfGenerated === false) {
+    notes.push("PDF generation was skipped or failed, so the full report is included directly in this email.");
+  }
+
+  if (report.assets?.driveUploaded === false) {
+    notes.push("Google Drive delivery was skipped, so there is no hosted link for this report.");
+  }
+
+  if (!notes.length) return "";
+
+  return `
+    <div style="margin:0 0 24px; padding:16px 18px; border:1px solid rgba(23,23,23,0.08); border-radius:18px; background:rgba(247,245,242,0.72);">
+      ${notes.map((note) => `<p style="margin:0 0 8px; font-size:14px; line-height:1.55; color:#555555;">${escapeHtml(note)}</p>`).join("")}
+    </div>
+  `;
+}
+
+function getPdfAttachments(report) {
+  const pdfBase64 = String(report.assets?.pdfBase64 || "").trim();
+  const fileName = String(report.assets?.fileName || "ai-visibility-audit.pdf").trim();
+
+  if (!pdfBase64) return [];
+
+  return [
+    {
+      filename: fileName,
+      content: pdfBase64
+    }
+  ];
 }
 
 function renderExecutiveSummarySection(summary) {

@@ -31,19 +31,25 @@ function respond(statusCode, body) {
   };
 }
 
-async function sendResendEmail({ resendKey, to, subject, html }) {
+async function sendResendEmail({ resendKey, to, subject, html, attachments }) {
+  const payload = {
+    from: getAuditEmailFrom(),
+    to: Array.isArray(to) ? to : [to],
+    subject,
+    html
+  };
+
+  if (Array.isArray(attachments) && attachments.length) {
+    payload.attachments = attachments;
+  }
+
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${resendKey}`,
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({
-      from: getAuditEmailFrom(),
-      to: Array.isArray(to) ? to : [to],
-      subject,
-      html
-    })
+    body: JSON.stringify(payload)
   });
 
   const text = await res.text();
@@ -57,6 +63,7 @@ async function sendResendEmail({ resendKey, to, subject, html }) {
 
   return {
     ok: res.ok,
+    status: res.status,
     result
   };
 }

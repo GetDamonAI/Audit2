@@ -75,6 +75,7 @@ async function runPaidReportPipeline({
     reportGenerated: false,
     pdfGenerated: false,
     emailSent: false,
+    emailError: "",
     driveUrl: "",
     downloadUrl: "",
     fileName: "",
@@ -108,13 +109,20 @@ async function runPaidReportPipeline({
       intake: effectiveIntake
     });
     status.reportGenerated = true;
+    logger("Report content generated");
     logger("OpenAI report generation complete");
 
-    logger("Starting PDF generation");
-    const pdf = await generatePdfReport({ report });
-    status.pdfGenerated = true;
-    status.fileName = pdf.fileName;
-    logger("PDF generation complete");
+    let pdf = null;
+    try {
+      logger("Starting PDF generation");
+      pdf = await generatePdfReport({ report });
+      status.pdfGenerated = true;
+      status.fileName = pdf.fileName;
+      logger("PDF generation complete");
+    } catch (error) {
+      status.pdfGenerated = false;
+      logger(`PDF skipped or failed: ${error.message || "Unknown error"}`);
+    }
 
     let driveUpload = {
       fileId: "",
@@ -122,40 +130,62 @@ async function runPaidReportPipeline({
       downloadUrl: ""
     };
 
-    if (shouldUploadToDrive) {
-      logger("Starting Drive upload");
-      driveUpload = await uploadPdfToDrive({
-        buffer: pdf.buffer,
-        fileName: pdf.fileName,
-        mimeType: pdf.mimeType
-      });
-      status.driveUrl = driveUpload.driveUrl || "";
-      status.downloadUrl = driveUpload.downloadUrl || "";
-      status.fileId = driveUpload.fileId || "";
-      logger("Drive upload complete");
+    if (shouldUploadToDrive && pdf?.buffer) {
+      try {
+        logger("Starting Drive upload");
+        driveUpload = await uploadPdfToDrive({
+          buffer: pdf.buffer,
+          fileName: pdf.fileName,
+          mimeType: pdf.mimeType
+        });
+        status.driveUrl = driveUpload.driveUrl || "";
+        status.downloadUrl = driveUpload.downloadUrl || "";
+        status.fileId = driveUpload.fileId || "";
+        logger("Drive upload complete");
+      } catch (error) {
+        status.driveUrl = "";
+        status.downloadUrl = "";
+        status.fileId = "";
+        logger(`Drive skipped or upload failed: ${error.message || "Unknown error"}`);
+      }
+    } else if (!shouldUploadToDrive) {
+      status.driveUrl = "";
+      status.downloadUrl = "";
+      status.fileId = "";
+      logger("Drive skipped: missing credentials");
     } else {
       status.driveUrl = "";
       status.downloadUrl = "";
       status.fileId = "";
-      logger("Google Drive upload skipped: missing credentials");
+      logger("Drive skipped: PDF unavailable");
     }
 
     report.assets = {
-      fileName: pdf.fileName,
-      filePath: pdf.filePath,
+      fileName: pdf?.fileName || "",
+      filePath: pdf?.filePath || "",
       fileId: driveUpload.fileId,
       driveUrl: driveUpload.driveUrl,
-      downloadUrl: driveUpload.downloadUrl
+      downloadUrl: driveUpload.downloadUrl,
+      pdfBase64: pdf?.buffer ? pdf.buffer.toString("base64") : "",
+      pdfGenerated: Boolean(pdf?.buffer),
+      driveUploaded: Boolean(driveUpload.driveUrl || driveUpload.downloadUrl)
     };
 
     logger("Starting report email send");
-    await sendPaidReportEmails({
-      resendKey,
-      report,
-      session
-    });
-    status.emailSent = true;
-    logger("Report email send complete");
+    try {
+      await sendPaidReportEmails({
+        resendKey,
+        report,
+        session
+      });
+      status.emailSent = true;
+      logger("Report email send complete");
+    } catch (error) {
+      status.emailSent = false;
+      status.emailError = error.message || "Unknown email delivery error";
+      logger(`Email failed with exact provider response: ${status.emailError}`);
+      throw error;
+    }
 
     logger(
       JSON.stringify({
@@ -165,8 +195,11 @@ async function runPaidReportPipeline({
         businessName: report.businessName,
         customerEmail: session.customer_details?.email || session.customer_email || "",
         delayMs,
+        pdfGenerated: status.pdfGenerated,
         driveUrl: report.assets.driveUrl,
-        downloadUrl: report.assets.downloadUrl
+        downloadUrl: report.assets.downloadUrl,
+        emailSent: status.emailSent,
+        emailError: status.emailError
       })
     );
     logger("PIPELINE COMPLETE");
