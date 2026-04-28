@@ -84,6 +84,7 @@ function renderReportHtml(report) {
   const sections = [
     ["Assumptions", renderSimpleList(report.assumptions)],
     ["Executive Summary", renderExecutiveSummary(report.executiveSummary)],
+    ["AI Visibility Scorecard", renderScorecard(report.overallScore, report.scoreBreakdown)],
     ["AI Visibility Diagnosis", renderVisibilityDiagnosis(report.aiVisibilityDiagnosis)],
     ["Search Intent + AI Prompt Map", renderPromptMap(report.searchIntentPromptMap)],
     ["Website + Content Structure Findings", renderWebsiteFindings(report.websiteContentFindings)],
@@ -129,6 +130,38 @@ function renderExecutiveSummary(summary) {
     ${renderTitledList("Top opportunities", summary.topOpportunities)}
     ${renderTitledList("Top risks", summary.topRisks)}
     ${renderParagraph(`<strong>Plain-English summary:</strong> ${escapeHtml(summary.plainEnglishSummary || "")}`)}
+  `;
+}
+
+function renderScorecard(overallScore, scoreBreakdown) {
+  if (typeof overallScore !== "number" || !scoreBreakdown) return "";
+
+  const legend = Array.isArray(scoreBreakdown.legend) ? scoreBreakdown.legend : [];
+  const categories = Array.isArray(scoreBreakdown.categories) ? scoreBreakdown.categories : [];
+
+  return `
+    <p style="margin: 0 0 12px;"><strong>Overall AI Visibility Score:</strong> ${escapeHtml(String(overallScore))} / 100</p>
+    ${scoreBreakdown.summary ? `<p style="margin: 0 0 14px;">${escapeHtml(scoreBreakdown.summary)}</p>` : ""}
+    ${legend.length ? `
+      <div style="margin-bottom: 16px;">
+        <p style="margin: 0 0 6px;"><strong>Scoring legend</strong></p>
+        <ul style="margin: 0; padding-left: 20px;">
+          ${legend.map((item) => `<li style="margin: 0 0 6px;"><strong>${escapeHtml(item.range)}</strong>: ${escapeHtml(item.label)}</li>`).join("")}
+        </ul>
+      </div>
+    ` : ""}
+    ${categories
+      .map(
+        (item) => `
+          <div style="margin-bottom: 14px;">
+            <p style="margin: 0 0 4px;"><strong>${escapeHtml(item.title || "")}</strong> (${escapeHtml(String(item.score || 0))} / 100 · ${escapeHtml(item.band || "")})</p>
+            <p style="margin: 0 0 4px;"><strong>Diagnosis:</strong> ${escapeHtml(item.diagnosis || "")}</p>
+            <p style="margin: 0 0 4px;"><strong>Why it matters:</strong> ${escapeHtml(item.whyItMatters || "")}</p>
+            <p style="margin: 0;"><strong>What would improve the score:</strong> ${escapeHtml(item.whatWouldImprove || "")}</p>
+          </div>
+        `
+      )
+      .join("")}
   `;
 }
 

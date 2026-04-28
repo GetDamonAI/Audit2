@@ -158,6 +158,34 @@ function finalizePaidReport({
   );
   const coachingNotes = normalizeCoachingNotesV2(parsed.coachingNotes);
   const assumptions = normalizeStringArray(parsed.assumptions, 10);
+  const signals = {
+    structure: {
+      titleTag: htmlChecks.hasTitle,
+      metaDescription: htmlChecks.hasMetaDescription,
+      h1: htmlChecks.hasH1,
+      canonical: htmlChecks.hasCanonical,
+      schema: htmlChecks.hasSchema,
+      noindex: htmlChecks.hasNoindex,
+      schemaTypes: htmlChecks.schemaTypes || []
+    },
+    pageSpeed: pageSpeed?.score ?? null,
+    searchPresence: serper?.presence || "Unavailable",
+    searchQuery: serper?.query || "",
+    searchQueries: serper?.queries || [],
+    crawlSummary: crawl.summary,
+    schemaSummary: crawl.schema,
+    contentDepth: crawl.contentDepth
+  };
+  const scorecard = buildPaidReportScorecard({
+    businessName,
+    intake,
+    signals,
+    executiveSummary,
+    aiVisibilityDiagnosis,
+    searchIntentPromptMap,
+    websiteContentFindings,
+    schemaTechnicalRecommendations
+  });
 
   const report = {
     reportVersion: 2,
@@ -167,25 +195,10 @@ function finalizePaidReport({
     quickAuditScore: Number(metadata.quickAuditScore ?? 0),
     quickAuditStatus: String(metadata.aiVerdict || "").trim(),
     quickAuditSummary: String(metadata.summary || "").trim(),
+    overallScore: scorecard.overallScore,
+    scoreBreakdown: scorecard.scoreBreakdown,
     intake,
-    signals: {
-      structure: {
-        titleTag: htmlChecks.hasTitle,
-        metaDescription: htmlChecks.hasMetaDescription,
-        h1: htmlChecks.hasH1,
-        canonical: htmlChecks.hasCanonical,
-        schema: htmlChecks.hasSchema,
-        noindex: htmlChecks.hasNoindex,
-        schemaTypes: htmlChecks.schemaTypes || []
-      },
-      pageSpeed: pageSpeed?.score ?? null,
-      searchPresence: serper?.presence || "Unavailable",
-      searchQuery: serper?.query || "",
-      searchQueries: serper?.queries || [],
-      crawlSummary: crawl.summary,
-      schemaSummary: crawl.schema,
-      contentDepth: crawl.contentDepth
-    },
+    signals,
     assumptions,
     executiveSummary,
     aiVisibilityDiagnosis,
@@ -718,6 +731,7 @@ function renderComprehensivePaidReportSections(report) {
   return [
     renderAssumptionsSection(report.assumptions),
     renderExecutiveSummarySectionV2(report.executiveSummary),
+    renderScorecardSection(report.overallScore, report.scoreBreakdown),
     renderAiVisibilityDiagnosisSectionV2(report.aiVisibilityDiagnosis),
     renderSearchIntentPromptMapSection(report.searchIntentPromptMap),
     renderWebsiteContentFindingsSection(report.websiteContentFindings),
@@ -730,6 +744,41 @@ function renderComprehensivePaidReportSections(report) {
   ]
     .filter(Boolean)
     .join("");
+}
+
+function renderScorecardSection(overallScore, scoreBreakdown) {
+  if (typeof overallScore !== "number" || !scoreBreakdown) return "";
+
+  const categories = Array.isArray(scoreBreakdown.categories) ? scoreBreakdown.categories : [];
+  const legend = Array.isArray(scoreBreakdown.legend) ? scoreBreakdown.legend : [];
+
+  return renderLabeledSection(
+    "AI Visibility Scorecard",
+    `Overall AI Visibility Score: ${escapeHtml(String(overallScore))} / 100`,
+    `
+      ${scoreBreakdown.summary ? `<p style="margin:0 0 14px; font-size:15px; line-height:1.6; color:#555555;">${escapeHtml(scoreBreakdown.summary)}</p>` : ""}
+      ${legend.length ? `
+        <div style="margin:0 0 18px; padding:14px 16px; border:1px solid rgba(23,23,23,0.08); border-radius:16px; background:rgba(247,245,242,0.72);">
+          <p style="margin:0 0 8px; font-size:14px; line-height:1.5; color:#777777; text-transform:uppercase; letter-spacing:0.08em;">Scoring legend</p>
+          <ul style="margin:0; padding-left:20px; font-size:14px; line-height:1.6; color:#555555;">
+            ${legend.map((item) => `<li style="margin:0 0 6px;"><strong>${escapeHtml(item.range)}</strong>: ${escapeHtml(item.label)}</li>`).join("")}
+          </ul>
+        </div>
+      ` : ""}
+      ${categories
+        .map(
+          (item) => `
+            <div style="padding-top:16px; margin-top:16px; border-top:1px solid rgba(23,23,23,0.08);">
+              <p style="margin:0 0 6px; font-size:18px; line-height:1.4; color:#1a1a1a;"><strong>${escapeHtml(item.title)}</strong> <span style="color:#777777; font-size:14px;">${escapeHtml(String(item.score))} / 100 · ${escapeHtml(item.band)}</span></p>
+              <p style="margin:0 0 8px; font-size:15px; line-height:1.6; color:#555555;"><strong>Diagnosis:</strong> ${escapeHtml(item.diagnosis)}</p>
+              <p style="margin:0 0 8px; font-size:15px; line-height:1.6; color:#555555;"><strong>Why it matters:</strong> ${escapeHtml(item.whyItMatters)}</p>
+              <p style="margin:0; font-size:15px; line-height:1.6; color:#555555;"><strong>What would improve the score:</strong> ${escapeHtml(item.whatWouldImprove)}</p>
+            </div>
+          `
+        )
+        .join("")}
+    `
+  );
 }
 
 function renderAssumptionsSection(items) {
@@ -1609,6 +1658,234 @@ function startCase(value) {
     .replace(/\s+/g, " ")
     .trim()
     .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function buildPaidReportScorecard({
+  businessName,
+  intake,
+  signals,
+  executiveSummary,
+  aiVisibilityDiagnosis,
+  searchIntentPromptMap,
+  websiteContentFindings,
+  schemaTechnicalRecommendations
+}) {
+  const structure = signals?.structure || {};
+  const contentDepth = signals?.contentDepth || {};
+  const crawlSummary = signals?.crawlSummary || {};
+  const schemaSummary = signals?.schemaSummary || {};
+  const foundInSearch = String(signals?.searchPresence || "")
+    .toLowerCase()
+    .includes("found");
+
+  const unclearCount = countItems(aiVisibilityDiagnosis?.whereTheBrandIsUnclear);
+  const entityIssuesCount = countItems(aiVisibilityDiagnosis?.entityClarityIssues);
+  const contentGapCount = countItems(aiVisibilityDiagnosis?.contentGaps);
+  const trustGapCount = countItems(aiVisibilityDiagnosis?.trustAuthorityGaps);
+  const proofGapCount = countItems(websiteContentFindings?.missingProofTrustSignals);
+  const faqCount = countItems(websiteContentFindings?.faqOpportunities);
+  const internalLinkCount = countItems(websiteContentFindings?.internalLinkingOpportunities);
+  const promptCount = countPromptMapItems(searchIntentPromptMap);
+  const schemaRecommendationCount = countItems(
+    schemaTechnicalRecommendations?.schemaRecommendations
+  );
+  const validationStepCount = countItems(schemaTechnicalRecommendations?.validationSteps);
+
+  const entityClarityScore = clampScore(
+    36 +
+      (structure.titleTag ? 10 : 0) +
+      (structure.h1 ? 10 : 0) +
+      (structure.metaDescription ? 7 : 0) +
+      Math.min((contentDepth.servicePageClarity || 0) * 0.22, 22) -
+      unclearCount * 3 -
+      entityIssuesCount * 4
+  );
+
+  const contentDepthScore = clampScore(
+    20 +
+      Math.min((contentDepth.score || 0) * 0.55, 55) +
+      Math.min((crawlSummary.pagesWithQuestions || 0) * 2, 10) +
+      Math.min((crawlSummary.averageWordCount || 0) / 120, 10) -
+      contentGapCount * 3
+  );
+
+  const aiAnswerReadinessScore = clampScore(
+    18 +
+      Math.min((contentDepth.questionAnswerReadiness || 0) * 0.55, 55) +
+      Math.min(promptCount * 1.4, 16) +
+      Math.min(faqCount * 1.2, 8) -
+      contentGapCount * 2
+  );
+
+  const technicalSchemaScore = clampScore(
+    15 +
+      (structure.schema ? 16 : 0) +
+      Math.min((structure.schemaTypes || []).length * 4, 16) +
+      Math.min((schemaSummary.schemaTypes || []).length * 2, 10) +
+      (structure.canonical ? 8 : 0) +
+      (structure.titleTag ? 6 : 0) +
+      (structure.metaDescription ? 5 : 0) +
+      Math.min((signals.pageSpeed || 0) * 0.18, 18) +
+      Math.min(validationStepCount * 1.5, 8) -
+      (structure.noindex ? 25 : 0)
+  );
+
+  const authorityTrustScore = clampScore(
+    24 +
+      Math.min((signals.searchQueries || []).filter((query) => query.brandFound).length * 5, 20) +
+      (foundInSearch ? 10 : 0) +
+      Math.min((Number(intake?.quickAuditScore) || 0) * 0.18, 12) -
+      trustGapCount * 4 -
+      proofGapCount * 3
+  );
+
+  const conversionReadinessScore = clampScore(
+    24 +
+      Math.min((contentDepth.servicePageClarity || 0) * 0.32, 32) +
+      (String(intake?.conversionGoal || "").trim() ? 8 : 0) +
+      (String(intake?.priorityPages || "").trim() ? 8 : 0) +
+      Math.min(internalLinkCount * 1.5, 8) -
+      proofGapCount * 3
+  );
+
+  const categories = [
+    createScoreEntry({
+      key: "entityClarityScore",
+      title: "Entity Clarity Score",
+      score: entityClarityScore,
+      diagnosis:
+        entityClarityScore >= 80
+          ? `${businessName || "The business"} is communicating who it is and what it does with relatively strong clarity signals.`
+          : `${businessName || "The business"} still has ambiguity around who it helps, what it offers, or how priority pages define the brand.`,
+      whyItMatters:
+        "AI systems need strong entity clarity before they can confidently recommend, summarize, or cite a business.",
+      whatWouldImprove:
+        "Tighten homepage and service-page positioning, sharpen H1/title/meta alignment, and reduce ambiguity in how the business describes its offer."
+    }),
+    createScoreEntry({
+      key: "contentDepthScore",
+      title: "Content Depth Score",
+      score: contentDepthScore,
+      diagnosis:
+        contentDepthScore >= 80
+          ? "The site shows useful depth across priority topics and can support stronger AI-driven discovery."
+          : "The site needs broader and deeper coverage across the questions, topics, and proof points buyers care about.",
+      whyItMatters:
+        "Thin or shallow coverage limits how often AI systems can match the brand to nuanced, high-intent prompts.",
+      whatWouldImprove:
+        "Expand service support content, build topic clusters, deepen FAQ and supporting content, and add clearer proof-led explanations on priority pages."
+    }),
+    createScoreEntry({
+      key: "aiAnswerReadinessScore",
+      title: "AI Answer Readiness Score",
+      score: aiAnswerReadinessScore,
+      diagnosis:
+        aiAnswerReadinessScore >= 80
+          ? "The site has a strong base for answering AI-style prompts directly and clearly."
+          : "The site needs more direct, question-led, answer-ready content blocks to win recommendation moments.",
+      whyItMatters:
+        "AI search favors content that can answer prompts directly, confidently, and with clear page-level relevance.",
+      whatWouldImprove:
+        "Add concise question-answer blocks, FAQ sections, comparison pages, and clearer prompt-matched content tied to priority buyer questions."
+    }),
+    createScoreEntry({
+      key: "technicalSchemaScore",
+      title: "Technical / Schema Score",
+      score: technicalSchemaScore,
+      diagnosis:
+        technicalSchemaScore >= 80
+          ? "The site has a relatively solid technical and structured-data foundation for AI interpretation."
+          : "The technical and schema foundation still needs work before AI systems can read the business as cleanly as they should.",
+      whyItMatters:
+        "Schema, crawlability, metadata, and clean page signals help AI systems interpret, validate, and cite the site more confidently.",
+      whatWouldImprove:
+        "Implement the right schema types, validate structured data, clean up metadata and headings, improve crawl clarity, and raise page-speed performance where possible."
+    }),
+    createScoreEntry({
+      key: "authorityTrustScore",
+      title: "Authority & Trust Score",
+      score: authorityTrustScore,
+      diagnosis:
+        authorityTrustScore >= 80
+          ? "The brand shows a relatively healthy base of trust cues and recommendation support."
+          : "The brand still needs stronger authority, proof, and external trust signals to improve recommendation confidence.",
+      whyItMatters:
+        "AI systems are more willing to recommend brands that show stronger proof, clarity, mentions, and signals of trust.",
+      whatWouldImprove:
+        "Add testimonials, case studies, brand proof, partner signals, citations, and stronger off-site authority references aligned to the core offer."
+    }),
+    createScoreEntry({
+      key: "conversionReadinessScore",
+      title: "Conversion Readiness Score",
+      score: conversionReadinessScore,
+      diagnosis:
+        conversionReadinessScore >= 80
+          ? "The site is relatively well set up to turn AI-driven discovery into a next step."
+          : "The site still needs a clearer path from visibility to conversion on its highest-value pages.",
+      whyItMatters:
+        "AI visibility only becomes commercial value when the landing experience makes the next action obvious and credible.",
+      whatWouldImprove:
+        "Clarify conversion goals on priority pages, strengthen CTAs, reduce friction, add trust near actions, and improve internal links into commercial pages."
+    })
+  ];
+
+  const overallScore = Math.round(
+    categories.reduce((sum, item) => sum + item.score, 0) / categories.length
+  );
+
+  return {
+    overallScore,
+    scoreBreakdown: {
+      summary: `${
+        businessName || "This business"
+      } currently sits in the ${getScoreBand(overallScore).toLowerCase()} range for AI visibility. The strongest gains will come from improving clarity, answer readiness, structured data, and proof signals together rather than treating them as separate fixes.`,
+      legend: [
+        { range: "80–100", label: "Strong" },
+        { range: "60–79", label: "Good foundation, needs improvement" },
+        { range: "40–59", label: "Weak visibility" },
+        { range: "0–39", label: "High-risk / not AI-ready" }
+      ],
+      categories
+    }
+  };
+}
+
+function createScoreEntry({ key, title, score, diagnosis, whyItMatters, whatWouldImprove }) {
+  return {
+    key,
+    title,
+    score,
+    band: getScoreBand(score),
+    diagnosis,
+    whyItMatters,
+    whatWouldImprove
+  };
+}
+
+function getScoreBand(score) {
+  if (score >= 80) return "Strong";
+  if (score >= 60) return "Good foundation, needs improvement";
+  if (score >= 40) return "Weak visibility";
+  return "High-risk / not AI-ready";
+}
+
+function clampScore(value) {
+  return Math.max(0, Math.min(100, Math.round(value)));
+}
+
+function countItems(items) {
+  return Array.isArray(items) ? items.filter(Boolean).length : 0;
+}
+
+function countPromptMapItems(promptMap) {
+  if (!promptMap) return 0;
+  return [
+    promptMap.buyingIntent,
+    promptMap.comparisonIntent,
+    promptMap.educationalIntent,
+    promptMap.localCategoryIntent,
+    promptMap.problemAwareIntent
+  ].reduce((sum, items) => sum + countItems(items), 0);
 }
 
 function normalizeExecutiveSummary(summary) {
