@@ -53,6 +53,8 @@ async function generatePaidReport({
     implementationPlanSeed
   });
 
+  console.log("PAID REPORT PROMPT UPGRADED: using comprehensive strategy plan");
+
   const openAiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -123,8 +125,42 @@ function finalizePaidReport({
   serper,
   crawl
 }) {
+  const executiveSummary = normalizeExecutiveSummaryV2(parsed.executiveSummary, businessName);
+  const aiVisibilityDiagnosis = normalizeAiVisibilityDiagnosisV2(parsed.aiVisibilityDiagnosis);
+  const searchIntentPromptMap = normalizeSearchIntentPromptMap(parsed.searchIntentPromptMap, {
+    businessName,
+    priorityPages: intake.priorityPages || "",
+    questionsToShowUpFor: intake.aiQuestionTargeting || intake.questionsToShowUpFor || ""
+  });
+  const websiteContentFindings = normalizeWebsiteContentFindings(parsed.websiteContentFindings);
+  const schemaTechnicalRecommendations = normalizeSchemaTechnicalRecommendations(
+    parsed.schemaTechnicalRecommendations
+  );
+  const contentThoughtStarters = normalizeContentThoughtStarters(
+    parsed.contentThoughtStarters,
+    {
+      website: url,
+      conversionGoal: intake.conversionGoal || "",
+      priorityPages: intake.priorityPages || "",
+      topServices: intake.topServices || ""
+    }
+  );
+  const priorityFixes = normalizePriorityFixes(
+    parsed.priorityFixes,
+    implementationPlanSeed.recommendations
+  );
+  const ninetyDayImplementationPlan = normalizeNinetyDayImplementationPlan(
+    parsed.ninetyDayImplementationPlan,
+    implementationPlanSeed.recommendations
+  );
+  const implementationChecklist = normalizeImplementationChecklistV2(
+    parsed.implementationChecklist
+  );
+  const coachingNotes = normalizeCoachingNotesV2(parsed.coachingNotes);
+  const assumptions = normalizeStringArray(parsed.assumptions, 10);
+
   const report = {
-    reportVersion: 1,
+    reportVersion: 2,
     generatedAt: new Date().toISOString(),
     url,
     businessName,
@@ -150,19 +186,34 @@ function finalizePaidReport({
       schemaSummary: crawl.schema,
       contentDepth: crawl.contentDepth
     },
-    executiveSummary: normalizeExecutiveSummary(parsed.executiveSummary),
-    aiVisibilityDiagnosis: normalizeDiagnosis(parsed.aiVisibilityDiagnosis),
-    opportunityMap: normalizeOpportunityMap(parsed.opportunityMap),
-    priorityActions: normalizePriorityActions(parsed.priorityActions),
-    tacticalRecommendations: normalizeRecommendations(
-      parsed.tacticalRecommendations,
-      implementationPlanSeed.recommendations
-    ),
-    workstreams: normalizeWorkstreams(parsed.workstreams, implementationPlanSeed.recommendations),
-    sixtyDayCalendar: normalizeCalendar(parsed.sixtyDayCalendar),
-    implementationChecklist: normalizeChecklist(parsed.implementationChecklist),
-    quickWins: normalizeStringArray(parsed.quickWins, 8),
-    coachingNotes: normalizeCoachingNotes(parsed.coachingNotes),
+    assumptions,
+    executiveSummary,
+    aiVisibilityDiagnosis,
+    searchIntentPromptMap,
+    websiteContentFindings,
+    schemaTechnicalRecommendations,
+    contentThoughtStarters,
+    priorityFixes,
+    ninetyDayImplementationPlan,
+    implementationChecklist,
+    coachingNotes,
+    opportunityMap: flattenPromptMap(searchIntentPromptMap),
+    priorityActions: mapPriorityFixesToLegacy(priorityFixes),
+    tacticalRecommendations: mapRecommendationsToLegacy({
+      websiteContentFindings,
+      schemaTechnicalRecommendations,
+      contentThoughtStarters,
+      fallbackRecommendations: implementationPlanSeed.recommendations
+    }),
+    workstreams: mapWorkstreamsToLegacy({
+      ninetyDayImplementationPlan,
+      fallbackRecommendations: implementationPlanSeed.recommendations
+    }),
+    sixtyDayCalendar: mapCalendarToLegacy(ninetyDayImplementationPlan),
+    quickWins: priorityFixes
+      .filter((item) => item.priorityLevel === "High")
+      .slice(0, 6)
+      .map((item) => item.tactic),
     implementationPlanSeed
   };
 
@@ -381,7 +432,111 @@ RETURN JSON IN THIS EXACT SHAPE:
     "whatMattersMost": ["string", "string"],
     "whatToIgnore": ["string", "string"],
     "whereToFocusFirst": "string"
-  ]
+  }
+}
+
+ADDITIONAL UPGRADE RULES
+- Expand this into a comprehensive AI Visibility Audit + Implementation Plan, not a short audit summary.
+- Include 15-25 prompts/questions in the Search Intent + AI Prompt Map across the five required intent groups.
+- Include at least 10 article ideas, 10 FAQ questions, 5 comparison ideas, 5 proof/case-study ideas, 5 social/LinkedIn ideas, and 5 AI answer-ready content blocks.
+- Include a full 90-day implementation plan with the six required phases.
+- Make every recommendation specific to this business and grounded in the intake + crawl + search evidence.
+- When information is missing, state the assumption clearly instead of pretending certainty.
+
+IGNORE THE EARLIER SCHEMA ABOVE.
+USE THIS UPGRADED PAID-REPORT SCHEMA INSTEAD, AND RETURN VALID JSON IN THIS EXACT SHAPE:
+{
+  "assumptions": ["string"],
+  "executiveSummary": {
+    "whatTheBusinessDoes": "string",
+    "currentAiSearchVisibilityProblem": "string",
+    "topOpportunities": ["string", "string", "string"],
+    "topRisks": ["string", "string", "string"],
+    "plainEnglishSummary": "string"
+  },
+  "aiVisibilityDiagnosis": {
+    "whereTheBrandIsClear": ["string"],
+    "whereTheBrandIsUnclear": ["string"],
+    "whyAiSystemsMayOrMayNotRecommendIt": ["string"],
+    "entityClarityIssues": ["string"],
+    "contentGaps": ["string"],
+    "trustAuthorityGaps": ["string"]
+  },
+  "searchIntentPromptMap": {
+    "buyingIntent": [{"prompt": "string", "whyItMatters": "string", "recommendedPageOrContent": "string"}],
+    "comparisonIntent": [{"prompt": "string", "whyItMatters": "string", "recommendedPageOrContent": "string"}],
+    "educationalIntent": [{"prompt": "string", "whyItMatters": "string", "recommendedPageOrContent": "string"}],
+    "localCategoryIntent": [{"prompt": "string", "whyItMatters": "string", "recommendedPageOrContent": "string"}],
+    "problemAwareIntent": [{"prompt": "string", "whyItMatters": "string", "recommendedPageOrContent": "string"}]
+  },
+  "websiteContentFindings": {
+    "homepageClarity": ["string"],
+    "serviceOrProductPageClarity": ["string"],
+    "faqOpportunities": ["string"],
+    "internalLinkingOpportunities": ["string"],
+    "missingProofTrustSignals": ["string"],
+    "contentDepthGaps": ["string"]
+  },
+  "schemaTechnicalRecommendations": {
+    "schemaRecommendations": [
+      {
+        "schemaType": "string",
+        "whereItShouldGo": "string",
+        "whyItMatters": "string",
+        "exampleFields": ["string"]
+      }
+    ],
+    "metadataImprovements": ["string"],
+    "headingStructure": ["string"],
+    "crawlabilityIndexability": ["string"],
+    "pageSpeedNotes": ["string"],
+    "validationSteps": ["string"]
+  },
+  "contentThoughtStarters": {
+    "articleIdeas": [{"title": "string", "targetQuestionOrPrompt": "string", "whyItMatters": "string", "suggestedCtaOrInternalLink": "string"}],
+    "faqQuestions": [{"title": "string", "targetQuestionOrPrompt": "string", "whyItMatters": "string", "suggestedCtaOrInternalLink": "string"}],
+    "comparisonIdeas": [{"title": "string", "targetQuestionOrPrompt": "string", "whyItMatters": "string", "suggestedCtaOrInternalLink": "string"}],
+    "proofCaseStudyIdeas": [{"title": "string", "targetQuestionOrPrompt": "string", "whyItMatters": "string", "suggestedCtaOrInternalLink": "string"}],
+    "socialLinkedInPostIdeas": [{"title": "string", "targetQuestionOrPrompt": "string", "whyItMatters": "string", "suggestedCtaOrInternalLink": "string"}],
+    "aiAnswerReadyContentBlocks": [{"title": "string", "targetQuestionOrPrompt": "string", "whyItMatters": "string", "suggestedCtaOrInternalLink": "string"}]
+  },
+  "priorityFixes": [
+    {
+      "priorityLevel": "High|Medium|Low",
+      "tactic": "string",
+      "whyItMatters": "string",
+      "howToImplement": "string",
+      "effortLevel": "Low|Medium|High",
+      "expectedImpact": "string",
+      "owner": "string",
+      "successLooksLike": "string"
+    }
+  ],
+  "ninetyDayImplementationPlan": [
+    {
+      "phase": "Days 1-15",
+      "objective": "string",
+      "exactTasks": ["string"],
+      "rationale": "string",
+      "deliverables": ["string"],
+      "owner": "string",
+      "successMetric": "string"
+    }
+  ],
+  "implementationChecklist": {
+    "strategy": [{"task": "string", "whyItMatters": "string", "owner": "string"}],
+    "website": [{"task": "string", "whyItMatters": "string", "owner": "string"}],
+    "content": [{"task": "string", "whyItMatters": "string", "owner": "string"}],
+    "schema": [{"task": "string", "whyItMatters": "string", "owner": "string"}],
+    "authority": [{"task": "string", "whyItMatters": "string", "owner": "string"}],
+    "measurement": [{"task": "string", "whyItMatters": "string", "owner": "string"}]
+  },
+  "coachingNotes": {
+    "whatToDoFirst": ["string"],
+    "whatToIgnoreForNow": ["string"],
+    "biggestLeverageAreas": ["string"],
+    "whatDamonShouldWalkThroughOnTheCall": ["string"]
+  }
 }
 `;
 }
@@ -476,22 +631,13 @@ function renderCustomerPaidReportEmail({ report, bookingUrl }) {
         <p style="margin:0 0 10px; font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:#777777;">AI Visibility Audit</p>
         <h2 style="margin:0 0 12px; font-size:34px; line-height:1.05; color:#1a1a1a;">Your full AI Visibility Audit + Implementation Plan is ready</h2>
         <p style="margin:0 0 20px; font-size:16px; line-height:1.6; color:#555555;">
-          We’ve finished the deeper report for ${escapeHtml(report.businessName || report.url)}. Below you’ll find the diagnosis, the priority actions, the tactical recommendations, and the 60-day rollout plan.
+          We’ve finished the deeper report for ${escapeHtml(report.businessName || report.url)}. Below you’ll find the full diagnosis, search-intent map, schema recommendations, content strategy, priority fixes, 90-day implementation plan, and coaching notes.
         </p>
 
         ${renderReportAccessSection({ driveUrl, downloadUrl })}
         ${deliveryNote}
 
-        ${renderExecutiveSummarySection(report.executiveSummary)}
-        ${renderDiagnosisSection(report.aiVisibilityDiagnosis)}
-        ${renderOpportunityMapSection(report.opportunityMap)}
-        ${renderPriorityActionsSection(report.priorityActions)}
-        ${renderRecommendationsSection(report.tacticalRecommendations)}
-        ${renderWorkstreamsSection(report.workstreams)}
-        ${renderCalendarSection(report.sixtyDayCalendar)}
-        ${renderChecklistSection(report.implementationChecklist)}
-        ${renderQuickWinsSection(report.quickWins)}
-        ${renderCoachingNotesSection(report.coachingNotes)}
+        ${renderComprehensivePaidReportSections(report)}
 
         <div style="margin-top:28px; padding-top:24px; border-top:1px solid rgba(23,23,23,0.08);">
           <p style="margin:0 0 14px; font-size:16px; line-height:1.55; color:#555555;">
@@ -529,12 +675,7 @@ function renderInternalPaidReportEmail({ report, customerEmail, bookingUrl }) {
       ${driveUrl ? `<p><strong>View Report:</strong> <a href="${escapeHtml(driveUrl)}">${escapeHtml(driveUrl)}</a></p>` : ""}
       ${downloadUrl ? `<p><strong>Download PDF:</strong> <a href="${escapeHtml(downloadUrl)}">${escapeHtml(downloadUrl)}</a></p>` : ""}
       ${deliveryNote}
-      ${renderExecutiveSummarySection(report.executiveSummary)}
-      ${renderOpportunityMapSection(report.opportunityMap)}
-      ${renderPriorityActionsSection(report.priorityActions)}
-      ${renderQuickWinsSection(report.quickWins)}
-      ${renderCoachingNotesSection(report.coachingNotes)}
-      ${renderCalendarSection(report.sixtyDayCalendar)}
+      ${renderComprehensivePaidReportSections(report)}
     </div>
   `;
 }
@@ -569,6 +710,330 @@ function renderDeliveryAvailabilityNote(report) {
   return `
     <div style="margin:0 0 24px; padding:16px 18px; border:1px solid rgba(23,23,23,0.08); border-radius:18px; background:rgba(247,245,242,0.72);">
       ${notes.map((note) => `<p style="margin:0 0 8px; font-size:14px; line-height:1.55; color:#555555;">${escapeHtml(note)}</p>`).join("")}
+    </div>
+  `;
+}
+
+function renderComprehensivePaidReportSections(report) {
+  return [
+    renderAssumptionsSection(report.assumptions),
+    renderExecutiveSummarySectionV2(report.executiveSummary),
+    renderAiVisibilityDiagnosisSectionV2(report.aiVisibilityDiagnosis),
+    renderSearchIntentPromptMapSection(report.searchIntentPromptMap),
+    renderWebsiteContentFindingsSection(report.websiteContentFindings),
+    renderSchemaTechnicalRecommendationsSection(report.schemaTechnicalRecommendations),
+    renderContentThoughtStartersSection(report.contentThoughtStarters),
+    renderPriorityFixesSection(report.priorityFixes),
+    renderNinetyDayImplementationPlanSection(report.ninetyDayImplementationPlan),
+    renderChecklistSectionV2(report.implementationChecklist),
+    renderCoachingNotesSectionV2(report.coachingNotes)
+  ]
+    .filter(Boolean)
+    .join("");
+}
+
+function renderAssumptionsSection(items) {
+  return renderBulletsSection("Assumptions", "Assumptions", items);
+}
+
+function renderExecutiveSummarySectionV2(summary) {
+  if (!summary) return "";
+
+  return renderLabeledSection(
+    "Executive Summary",
+    "Executive Summary",
+    `
+      ${renderKeyValueParagraph("What the business does", summary.whatTheBusinessDoes)}
+      ${renderKeyValueParagraph(
+        "Current AI/search visibility problem",
+        summary.currentAiSearchVisibilityProblem
+      )}
+      ${renderBullets("Top 3 opportunities", summary.topOpportunities)}
+      ${renderBullets("Top 3 risks", summary.topRisks)}
+      ${renderKeyValueParagraph("Plain-English summary", summary.plainEnglishSummary)}
+    `
+  );
+}
+
+function renderAiVisibilityDiagnosisSectionV2(diagnosis) {
+  if (!diagnosis) return "";
+
+  return renderLabeledSection(
+    "AI Visibility Diagnosis",
+    "AI Visibility Diagnosis",
+    `
+      ${renderBullets("Where the brand is likely clear", diagnosis.whereTheBrandIsClear)}
+      ${renderBullets("Where the brand is unclear", diagnosis.whereTheBrandIsUnclear)}
+      ${renderBullets(
+        "Why AI systems may or may not recommend it",
+        diagnosis.whyAiSystemsMayOrMayNotRecommendIt
+      )}
+      ${renderBullets("Entity clarity issues", diagnosis.entityClarityIssues)}
+      ${renderBullets("Content gaps", diagnosis.contentGaps)}
+      ${renderBullets("Trust and authority gaps", diagnosis.trustAuthorityGaps)}
+    `
+  );
+}
+
+function renderSearchIntentPromptMapSection(promptMap) {
+  if (!promptMap) return "";
+
+  return renderLabeledSection(
+    "Search Intent + AI Prompt Map",
+    "Search Intent + AI Prompt Map",
+    [
+      renderPromptGroup("Buying intent", promptMap.buyingIntent),
+      renderPromptGroup("Comparison intent", promptMap.comparisonIntent),
+      renderPromptGroup("Educational intent", promptMap.educationalIntent),
+      renderPromptGroup("Local/category intent", promptMap.localCategoryIntent),
+      renderPromptGroup("Problem-aware intent", promptMap.problemAwareIntent)
+    ]
+      .filter(Boolean)
+      .join("")
+  );
+}
+
+function renderWebsiteContentFindingsSection(findings) {
+  if (!findings) return "";
+
+  return renderLabeledSection(
+    "Website + Content Structure Findings",
+    "Website + Content Structure Findings",
+    `
+      ${renderBullets("Homepage clarity", findings.homepageClarity)}
+      ${renderBullets("Service or product page clarity", findings.serviceOrProductPageClarity)}
+      ${renderBullets("FAQ opportunities", findings.faqOpportunities)}
+      ${renderBullets("Internal linking opportunities", findings.internalLinkingOpportunities)}
+      ${renderBullets("Missing proof and trust signals", findings.missingProofTrustSignals)}
+      ${renderBullets("Content depth gaps", findings.contentDepthGaps)}
+    `
+  );
+}
+
+function renderSchemaTechnicalRecommendationsSection(section) {
+  if (!section) return "";
+
+  const schemaRows = (Array.isArray(section.schemaRecommendations)
+    ? section.schemaRecommendations
+    : []
+  )
+    .map(
+      (item) => `
+        <div style="padding-top:16px; margin-top:16px; border-top:1px solid rgba(23,23,23,0.08);">
+          <p style="margin:0 0 6px; font-size:18px; line-height:1.4; color:#1a1a1a;"><strong>${escapeHtml(item.schemaType)}</strong></p>
+          <p style="margin:0 0 8px; font-size:15px; line-height:1.6; color:#555555;"><strong>Where it should go:</strong> ${escapeHtml(item.whereItShouldGo)}</p>
+          <p style="margin:0 0 8px; font-size:15px; line-height:1.6; color:#555555;"><strong>Why it matters:</strong> ${escapeHtml(item.whyItMatters)}</p>
+          ${renderBullets("Example fields to include", item.exampleFields)}
+        </div>
+      `
+    )
+    .join("");
+
+  return renderLabeledSection(
+    "Schema + Technical Recommendations",
+    "Schema + Technical Recommendations",
+    `
+      ${schemaRows}
+      ${renderBullets("Metadata improvements", section.metadataImprovements)}
+      ${renderBullets("Heading structure", section.headingStructure)}
+      ${renderBullets("Crawlability and indexability", section.crawlabilityIndexability)}
+      ${renderBullets("Page speed notes", section.pageSpeedNotes)}
+      ${renderBullets("Structured-data validation steps", section.validationSteps)}
+    `
+  );
+}
+
+function renderContentThoughtStartersSection(section) {
+  if (!section) return "";
+
+  return renderLabeledSection(
+    "Content Strategy + Thought Starters",
+    "Content Strategy + Thought Starters",
+    [
+      renderIdeaGroup("Article ideas", section.articleIdeas),
+      renderIdeaGroup("FAQ questions", section.faqQuestions),
+      renderIdeaGroup("Comparison and alternative ideas", section.comparisonIdeas),
+      renderIdeaGroup("Proof and case-study ideas", section.proofCaseStudyIdeas),
+      renderIdeaGroup("Social and LinkedIn post ideas", section.socialLinkedInPostIdeas),
+      renderIdeaGroup("AI answer-ready content blocks", section.aiAnswerReadyContentBlocks)
+    ]
+      .filter(Boolean)
+      .join("")
+  );
+}
+
+function renderPriorityFixesSection(items) {
+  const values = Array.isArray(items) ? items : [];
+  if (!values.length) return "";
+
+  const rows = values
+    .map(
+      (item) => `
+        <div style="padding-top:16px; margin-top:16px; border-top:1px solid rgba(23,23,23,0.08);">
+          <p style="margin:0 0 6px; font-size:18px; line-height:1.4; color:#1a1a1a;"><strong>${escapeHtml(item.tactic)}</strong> <span style="color:#777777; font-size:14px;">${escapeHtml(item.priorityLevel)} priority</span></p>
+          <p style="margin:0 0 8px; font-size:15px; line-height:1.6; color:#555555;"><strong>Why it matters:</strong> ${escapeHtml(item.whyItMatters)}</p>
+          <p style="margin:0 0 8px; font-size:15px; line-height:1.6; color:#555555;"><strong>How to implement:</strong> ${escapeHtml(item.howToImplement)}</p>
+          <p style="margin:0 0 8px; font-size:15px; line-height:1.6; color:#555555;"><strong>Success looks like:</strong> ${escapeHtml(item.successLooksLike)}</p>
+          <p style="margin:0; font-size:14px; line-height:1.55; color:#777777;">Effort: ${escapeHtml(item.effortLevel)} | Expected impact: ${escapeHtml(item.expectedImpact)} | Owner: ${escapeHtml(item.owner)}</p>
+        </div>
+      `
+    )
+    .join("");
+
+  return renderLabeledSection("Priority Fixes", "Priority Fixes", rows);
+}
+
+function renderNinetyDayImplementationPlanSection(items) {
+  const values = Array.isArray(items) ? items : [];
+  if (!values.length) return "";
+
+  const rows = values
+    .map(
+      (phase) => `
+        <div style="padding-top:16px; margin-top:16px; border-top:1px solid rgba(23,23,23,0.08);">
+          <p style="margin:0 0 6px; font-size:18px; line-height:1.4; color:#1a1a1a;"><strong>${escapeHtml(phase.phase)}</strong></p>
+          ${renderKeyValueParagraph("Objective", phase.objective)}
+          ${renderBullets("Exact tasks", phase.exactTasks)}
+          ${renderKeyValueParagraph("Rationale", phase.rationale)}
+          ${renderBullets("Deliverables", phase.deliverables)}
+          <p style="margin:10px 0 0; font-size:14px; line-height:1.55; color:#777777;">Owner: ${escapeHtml(phase.owner)} | Success metric: ${escapeHtml(phase.successMetric)}</p>
+        </div>
+      `
+    )
+    .join("");
+
+  return renderLabeledSection(
+    "90-Day Implementation Plan",
+    "90-Day Implementation Plan",
+    rows
+  );
+}
+
+function renderChecklistSectionV2(groups) {
+  const entries = Object.entries(groups || {});
+  if (!entries.length) return "";
+
+  return renderLabeledSection(
+    "Step-by-Step Checklist",
+    "Step-by-Step Checklist",
+    entries
+      .map(([group, items]) => renderChecklistGroup(group, items))
+      .filter(Boolean)
+      .join("")
+  );
+}
+
+function renderCoachingNotesSectionV2(notes) {
+  if (!notes) return "";
+
+  return renderLabeledSection(
+    "Coaching Notes",
+    "Coaching Notes",
+    `
+      ${renderBullets("What to do first", notes.whatToDoFirst)}
+      ${renderBullets("What to ignore for now", notes.whatToIgnoreForNow)}
+      ${renderBullets("Where the biggest leverage is", notes.biggestLeverageAreas)}
+      ${renderBullets(
+        "What Damon should walk through on the coaching call",
+        notes.whatDamonShouldWalkThroughOnTheCall
+      )}
+    `
+  );
+}
+
+function renderLabeledSection(label, title, body) {
+  if (!String(body || "").trim()) return "";
+
+  return `
+    <div style="padding-top:18px; margin-top:18px; border-top:1px solid rgba(23,23,23,0.08);">
+      <p style="margin:0 0 10px; font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:#777777;">${escapeHtml(label)}</p>
+      ${title ? `<p style="margin:0 0 14px; font-size:24px; line-height:1.2; color:#1a1a1a;"><strong>${escapeHtml(title)}</strong></p>` : ""}
+      ${body}
+    </div>
+  `;
+}
+
+function renderBulletsSection(label, title, items) {
+  const content = renderBullets(title, items);
+  if (!content) return "";
+  return renderLabeledSection(label, "", content);
+}
+
+function renderKeyValueParagraph(label, value) {
+  const text = String(value || "").trim();
+  if (!text) return "";
+  return `<p style="margin:0 0 10px; font-size:15px; line-height:1.6; color:#555555;"><strong>${escapeHtml(label)}:</strong> ${escapeHtml(text)}</p>`;
+}
+
+function renderPromptGroup(title, items) {
+  const values = Array.isArray(items) ? items : [];
+  if (!values.length) return "";
+
+  return `
+    <div style="margin-top:16px;">
+      <p style="margin:0 0 8px; font-size:16px; line-height:1.5; color:#1a1a1a;"><strong>${escapeHtml(title)}</strong></p>
+      <ol style="margin:0; padding-left:20px; font-size:15px; line-height:1.6; color:#555555;">
+        ${values
+          .map(
+            (item) => `
+              <li style="margin:0 0 12px;">
+                <strong>${escapeHtml(item.prompt)}</strong><br />
+                <span style="color:#555555;"><strong>Why it matters:</strong> ${escapeHtml(item.whyItMatters)}</span><br />
+                <span style="color:#777777;"><strong>What should answer it:</strong> ${escapeHtml(item.recommendedPageOrContent)}</span>
+              </li>
+            `
+          )
+          .join("")}
+      </ol>
+    </div>
+  `;
+}
+
+function renderIdeaGroup(title, items) {
+  const values = Array.isArray(items) ? items : [];
+  if (!values.length) return "";
+
+  return `
+    <div style="margin-top:16px;">
+      <p style="margin:0 0 8px; font-size:16px; line-height:1.5; color:#1a1a1a;"><strong>${escapeHtml(title)}</strong></p>
+      <ol style="margin:0; padding-left:20px; font-size:15px; line-height:1.6; color:#555555;">
+        ${values
+          .map(
+            (item) => `
+              <li style="margin:0 0 12px;">
+                <strong>${escapeHtml(item.title)}</strong><br />
+                <span style="color:#555555;"><strong>Target prompt:</strong> ${escapeHtml(item.targetQuestionOrPrompt)}</span><br />
+                <span style="color:#555555;"><strong>Why it matters:</strong> ${escapeHtml(item.whyItMatters)}</span><br />
+                <span style="color:#777777;"><strong>Suggested CTA/internal link:</strong> ${escapeHtml(item.suggestedCtaOrInternalLink)}</span>
+              </li>
+            `
+          )
+          .join("")}
+      </ol>
+    </div>
+  `;
+}
+
+function renderChecklistGroup(group, items) {
+  const values = Array.isArray(items) ? items : [];
+  if (!values.length) return "";
+
+  return `
+    <div style="margin-top:16px;">
+      <p style="margin:0 0 8px; font-size:16px; line-height:1.5; color:#1a1a1a;"><strong>${escapeHtml(startCase(group))}</strong></p>
+      <ul style="margin:0; padding-left:20px; font-size:15px; line-height:1.6; color:#555555;">
+        ${values
+          .map(
+            (item) => `
+              <li style="margin:0 0 12px;">
+                <strong>${escapeHtml(item.task)}</strong><br />
+                <span style="color:#555555;">${escapeHtml(item.whyItMatters)}</span><br />
+                <span style="color:#777777;">Owner: ${escapeHtml(item.owner)}</span>
+              </li>
+            `
+          )
+          .join("")}
+      </ul>
     </div>
   `;
 }
@@ -763,6 +1228,387 @@ function renderBullets(title, items) {
       </ul>
     </div>
   `;
+}
+
+function normalizeExecutiveSummaryV2(summary, businessName) {
+  return {
+    whatTheBusinessDoes: String(
+      summary?.whatTheBusinessDoes ||
+        `${businessName || "The business"} needs a clearer, more recommendation-ready explanation of what it does, who it helps, and why it is the best fit.`
+    ).trim(),
+    currentAiSearchVisibilityProblem: String(
+      summary?.currentAiSearchVisibilityProblem ||
+        "The site is not yet sending strong enough entity, trust, and answer-readiness signals for AI systems to recommend it consistently."
+    ).trim(),
+    topOpportunities: normalizeStringArray(summary?.topOpportunities, 3),
+    topRisks: normalizeStringArray(summary?.topRisks, 3),
+    plainEnglishSummary: String(
+      summary?.plainEnglishSummary ||
+        "The opportunity is real, but the site needs sharper positioning, stronger trust signals, and more question-led content before AI systems can cite it with confidence."
+    ).trim()
+  };
+}
+
+function normalizeAiVisibilityDiagnosisV2(section) {
+  return {
+    whereTheBrandIsClear: normalizeStringArray(section?.whereTheBrandIsClear, 6),
+    whereTheBrandIsUnclear: normalizeStringArray(section?.whereTheBrandIsUnclear, 6),
+    whyAiSystemsMayOrMayNotRecommendIt: normalizeStringArray(
+      section?.whyAiSystemsMayOrMayNotRecommendIt,
+      6
+    ),
+    entityClarityIssues: normalizeStringArray(section?.entityClarityIssues, 6),
+    contentGaps: normalizeStringArray(section?.contentGaps, 6),
+    trustAuthorityGaps: normalizeStringArray(section?.trustAuthorityGaps, 6)
+  };
+}
+
+function normalizeSearchIntentPromptMap(section, context = {}) {
+  return {
+    buyingIntent: normalizePromptGroup(section?.buyingIntent, "buying intent", context),
+    comparisonIntent: normalizePromptGroup(section?.comparisonIntent, "comparison intent", context),
+    educationalIntent: normalizePromptGroup(section?.educationalIntent, "educational intent", context),
+    localCategoryIntent: normalizePromptGroup(
+      section?.localCategoryIntent,
+      "local/category intent",
+      context
+    ),
+    problemAwareIntent: normalizePromptGroup(
+      section?.problemAwareIntent,
+      "problem-aware intent",
+      context
+    )
+  };
+}
+
+function normalizePromptGroup(items, label, context = {}) {
+  const values = Array.isArray(items) ? items : [];
+  if (values.length) {
+    return values.slice(0, 6).map((item) => ({
+      prompt: String(item?.prompt || `${startCase(label)} prompt`).trim(),
+      whyItMatters: String(
+        item?.whyItMatters || "This prompt maps to a meaningful AI-driven discovery moment."
+      ).trim(),
+      recommendedPageOrContent: String(
+        item?.recommendedPageOrContent ||
+          context.priorityPages ||
+          "A focused service, solution, or FAQ page"
+      ).trim()
+    }));
+  }
+
+  return [
+    {
+      prompt: `${startCase(label)} query for ${context.businessName || "the business"}`,
+      whyItMatters: "This is a high-value query type the site should be easier to surface for.",
+      recommendedPageOrContent:
+        context.priorityPages || "Create or strengthen a relevant commercial or support page"
+    }
+  ];
+}
+
+function normalizeWebsiteContentFindings(section) {
+  return {
+    homepageClarity: normalizeStringArray(section?.homepageClarity, 6),
+    serviceOrProductPageClarity: normalizeStringArray(
+      section?.serviceOrProductPageClarity,
+      6
+    ),
+    faqOpportunities: normalizeStringArray(section?.faqOpportunities, 8),
+    internalLinkingOpportunities: normalizeStringArray(
+      section?.internalLinkingOpportunities,
+      8
+    ),
+    missingProofTrustSignals: normalizeStringArray(section?.missingProofTrustSignals, 8),
+    contentDepthGaps: normalizeStringArray(section?.contentDepthGaps, 8)
+  };
+}
+
+function normalizeSchemaTechnicalRecommendations(section) {
+  const schemaRecommendations = Array.isArray(section?.schemaRecommendations)
+    ? section.schemaRecommendations.slice(0, 10).map((item) => ({
+        schemaType: String(item?.schemaType || "Schema recommendation").trim(),
+        whereItShouldGo: String(
+          item?.whereItShouldGo || "On the most relevant template or page type"
+        ).trim(),
+        whyItMatters: String(
+          item?.whyItMatters ||
+            "This improves machine-readable understanding and recommendation confidence."
+        ).trim(),
+        exampleFields: normalizeStringArray(item?.exampleFields, 8)
+      }))
+    : [];
+
+  return {
+    schemaRecommendations,
+    metadataImprovements: normalizeStringArray(section?.metadataImprovements, 8),
+    headingStructure: normalizeStringArray(section?.headingStructure, 8),
+    crawlabilityIndexability: normalizeStringArray(section?.crawlabilityIndexability, 8),
+    pageSpeedNotes: normalizeStringArray(section?.pageSpeedNotes, 6),
+    validationSteps: normalizeStringArray(section?.validationSteps, 6)
+  };
+}
+
+function normalizeContentThoughtStarters(section, context = {}) {
+  return {
+    articleIdeas: normalizeIdeaGroup(section?.articleIdeas, 10, context),
+    faqQuestions: normalizeIdeaGroup(section?.faqQuestions, 10, context),
+    comparisonIdeas: normalizeIdeaGroup(section?.comparisonIdeas, 5, context),
+    proofCaseStudyIdeas: normalizeIdeaGroup(section?.proofCaseStudyIdeas, 5, context),
+    socialLinkedInPostIdeas: normalizeIdeaGroup(section?.socialLinkedInPostIdeas, 5, context),
+    aiAnswerReadyContentBlocks: normalizeIdeaGroup(
+      section?.aiAnswerReadyContentBlocks,
+      5,
+      context
+    )
+  };
+}
+
+function normalizeIdeaGroup(items, max, context = {}) {
+  const values = Array.isArray(items) ? items : [];
+  if (values.length) {
+    return values.slice(0, max).map((item) => ({
+      title: String(item?.title || "Content idea").trim(),
+      targetQuestionOrPrompt: String(
+        item?.targetQuestionOrPrompt || "Target AI-search prompt"
+      ).trim(),
+      whyItMatters: String(
+        item?.whyItMatters || "This helps the site answer valuable prompts more clearly."
+      ).trim(),
+      suggestedCtaOrInternalLink: String(
+        item?.suggestedCtaOrInternalLink ||
+          context.priorityPages ||
+          context.conversionGoal ||
+          "Link to the most relevant service or conversion page"
+      ).trim()
+    }));
+  }
+
+  return [];
+}
+
+function normalizePriorityFixes(items, fallbackRecommendations) {
+  const values = Array.isArray(items) ? items : [];
+  if (values.length) {
+    return values.slice(0, 12).map((item) => ({
+      priorityLevel: normalizeSeverity(item?.priorityLevel),
+      tactic: String(item?.tactic || "Priority fix").trim(),
+      whyItMatters: String(
+        item?.whyItMatters || "This unlocks stronger AI visibility and recommendation readiness."
+      ).trim(),
+      howToImplement: String(
+        item?.howToImplement || "Implement the fix directly on the relevant pages or templates."
+      ).trim(),
+      effortLevel: normalizeDifficulty(item?.effortLevel),
+      expectedImpact: String(
+        item?.expectedImpact || "Improved clarity, citation readiness, and conversion alignment."
+      ).trim(),
+      owner: String(item?.owner || "Marketing lead").trim(),
+      successLooksLike: String(
+        item?.successLooksLike || "The site sends clearer and stronger signals for AI search."
+      ).trim()
+    }));
+  }
+
+  return fallbackRecommendations.slice(0, 8).map((recommendation) => ({
+    priorityLevel: normalizeSeverity(recommendation.priority),
+    tactic: recommendation.title,
+    whyItMatters: recommendation.whyItMattersForAiSearch,
+    howToImplement: recommendation.stepByStepInstructions.join(" "),
+    effortLevel: "Medium",
+    expectedImpact: "Stronger AI-search visibility and implementation readiness.",
+    owner: recommendation.recommendedOwner,
+    successLooksLike:
+      "The recommendation is implemented cleanly on the priority pages and improves answer readiness."
+  }));
+}
+
+function normalizeNinetyDayImplementationPlan(plan, fallbackRecommendations) {
+  const phases = ["Days 1-15", "Days 16-30", "Days 31-45", "Days 46-60", "Days 61-75", "Days 76-90"];
+  const values = Array.isArray(plan) ? plan : [];
+
+  const normalized = phases.map((phase, index) => {
+    const match = values.find(
+      (item) => String(item?.phase || "").trim().toLowerCase() === phase.toLowerCase()
+    );
+    const fallback = fallbackRecommendations[index] || fallbackRecommendations[0];
+
+    return {
+      phase,
+      objective: String(
+        match?.objective ||
+          `Advance the next layer of AI visibility work for ${fallback?.workstream || "the business"}.`
+      ).trim(),
+      exactTasks: normalizeStringArray(
+        match?.exactTasks || fallback?.stepByStepInstructions || [],
+        8
+      ),
+      rationale: String(
+        match?.rationale ||
+          fallback?.whyItMattersForAiSearch ||
+          "This phase builds stronger visibility and recommendation confidence."
+      ).trim(),
+      deliverables: normalizeStringArray(
+        match?.deliverables || [fallback?.title || "Completed implementation deliverables"],
+        6
+      ),
+      owner: String(match?.owner || fallback?.recommendedOwner || "Marketing lead").trim(),
+      successMetric: String(
+        match?.successMetric ||
+          "Priority pages become clearer, more structured, and more recommendation-ready."
+      ).trim()
+    };
+  });
+
+  return normalized;
+}
+
+function normalizeImplementationChecklistV2(checklist) {
+  const section = checklist || {};
+  return {
+    strategy: normalizeChecklistGroup(section.strategy),
+    website: normalizeChecklistGroup(section.website),
+    content: normalizeChecklistGroup(section.content),
+    schema: normalizeChecklistGroup(section.schema),
+    authority: normalizeChecklistGroup(section.authority),
+    measurement: normalizeChecklistGroup(section.measurement)
+  };
+}
+
+function normalizeChecklistGroup(items) {
+  const values = Array.isArray(items) ? items : [];
+  return values.slice(0, 10).map((item) => ({
+    task: String(item?.task || "Checklist action").trim(),
+    whyItMatters: String(
+      item?.whyItMatters || "This supports stronger AI visibility and implementation follow-through."
+    ).trim(),
+    owner: String(item?.owner || "Marketing lead").trim()
+  }));
+}
+
+function normalizeCoachingNotesV2(notes) {
+  return {
+    whatToDoFirst: normalizeStringArray(notes?.whatToDoFirst, 6),
+    whatToIgnoreForNow: normalizeStringArray(notes?.whatToIgnoreForNow, 6),
+    biggestLeverageAreas: normalizeStringArray(notes?.biggestLeverageAreas, 6),
+    whatDamonShouldWalkThroughOnTheCall: normalizeStringArray(
+      notes?.whatDamonShouldWalkThroughOnTheCall,
+      6
+    )
+  };
+}
+
+function flattenPromptMap(promptMap) {
+  const groups = [
+    ["Buying intent", promptMap?.buyingIntent],
+    ["Comparison intent", promptMap?.comparisonIntent],
+    ["Educational intent", promptMap?.educationalIntent],
+    ["Local/category intent", promptMap?.localCategoryIntent],
+    ["Problem-aware intent", promptMap?.problemAwareIntent]
+  ];
+
+  return groups
+    .flatMap(([label, items]) =>
+      (Array.isArray(items) ? items : []).map((item) => ({
+        query: item.prompt,
+        whyItMatters: item.whyItMatters,
+        recommendedIntent: label,
+        priority: "High"
+      }))
+    )
+    .slice(0, 15);
+}
+
+function mapPriorityFixesToLegacy(items) {
+  return (Array.isArray(items) ? items : []).slice(0, 8).map((item) => ({
+    title: item.tactic,
+    whyItMatters: item.whyItMatters,
+    expectedImpact: item.expectedImpact,
+    difficulty: item.effortLevel,
+    recommendedOwner: item.owner
+  }));
+}
+
+function mapRecommendationsToLegacy({
+  websiteContentFindings,
+  schemaTechnicalRecommendations,
+  contentThoughtStarters,
+  fallbackRecommendations
+}) {
+  const derived = [
+    ...(schemaTechnicalRecommendations?.schemaRecommendations || []).slice(0, 3).map((item) => ({
+      title: `Implement ${item.schemaType} schema`,
+      workstream: "Schema",
+      diagnosis: item.whereItShouldGo,
+      whyItMattersForAiSearch: item.whyItMatters,
+      whatToChange: item.exampleFields.join(", "),
+      stepByStepImplementation: item.exampleFields,
+      examplesOrTemplates: item.exampleFields,
+      timeline: "Days 1-30",
+      priority: "High"
+    })),
+    ...(websiteContentFindings?.faqOpportunities || []).slice(0, 2).map((item) => ({
+      title: "Expand FAQ coverage",
+      workstream: "Question-Led Content",
+      diagnosis: item,
+      whyItMattersForAiSearch:
+        "FAQ coverage helps AI systems match the brand to more buyer questions.",
+      whatToChange: item,
+      stepByStepImplementation: [item],
+      examplesOrTemplates: [],
+      timeline: "Days 15-45",
+      priority: "Medium"
+    })),
+    ...(contentThoughtStarters?.articleIdeas || []).slice(0, 2).map((item) => ({
+      title: item.title,
+      workstream: "Topic Clusters",
+      diagnosis: item.targetQuestionOrPrompt,
+      whyItMattersForAiSearch: item.whyItMatters,
+      whatToChange: item.suggestedCtaOrInternalLink,
+      stepByStepImplementation: [item.targetQuestionOrPrompt, item.suggestedCtaOrInternalLink],
+      examplesOrTemplates: [],
+      timeline: "Days 30-60",
+      priority: "Medium"
+    }))
+  ];
+
+  if (derived.length) return derived;
+
+  return normalizeRecommendations([], fallbackRecommendations);
+}
+
+function mapWorkstreamsToLegacy({ ninetyDayImplementationPlan, fallbackRecommendations }) {
+  const values = Array.isArray(ninetyDayImplementationPlan) ? ninetyDayImplementationPlan : [];
+  if (values.length) {
+    return values.map((item) => ({
+      title: item.phase,
+      summary: item.objective,
+      items: item.exactTasks
+    }));
+  }
+
+  return normalizeWorkstreams([], fallbackRecommendations);
+}
+
+function mapCalendarToLegacy(items) {
+  return (Array.isArray(items) ? items : []).map((item) => ({
+    phase: item.phase,
+    items: (Array.isArray(item.exactTasks) ? item.exactTasks : []).map((task) => ({
+      task,
+      whyItMatters: item.rationale,
+      expectedOutcome: item.successMetric,
+      suggestedOwner: item.owner
+    }))
+  }));
+}
+
+function startCase(value) {
+  return String(value || "")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/[-_]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
 function normalizeExecutiveSummary(summary) {
